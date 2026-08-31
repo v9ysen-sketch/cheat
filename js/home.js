@@ -14,6 +14,20 @@
   let query = '';
   let sortMode = 'tier';
 
+  function rarityPips(cfg) {
+    const box = CRATER.getCase(cfg.id);
+    if (!box) return '';
+    const counts = {};
+    box.items.forEach(it => { counts[it.rarity] = (counts[it.rarity] || 0) + 1; });
+    return `
+      <div class="rarity-pips" title="Распределение дропов">
+        ${CRATER.RARITY_ORDER.filter(r => counts[r]).map(r => `
+          <span class="pip" style="background:${CRATER.RARITY[r].color}" title="${CRATER.RARITY[r].name}: ${counts[r]}"></span>
+          ${counts[r] > 1 ? `<span class="pip-count">${counts[r]}</span>` : ''}
+        `).join('')}
+      </div>`;
+  }
+
   function caseCardHTML(cfg, i) {
     const tierName = ['','Стартовый','Прайм','Комбат','Элитный','Легендарный'][cfg.tier];
     return `
@@ -24,6 +38,7 @@
         </div>
         <div class="case-body">
           <div class="case-name">${CRATER.esc(cfg.name)}</div>
+          ${rarityPips(cfg)}
           <div class="case-open">
             <span class="case-price">${CRATER.fmt(cfg.price)} <span class="cur">БП</span></span>
             <button class="case-open-btn">Открыть</button>
@@ -58,6 +73,39 @@
   if (sortEl) sortEl.addEventListener('change', (e) => { sortMode = e.target.value; render(); });
 
   render();
+
+  // ---------- Home hero (rotating featured tier V cases) ---------- //
+  const heroEl = document.getElementById('hero');
+  if (heroEl) {
+    const featured = CRATER.CASES.filter(c => c.tier === 5);
+    let idx = 0;
+    function renderHero() {
+      const c = featured[idx % featured.length];
+      const drops = CRATER.buildFakeDrops(1)[0];
+      heroEl.innerHTML = `
+        <div class="hero-art" style="background:radial-gradient(ellipse at center, ${c.secondary}44 0%, transparent 70%)">
+          ${CRATER.artCase(c)}
+        </div>
+        <div class="hero-info">
+          <div class="hero-eyebrow">Топ кейс сегодня</div>
+          <h2 class="hero-title">${CRATER.esc(c.name)}</h2>
+          <p class="hero-sub">
+            Легендарный тир · возможен нож или перчатки.
+            ${drops ? `Последний дроп: <b style="color:${CRATER.RARITY[drops.item.rarity].color}">${CRATER.esc(drops.item.skin)}</b>` : ''}
+          </p>
+          <div class="hero-actions">
+            <a class="hero-open" href="case.html?id=${c.id}">
+              Открыть · <span>${CRATER.fmt(c.price)} БП</span>
+            </a>
+            <button class="hero-next" id="hero-next" title="Другой кейс">↻</button>
+          </div>
+        </div>`;
+      const nb = document.getElementById('hero-next');
+      if (nb) nb.addEventListener('click', () => { idx++; renderHero(); });
+    }
+    renderHero();
+    setInterval(() => { idx++; renderHero(); }, 12000);
+  }
 
   // ---------- Live drops ticker ---------- //
   const trackEl = document.getElementById('live-track');

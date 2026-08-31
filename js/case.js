@@ -51,8 +51,9 @@
             <button class="btn-open" id="btn-open">Открыть · ${CRATER.fmt(box.price)} БП</button>
             <div class="btn-multi">
               <button data-n="2">×2</button>
-              <button data-n="3">×3</button>
               <button data-n="5">×5</button>
+              <button data-n="10">×10</button>
+              <button data-n="25">×25</button>
             </div>
           </div>
         </div>
@@ -189,6 +190,28 @@
   function hideResult() { modal.classList.remove('show'); }
 
   btnSell.addEventListener('click', () => {
+    if (modal._multiWins) {
+      let total = 0;
+      modal._multiWins.forEach(w => {
+        CRATER.addBalance(w.price); total += w.price;
+        CRATER.state.stats.earned += w.price;
+        CRATER.state.history.unshift({
+          weapon: w.weaponName, skin: w.skin, rarity: w.rarity, price: w.price,
+          caseName: box.name, at: Date.now(), cls: w.cls, colors: w.colors,
+        });
+        CRATER.state.stats.opened += 1;
+        if (w.price > (CRATER.state.stats.bestPrice || 0)) {
+          CRATER.state.stats.bestPrice = w.price;
+          CRATER.state.stats.bestItem = { weapon: w.weaponName, skin: w.skin, price: w.price, rarity: w.rarity };
+        }
+      });
+      if (CRATER.state.history.length > 200) CRATER.state.history.length = 200;
+      CRATER.saveState();
+      CRATER.toast(`Продано ${modal._multiWins.length} шт. за ${CRATER.fmt(total)} БП`);
+      modal._multiWins = null;
+      hideResult();
+      return;
+    }
     if (!modalItem) return;
     CRATER.addBalance(modalItem.price);
     CRATER.state.stats.earned += modalItem.price;
@@ -208,6 +231,13 @@
     hideResult();
   });
   btnKeep.addEventListener('click', () => {
+    if (modal._multiWins) {
+      modal._multiWins.forEach(w => CRATER.addToInventory(w, box));
+      CRATER.toast(`+${modal._multiWins.length} шт. в инвентарь`);
+      modal._multiWins = null;
+      hideResult();
+      return;
+    }
     if (!modalItem) return;
     CRATER.addToInventory(modalItem, box);
     CRATER.toast('В инвентаре: ' + modalItem.skin);
@@ -234,31 +264,82 @@
 
   async function openMany(n) {
     if (state.busy) return;
-    // Confirm cost
     const cost = box.price * n;
     if (CRATER.state.balance < cost) {
       CRATER.toast('Недостаточно БП на ×' + n, 'err');
       return;
     }
-    // Multi-open: quick sequence, auto-keep everything, summary toast
     state.busy = true;
     document.getElementById('btn-open').disabled = true;
-    const prevSpeed = state.speed;
-    state.speed = 'fast';
+
     let total = 0, wins = [];
-    for (let i = 0; i < n; i++) {
-      if (!CRATER.spend(box.price)) break;
-      const win = CRATER.rollItem(box);
-      wins.push(win);
-      await playRoulette(win);
-      CRATER.addToInventory(win, box);
-      total += win.price;
+    const instant = n >= 10;   // skip animation for large batches
+
+    if (instant) {
+      // Instant mode: roll all at once, no animation
+      for (let i = 0; i < n; i++) {
+        if (!CRATER.spend(box.price)) break;
+        const win = CRATER.rollItem(box);
+        wins.push(win);
+        total += win.price;
+      }
+      // Quick visual: brief roulette showing best drop
+      const best = wins.reduce((a,b) => (a && a.price > b.price ? a : b), wins[0]);
+      if (best) {
+        const prevSpeed = state.speed;
+        state.speed = 'fast';
+        await playRoulette(best);
+        state.speed = prevSpeed;
+      }
+    } else {
+      const prevSpeed = state.speed;
+      state.speed = 'fast';
+      for (let i = 0; i < n; i++) {
+        if (!CRATER.spend(box.price)) break;
+        const win = CRATER.rollItem(box);
+        wins.push(win);
+        await playRoulette(win);
+        total += win.price;
+      }
+      state.speed = prevSpeed;
     }
-    state.speed = prevSpeed;
+
     state.busy = false;
     document.getElementById('btn-open').disabled = false;
-    const best = wins.reduce((a,b) => (a && a.price > b.price ? a : b), null);
-    CRATER.toast(`×${n} · выпало на ${CRATER.fmt(total)} БП · лучший: ${best ? best.skin : '—'}`);
+    showMultiResult(wins, cost, total);
+    if (CRATER.sound) CRATER.sound.win();
+    if (wins.some(w => ['covert','special','classified'].includes(w.rarity)) && typeof CRATER.confetti === 'function') {
+      CRATER.confetti({ count: 120 });
+    }
+  }
+
+  function showMultiResult(wins, cost, total) {
+    const diff = total - cost;
+    const diffCls = diff >= 0 ? 'pos' : 'neg';
+    const diffSign = diff >= 0 ? '+' : '';
+    document.querySelector('.modal h2').textContent = `×${wins.length} · Результат`;
+    wonBox.style.borderBottomColor = 'var(--accent)';
+    wonBox.innerHTML = `
+      <div class="multi-grid">
+        ${wins.map(w => `
+          <div class="mini-drop rarity-${w.rarity}" title="${CRATER.esc(w.skin)}"
+               style="border-color:${CRATER.RARITY[w.rarity].color}">
+            <div class="mini-drop-img">${CRATER.artWeaponMini(w)}</div>
+            <div class="mini-drop-price">${CRATER.fmt(w.price)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="multi-summary">
+        <div>Потрачено: <b>${CRATER.fmt(cost)} БП</b></div>
+        <div>Выпало: <b style="color:var(--accent)">${CRATER.fmt(total)} БП</b></div>
+        <div>Разница: <b class="${diffCls}" style="color:var(${diff>=0?'--accent':'--danger'})">${diffSign}${CRATER.fmt(diff)} БП</b></div>
+      </div>
+    `;
+    // Repurpose sell/keep buttons for the batch
+    btnSell.textContent = `Продать всё за ${CRATER.fmt(total)} БП`;
+    btnKeep.textContent = 'Оставить всё';
+    modalItem = null;
+    modal._multiWins = wins;
+    modal.classList.add('show');
   }
 
   render();

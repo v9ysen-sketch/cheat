@@ -5,6 +5,7 @@
 (function () {
   CRATER.boot('profile');
   const page = document.getElementById('page');
+  const state = { invSort: 'newest', invFilter: 'all' };
 
   function statRow() {
     const s = CRATER.state.stats;
@@ -98,20 +99,45 @@
   }
 
   function inventoryGrid() {
-    const inv = CRATER.state.inventory;
+    let inv = CRATER.state.inventory.slice();
     if (!inv.length) {
       return `<div class="section-title">Инвентарь <span class="count">0 предметов</span></div>
         <div class="empty-state">Инвентарь пуст — открой пару кейсов на главной</div>`;
     }
+    const sort = state.invSort || 'newest';
+    if (sort === 'newest')       inv.sort((a,b) => (b.gainedAt||0) - (a.gainedAt||0));
+    else if (sort === 'oldest')  inv.sort((a,b) => (a.gainedAt||0) - (b.gainedAt||0));
+    else if (sort === 'price')   inv.sort((a,b) => b.price - a.price);
+    else if (sort === 'price-a') inv.sort((a,b) => a.price - b.price);
+    else if (sort === 'rarity')  inv.sort((a,b) =>
+      CRATER.RARITY_ORDER.indexOf(b.rarity) - CRATER.RARITY_ORDER.indexOf(a.rarity));
+    const filter = state.invFilter || 'all';
+    if (filter !== 'all') inv = inv.filter(it => it.rarity === filter);
     const total = inv.reduce((a, b) => a + b.price, 0);
     return `
       <div class="section-title">
         Инвентарь
         <span class="count">${inv.length} · ${CRATER.fmt(total)} БП</span>
+        <select id="inv-sort" class="filter-select" style="margin-left:auto">
+          <option value="newest"  ${sort==='newest'?'selected':''}>Новые</option>
+          <option value="oldest"  ${sort==='oldest'?'selected':''}>Старые</option>
+          <option value="price"   ${sort==='price'?'selected':''}>Цена ↓</option>
+          <option value="price-a" ${sort==='price-a'?'selected':''}>Цена ↑</option>
+          <option value="rarity"  ${sort==='rarity'?'selected':''}>Редкость</option>
+        </select>
         <button class="sell-all" id="sell-all">Продать всё</button>
       </div>
+      <div class="filter-bar" style="margin-bottom:12px">
+        <button class="chip ${filter==='all'?'active':''}" data-inv-r="all">Все</button>
+        ${CRATER.RARITY_ORDER.map(r => {
+          const has = CRATER.state.inventory.filter(it => it.rarity === r).length;
+          if (!has) return '';
+          return `<button class="chip ${filter===r?'active':''}" data-inv-r="${r}"
+            style="color:${CRATER.RARITY[r].color}">${CRATER.RARITY[r].name} · ${has}</button>`;
+        }).join('')}
+      </div>
       <div class="inventory-grid">
-        ${inv.map(it => CRATER.itemCardHTML(it, { sellBtn: true })).join('')}
+        ${inv.map(it => CRATER.itemCardHTML(it, { sellBtn: true })).join('') || '<div class="empty-state">Нет предметов этой редкости</div>'}
       </div>`;
   }
 
@@ -202,6 +228,12 @@
       const got = CRATER.sellAllInventory();
       CRATER.toast('Продано на ' + CRATER.fmt(got) + ' БП');
       render();
+    });
+
+    const invSort = document.getElementById('inv-sort');
+    if (invSort) invSort.addEventListener('change', (e) => { state.invSort = e.target.value; render(); });
+    page.querySelectorAll('[data-inv-r]').forEach(b => {
+      b.addEventListener('click', () => { state.invFilter = b.dataset.invR; render(); });
     });
 
     page.querySelectorAll('[data-sell]').forEach(btn => {
