@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CRATER — Открывай кейсы</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230d1310'/%3E%3Cpolygon points='16,10 56,10 46,54 6,54' fill='%232be07b'/%3E%3C/svg%3E"/>
+</head>
+<body>
+  <main>
+    <div class="live-drops" id="live-drops">
+      <div class="live-drops-track" id="live-track"></div>
+    </div>
+
+    <h1 class="page-title">Кейсы</h1>
+    <p class="page-subtitle">40 кейсов. Крути бесплатно, копи инвентарь, играй в апгрейд.</p>
+
+    <div class="filter-bar" id="filters">
+      <button class="chip active" data-tier="all">Все</button>
+      <button class="chip" data-tier="1">Стартовые</button>
+      <button class="chip" data-tier="2">Прайм</button>
+      <button class="chip" data-tier="3">Комбат</button>
+      <button class="chip" data-tier="4">Элитные</button>
+      <button class="chip" data-tier="5">Легендарные</button>
+      <input type="search" id="q" placeholder="Поиск кейса…"/>
+    </div>
+
+    <div class="case-grid" id="case-grid"></div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/artwork.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

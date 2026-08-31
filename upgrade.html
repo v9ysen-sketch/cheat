@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CRATER — Апгрейд</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230d1310'/%3E%3Cpolygon points='16,10 56,10 46,54 6,54' fill='%232be07b'/%3E%3C/svg%3E"/>
+</head>
+<body>
+  <main>
+    <h1 class="page-title">Апгрейд</h1>
+    <p class="page-subtitle">Меняй скин из инвентаря на предмет дороже. Шанс тем выше, чем ближе цены.</p>
+
+    <div class="upgrade-grid">
+      <div class="upgrade-col">
+        <h3>Твой предмет</h3>
+        <div class="upgrade-slot" id="src-slot">Выбери из инвентаря ↓</div>
+        <div class="upgrade-list" id="src-list"></div>
+      </div>
+
+      <div class="upgrade-center">
+        <div class="upgrade-meter">
+          <svg viewBox="0 0 240 240" width="240" height="240">
+            <circle class="track" cx="120" cy="120" r="105"/>
+            <circle class="fill"  cx="120" cy="120" r="105" id="meter-fill"/>
+          </svg>
+          <div class="upgrade-arc" id="arc">
+            <!-- filled dynamically -->
+          </div>
+          <div class="center-text">
+            <div class="chance" id="chance">0<span style="font-size:26px">%</span></div>
+            <div class="chance-label">Шанс</div>
+          </div>
+        </div>
+
+        <div class="upgrade-mult-row" id="mults">
+          <button data-m="1.5">×1.5</button>
+          <button data-m="2">×2</button>
+          <button data-m="3">×3</button>
+          <button data-m="5">×5</button>
+          <button data-m="10">×10</button>
+          <button data-m="20">×20</button>
+        </div>
+
+        <div class="upgrade-speed" id="upgrade-speed">
+          <button data-s="normal" class="active">Обычная <span class="hint">быстро</span></button>
+          <button data-s="gamble">Азартная <span class="hint">медленно</span></button>
+        </div>
+
+        <button class="upgrade-go" id="btn-upgrade" disabled>Апгрейд</button>
+      </div>
+
+      <div class="upgrade-col">
+        <h3>Цель</h3>
+        <div class="upgrade-slot" id="tgt-slot">Выбери множитель →</div>
+        <div class="upgrade-list" id="tgt-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal">
+      <h2 id="result-title">Результат</h2>
+      <div class="won-item" id="won"></div>
+      <div class="actions">
+        <button class="btn-keep" id="btn-close">Ок</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/artwork.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/upgrade.js"></script>
+</body>
+</html>
