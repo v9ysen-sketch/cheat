@@ -40,6 +40,60 @@ CRATER.saveState = function() {
 
 CRATER.state = CRATER.loadState();
 
+// ---------- Rank ---------- //
+CRATER.RANKS = [
+  { key: 'rookie',   name: 'Рекрут',    minOpened: 0,    minSpent: 0,        color: '#8a988a', icon: '▲' },
+  { key: 'novice',   name: 'Новобранец',minOpened: 5,    minSpent: 5000,     color: '#b0c3d9', icon: '▲' },
+  { key: 'trainee',  name: 'Стажёр',    minOpened: 15,   minSpent: 25000,    color: '#5e98d9', icon: '▲▲' },
+  { key: 'operator', name: 'Оператор',  minOpened: 40,   minSpent: 100000,   color: '#4b69ff', icon: '▲▲▲' },
+  { key: 'veteran',  name: 'Ветеран',   minOpened: 100,  minSpent: 500000,   color: '#8847ff', icon: '★' },
+  { key: 'elite',    name: 'Элита',     minOpened: 250,  minSpent: 2000000,  color: '#d32ce6', icon: '★★' },
+  { key: 'master',   name: 'Мастер',    minOpened: 500,  minSpent: 5000000,  color: '#eb4b4b', icon: '★★★' },
+  { key: 'legend',   name: 'Легенда',   minOpened: 1000, minSpent: 20000000, color: '#ffd700', icon: '☆' },
+  { key: 'mythic',   name: 'Мифик',     minOpened: 2500, minSpent: 100000000,color: '#2be07b', icon: '❖' },
+];
+CRATER.getRank = function() {
+  const s = CRATER.state.stats || {};
+  const opened = s.opened || 0;
+  const spent = s.spent || 0;
+  let cur = CRATER.RANKS[0], next = null;
+  for (let i = 0; i < CRATER.RANKS.length; i++) {
+    const r = CRATER.RANKS[i];
+    if (opened >= r.minOpened || spent >= r.minSpent) cur = r;
+  }
+  const idx = CRATER.RANKS.indexOf(cur);
+  next = CRATER.RANKS[idx + 1] || null;
+  let progress = 1;
+  if (next) {
+    // progress = max of opened/spent progress
+    const po = next.minOpened > 0 ? Math.min(1, opened / next.minOpened) : 0;
+    const ps = next.minSpent > 0 ? Math.min(1, spent / next.minSpent) : 0;
+    progress = Math.max(po, ps);
+  }
+  return { current: cur, next, progress };
+};
+
+// ---------- Daily bonus ---------- //
+CRATER.DAILY_BONUS = 5000;
+CRATER.DAILY_MS = 24 * 60 * 60 * 1000;
+CRATER.canClaimDaily = function() {
+  const last = CRATER.state.lastDaily || 0;
+  return (Date.now() - last) >= CRATER.DAILY_MS;
+};
+CRATER.claimDaily = function() {
+  if (!CRATER.canClaimDaily()) return 0;
+  CRATER.state.lastDaily = Date.now();
+  CRATER.state.dailyStreak = (CRATER.state.dailyStreak || 0) + 1;
+  CRATER.saveState();
+  const bonus = CRATER.DAILY_BONUS + Math.min(CRATER.state.dailyStreak, 7) * 500;
+  CRATER.addBalance(bonus);
+  return bonus;
+};
+CRATER.nextDailyIn = function() {
+  const last = CRATER.state.lastDaily || 0;
+  return Math.max(0, CRATER.DAILY_MS - (Date.now() - last));
+};
+
 // ---------- Format ---------- //
 CRATER.fmt = function(n) {
   const int = Math.round(n);
@@ -121,9 +175,10 @@ CRATER.renderHeader = function(active) {
       </a>`;
 
   const nav = [
-    { href: 'index.html',   label: 'Кейсы',   key: 'cases' },
-    { href: 'upgrade.html', label: 'Апгрейд', key: 'upgrade' },
-    { href: 'profile.html', label: 'Профиль', key: 'profile' },
+    { href: 'index.html',    label: 'Кейсы',    key: 'cases' },
+    { href: 'upgrade.html',  label: 'Апгрейд',  key: 'upgrade' },
+    { href: 'contract.html', label: 'Контракт', key: 'contract' },
+    { href: 'profile.html',  label: 'Профиль',  key: 'profile' },
   ].map(n => `<a href="${n.href}" class="${active === n.key ? 'active' : ''}">${n.label}</a>`).join('');
 
   return `
@@ -134,8 +189,21 @@ CRATER.renderHeader = function(active) {
       </a>
       <nav class="main-nav">${nav}</nav>
       <div class="header-spacer"></div>
+      ${(function(){
+        if (typeof CRATER.getRank !== 'function') return '';
+        const r = CRATER.getRank();
+        return `<div class="rank-chip" title="${r.current.name}" style="color:${r.current.color}; border-color:${r.current.color}">
+          <span class="rc-icon">${r.current.icon}</span>
+          <span class="rc-name">${r.current.name}</span>
+        </div>`;
+      })()}
       <div class="balance-badge" id="bal-badge">${CRATER.fmtBP(CRATER.state.balance)}</div>
       <button class="balance-add" id="bal-add" title="Пополнить (бесплатно)">+ 10 000</button>
+      <button class="mute-btn" id="mute-btn" title="Звук">
+        ${CRATER.state.prefs.muted
+          ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'
+          : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'}
+      </button>
       ${userChip}
     </header>`;
 };
@@ -149,6 +217,14 @@ CRATER.mountHeader = function(active) {
   document.getElementById('bal-add').addEventListener('click', () => {
     CRATER.addBalance(10000);
     CRATER.toast('+10 000 БП зачислено');
+    if (CRATER.sound) CRATER.sound.coin();
+  });
+  const muteBtn = document.getElementById('mute-btn');
+  if (muteBtn) muteBtn.addEventListener('click', () => {
+    CRATER.state.prefs.muted = !CRATER.state.prefs.muted;
+    CRATER.saveState();
+    if (CRATER.sound) CRATER.sound.setMuted(CRATER.state.prefs.muted);
+    CRATER.mountHeader(active);
   });
 };
 

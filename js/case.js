@@ -134,7 +134,22 @@
         track.style.transition = `transform ${prof.dur}ms ${prof.ease}`;
         track.style.transform = `translateX(${targetX}px)`;
       });
-      setTimeout(() => resolve(), prof.dur + 80);
+      // Schedule tick sounds along the decel curve
+      if (CRATER.sound) {
+        CRATER.sound.click();
+        const ticks = state.speed === 'gamble' ? 40 : (state.speed === 'fast' ? 18 : 28);
+        for (let i = 0; i < ticks; i++) {
+          const t = 1 - Math.pow(1 - i / ticks, 2.4);
+          setTimeout(() => CRATER.sound.tick(), t * prof.dur);
+        }
+        setTimeout(() => CRATER.sound.tock(), prof.dur - 20);
+      }
+      // Highlight the winning card when animation lands
+      setTimeout(() => {
+        const cards = track.querySelectorAll('.item-card');
+        if (cards[WIN_INDEX]) cards[WIN_INDEX].classList.add('landed');
+      }, prof.dur);
+      setTimeout(() => resolve(), prof.dur + 400);
     });
   }
 
@@ -157,6 +172,19 @@
     `;
     document.querySelector('.modal h2').textContent = 'Ты выбил';
     modal.classList.add('show');
+    if (CRATER.sound) {
+      if (['covert','special','classified'].includes(item.rarity)) CRATER.sound.bigwin();
+      else if (item.rarity === 'restricted') CRATER.sound.win();
+      else CRATER.sound.chime();
+    }
+    if (typeof CRATER.confetti === 'function' && ['classified','covert','special'].includes(item.rarity)) {
+      const rColor = CRATER.RARITY[item.rarity].color;
+      CRATER.confetti({
+        count: item.rarity === 'special' ? 160 : (item.rarity === 'covert' ? 120 : 80),
+        colors: [rColor, '#ffd700', '#2be07b', item.colors[0], item.colors[1]],
+      });
+    }
+    if (typeof CRATER.checkAchievements === 'function') CRATER.checkAchievements();
   }
   function hideResult() { modal.classList.remove('show'); }
 
@@ -234,4 +262,16 @@
   }
 
   render();
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === ' ' || e.key === 'Enter') {
+      if (modal.classList.contains('show')) return;
+      e.preventDefault();
+      openOnce();
+    } else if (e.key === 'Escape') {
+      if (modal.classList.contains('show')) hideResult();
+    }
+  });
 })();

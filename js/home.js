@@ -8,14 +8,16 @@
   const grid = document.getElementById('case-grid');
   const filters = document.getElementById('filters');
   const q = document.getElementById('q');
+  const sortEl = document.getElementById('sort');
 
   let activeTier = 'all';
   let query = '';
+  let sortMode = 'tier';
 
-  function caseCardHTML(cfg) {
+  function caseCardHTML(cfg, i) {
     const tierName = ['','Стартовый','Прайм','Комбат','Элитный','Легендарный'][cfg.tier];
     return `
-      <a class="case-card" href="case.html?id=${cfg.id}" data-tier="${cfg.tier}" data-name="${CRATER.esc(cfg.name.toLowerCase())}">
+      <a class="case-card" href="case.html?id=${cfg.id}" data-tier="${cfg.tier}" data-name="${CRATER.esc(cfg.name.toLowerCase())}" style="--i:${i}">
         <div class="case-art">
           <div class="case-tier">${tierName}</div>
           ${CRATER.artCase(cfg)}
@@ -31,12 +33,16 @@
   }
 
   function render() {
-    const items = CRATER.CASES.filter(c => {
+    let items = CRATER.CASES.filter(c => {
       if (activeTier !== 'all' && String(c.tier) !== String(activeTier)) return false;
       if (query && !c.name.toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-    grid.innerHTML = items.map(caseCardHTML).join('') ||
+    if (sortMode === 'cheap')     items.sort((a,b) => a.price - b.price);
+    else if (sortMode === 'expensive') items.sort((a,b) => b.price - a.price);
+    else if (sortMode === 'name') items.sort((a,b) => a.name.localeCompare(b.name));
+    // default 'tier' preserves declaration order
+    grid.innerHTML = items.map((c, i) => caseCardHTML(c, i)).join('') ||
       '<div class="empty-state">Ничего не найдено</div>';
   }
 
@@ -49,6 +55,7 @@
     render();
   });
   q.addEventListener('input', (e) => { query = e.target.value; render(); });
+  if (sortEl) sortEl.addEventListener('change', (e) => { sortMode = e.target.value; render(); });
 
   render();
 

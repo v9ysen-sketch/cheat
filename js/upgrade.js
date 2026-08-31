@@ -290,6 +290,7 @@
 
     state.busy = true;
     btnUpgrade.disabled = true;
+    if (CRATER.sound) CRATER.sound.click();
 
     const needle = document.getElementById('needle');
     needle.style.transition = 'none';
@@ -300,10 +301,26 @@
     needle.style.transition = `transform ${dur}ms ${ease}`;
     needle.setAttribute('transform', `rotate(${finalDeg} 130 130)`);
 
+    if (CRATER.sound) {
+      const ticks = state.speed === 'gamble' ? 34 : 18;
+      for (let i = 0; i < ticks; i++) {
+        const t = 1 - Math.pow(1 - i / ticks, 2.4);
+        setTimeout(() => CRATER.sound.tick(), t * dur);
+      }
+      setTimeout(() => CRATER.sound.tock(), dur - 20);
+    }
+
     setTimeout(() => {
       arcHolder.classList.remove('result-win', 'result-lose');
       arcHolder.classList.add(won ? 'result-win' : 'result-lose');
+      if (CRATER.sound) (won ? CRATER.sound.bigwin() : CRATER.sound.fail());
+      if (won && typeof CRATER.confetti === 'function') {
+        CRATER.confetti({ count: 100, colors: ['#2be07b','#ffd700','#4b69ff','#d32ce6'] });
+      } else if (!won && typeof CRATER.screenFlash === 'function') {
+        CRATER.screenFlash('rgba(224,72,59,0.28)');
+      }
       finalize(won);
+      if (typeof CRATER.checkAchievements === 'function') CRATER.checkAchievements();
     }, dur + 100);
   });
 

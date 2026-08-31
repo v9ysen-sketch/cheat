@@ -21,6 +21,50 @@
       </div>`;
   }
 
+  function rankBadge() {
+    if (typeof CRATER.getRank !== 'function') return '';
+    const r = CRATER.getRank();
+    const pct = Math.round(r.progress * 100);
+    return `
+      <div class="rank-badge" style="border-color:${r.current.color}">
+        <div class="rank-icon" style="color:${r.current.color}">${r.current.icon}</div>
+        <div class="rank-info">
+          <div class="rank-name" style="color:${r.current.color}">${r.current.name}</div>
+          ${r.next ? `
+            <div class="rank-progress">
+              <div class="rank-bar"><div class="rank-fill" style="width:${pct}%;background:${r.current.color}"></div></div>
+              <div class="rank-next">До ${r.next.name}: ${pct}%</div>
+            </div>` : `<div class="rank-next" style="color:${r.current.color}">Макс. ранг</div>`}
+        </div>
+      </div>`;
+  }
+
+  function dailyBonus() {
+    if (typeof CRATER.canClaimDaily !== 'function') return '';
+    if (CRATER.canClaimDaily()) {
+      const streak = CRATER.state.dailyStreak || 0;
+      const bonus = CRATER.DAILY_BONUS + Math.min(streak + 1, 7) * 500;
+      return `
+        <div class="daily-bonus available">
+          <div class="daily-info">
+            <div class="daily-title">Ежедневный бонус</div>
+            <div class="daily-sub">Забери <b style="color:var(--accent)">+${CRATER.fmt(bonus)} БП</b> · серия ${streak}</div>
+          </div>
+          <button class="daily-btn" id="claim-daily">Забрать</button>
+        </div>`;
+    }
+    const ms = CRATER.nextDailyIn();
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    return `
+      <div class="daily-bonus">
+        <div class="daily-info">
+          <div class="daily-title">Ежедневный бонус</div>
+          <div class="daily-sub">Через <b>${h}ч ${m}м</b> · серия ${CRATER.state.dailyStreak || 0}</div>
+        </div>
+      </div>`;
+  }
+
   function profileHeader() {
     const p = CRATER.state.profile;
     if (!p) {
@@ -30,9 +74,11 @@
           <div class="who">
             <h1>Гость</h1>
             <div class="meta">Войди через Стим, чтобы твой профиль отображался красиво.</div>
+            ${rankBadge()}
           </div>
           <a href="login.html" class="logout" style="color:var(--accent);border-color:var(--accent-dark)">Войти</a>
-        </div>`;
+        </div>
+        ${dailyBonus()}`;
     }
     const since = new Date(p.since).toLocaleDateString('ru-RU');
     return `
@@ -44,9 +90,11 @@
             ${p.steamId ? `<span class="steam-id">${CRATER.esc(p.steamId)}</span> · ` : ''}
             в CRATER с ${since}
           </div>
+          ${rankBadge()}
         </div>
         <button class="logout" id="logout">Выйти</button>
-      </div>`;
+      </div>
+      ${dailyBonus()}`;
   }
 
   function inventoryGrid() {
@@ -98,13 +146,43 @@
     return Math.floor(s/86400) + ' дн назад';
   }
 
+  function achievementsSection() {
+    if (typeof CRATER.getAchievementProgress !== 'function') return '';
+    const list = CRATER.getAchievementProgress();
+    const done = list.filter(a => a.unlocked).length;
+    return `
+      <div class="section-title">Достижения <span class="count">${done} / ${list.length}</span></div>
+      <div class="achievements-grid">
+        ${list.map(a => `
+          <div class="ach ${a.unlocked ? 'unlocked' : 'locked'}" title="${CRATER.esc(a.desc)}">
+            <div class="ach-icon">${a.icon}</div>
+            <div class="ach-body">
+              <div class="ach-name">${CRATER.esc(a.name)}</div>
+              <div class="ach-desc">${CRATER.esc(a.desc)}</div>
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }
+
   function render() {
     page.innerHTML = `
       ${profileHeader()}
       ${statRow()}
+      ${achievementsSection()}
       ${inventoryGrid()}
       ${historyList()}
     `;
+
+    const daily = document.getElementById('claim-daily');
+    if (daily) daily.addEventListener('click', () => {
+      const got = CRATER.claimDaily();
+      if (got) {
+        CRATER.toast(`Забрал +${CRATER.fmt(got)} БП`);
+        if (CRATER.sound) CRATER.sound.coin();
+        if (typeof CRATER.confetti === 'function') CRATER.confetti({ count: 40, colors: ['#2be07b','#ffd700'] });
+        render();
+      }
+    });
 
     const logout = document.getElementById('logout');
     if (logout) logout.addEventListener('click', () => {

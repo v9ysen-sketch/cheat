@@ -85,78 +85,279 @@ CRATER.GLOVES = [
 CRATER.GLOVE_BASE = 1.8;
 
 // ---------- Skin patterns (invented for CRATER) ---------- //
-// { name, colors: [main, accent, extra], mood }
-CRATER.SKINS = [
-  { name: 'Ember Chevron',    colors: ['#ff6b1a', '#ffcf40', '#7a1a00'], mood: 'fire' },
-  { name: 'Cinder Halo',      colors: ['#ff8a3d', '#ffe082', '#4a1000'], mood: 'fire' },
-  { name: 'Molten Drift',     colors: ['#d84315', '#ffab40', '#1a0500'], mood: 'fire' },
-  { name: 'Solar Prism',      colors: ['#ffd54f', '#ff8f00', '#3a1e00'], mood: 'fire' },
-  { name: 'Blaze Requiem',    colors: ['#e53935', '#ffb300', '#2a0000'], mood: 'fire' },
-  { name: 'Fever Coil',       colors: ['#ff5722', '#ffab00', '#1a0500'], mood: 'fire' },
+// Generator: mood templates × adjectives × pattern-nouns → ~230 unique skins.
+// Each skin: { name, colors:[main,accent,dark], mood, pattern }
 
-  { name: 'Frost Chevron',    colors: ['#4fc3f7', '#e1f5fe', '#01579b'], mood: 'ice' },
-  { name: 'Sapphire Cascade', colors: ['#2962ff', '#82b1ff', '#0d1b3a'], mood: 'ice' },
-  { name: 'Deep Current',     colors: ['#01579b', '#00b0ff', '#050d1f'], mood: 'ice' },
-  { name: 'Aurora Waltz',     colors: ['#00e5ff', '#b388ff', '#0a0a2a'], mood: 'ice' },
-  { name: 'Frostbite Drift',  colors: ['#80deea', '#e0f7fa', '#004d5a'], mood: 'ice' },
-  { name: 'Glacial Halo',     colors: ['#b3e5fc', '#ffffff', '#0277bd'], mood: 'ice' },
-
-  { name: 'Emerald Circuit',  colors: ['#00c853', '#69f0ae', '#0d3a1c'], mood: 'nature' },
-  { name: 'Bio Chevron',      colors: ['#43a047', '#c6ff00', '#0f2a10'], mood: 'nature' },
-  { name: 'Toxic Bloom',      colors: ['#76ff03', '#ffff00', '#1a2200'], mood: 'nature' },
-  { name: 'Verdant Drift',    colors: ['#2e7d32', '#a5d6a7', '#0d2412'], mood: 'nature' },
-  { name: 'Radiant Coil',     colors: ['#00e676', '#b9f6ca', '#0f3a20'], mood: 'nature' },
-
-  { name: 'Void Requiem',     colors: ['#4a148c', '#7c4dff', '#0a0018'], mood: 'void' },
-  { name: 'Nebula Drift',     colors: ['#6a1b9a', '#e040fb', '#100022'], mood: 'void' },
-  { name: 'Crimson Void',     colors: ['#b71c1c', '#4a148c', '#0d0018'], mood: 'void' },
-  { name: 'Prism Cascade',    colors: ['#7c4dff', '#ff4081', '#100033'], mood: 'void' },
-  { name: 'Nebula Halo',      colors: ['#8e24aa', '#ff80ab', '#180024'], mood: 'void' },
-  { name: 'Nightshade Coil',  colors: ['#311b92', '#b39ddb', '#08001f'], mood: 'void' },
-
-  { name: 'Neon Static',      colors: ['#00e5ff', '#ff00e5', '#0a0a1a'], mood: 'cyber' },
-  { name: 'Wired Chevron',    colors: ['#00b8d4', '#ffea00', '#0f1a1a'], mood: 'cyber' },
-  { name: 'Data Cascade',     colors: ['#18ffff', '#00e5ff', '#001622'], mood: 'cyber' },
-  { name: 'Hyper Coil',       colors: ['#ff1744', '#00e5ff', '#0a0018'], mood: 'cyber' },
-  { name: 'Circuit Waltz',    colors: ['#00e676', '#0091ea', '#001222'], mood: 'cyber' },
-  { name: 'Pixel Drift',      colors: ['#f50057', '#00e5ff', '#0a0a22'], mood: 'cyber' },
-  { name: 'Vector Halo',      colors: ['#ff4081', '#40c4ff', '#100022'], mood: 'cyber' },
-
-  { name: 'Onyx Chevron',     colors: ['#212121', '#616161', '#000000'], mood: 'dark' },
-  { name: 'Obsidian Divide',  colors: ['#1c1c1c', '#424242', '#000000'], mood: 'dark' },
-  { name: 'Ash Halo',         colors: ['#2c2c2c', '#9e9e9e', '#0a0a0a'], mood: 'dark' },
-  { name: 'Shadow Coil',      colors: ['#0d0d0d', '#37474f', '#000000'], mood: 'dark' },
-  { name: 'Iron Cascade',     colors: ['#455a64', '#90a4ae', '#0a1418'], mood: 'dark' },
-
-  { name: 'Chrome Vortex',    colors: ['#cfd8dc', '#eceff1', '#455a64'], mood: 'metal' },
-  { name: 'Titanium Static',  colors: ['#b0bec5', '#eceff1', '#37474f'], mood: 'metal' },
-  { name: 'Rust Chevron',     colors: ['#8d6e63', '#d7ccc8', '#3e2723'], mood: 'metal' },
-  { name: 'Copper Drift',     colors: ['#b7410e', '#e64a19', '#3e1a05'], mood: 'metal' },
-  { name: 'Steel Halo',       colors: ['#546e7a', '#b0bec5', '#263238'], mood: 'metal' },
-
-  { name: 'Golden Requiem',   colors: ['#ffd700', '#ffea00', '#3a2b00'], mood: 'gold' },
-  { name: 'Regal Bloom',      colors: ['#ffb300', '#fff176', '#3a2500'], mood: 'gold' },
-  { name: 'Zenith Chevron',   colors: ['#ffab00', '#ffd54f', '#331e00'], mood: 'gold' },
-  { name: 'Aegis Halo',       colors: ['#e4ae39', '#fff176', '#332200'], mood: 'gold' },
-
-  { name: 'Crimson Waltz',    colors: ['#c62828', '#ff8a80', '#310000'], mood: 'blood' },
-  { name: 'Blood Chevron',    colors: ['#b71c1c', '#ef5350', '#1a0000'], mood: 'blood' },
-  { name: 'Ruby Drift',       colors: ['#d50000', '#ff5252', '#210000'], mood: 'blood' },
-
-  { name: 'Cypher Drift',     colors: ['#00bfa5', '#64ffda', '#00332a'], mood: 'tech' },
-  { name: 'Fragment Halo',    colors: ['#00acc1', '#84ffff', '#002a33'], mood: 'tech' },
-  { name: 'Meridian Static',  colors: ['#0091ea', '#40c4ff', '#002238'], mood: 'tech' },
-
-  { name: 'Splinter Coil',    colors: ['#f57c00', '#ffb74d', '#331500'], mood: 'orange' },
-  { name: 'Amber Cascade',    colors: ['#ff6f00', '#ffca28', '#331700'], mood: 'orange' },
-  { name: 'Sunfall Waltz',    colors: ['#ff9100', '#ffd180', '#331a00'], mood: 'orange' },
-
-  { name: 'Skull Kingdom',    colors: ['#ffffff', '#616161', '#0a0a0a'], mood: 'bone' },
-  { name: 'Bone Chevron',     colors: ['#eeeeee', '#bdbdbd', '#212121'], mood: 'bone' },
-
-  { name: 'Cyclone Drift',    colors: ['#455a64', '#78909c', '#1a2327'], mood: 'storm' },
-  { name: 'Storm Halo',       colors: ['#37474f', '#607d8b', '#0f1418'], mood: 'storm' },
+CRATER.PATTERN_NOUNS = [
+  'Chevron','Halo','Drift','Cascade','Coil','Waltz','Requiem','Static',
+  'Divide','Meridian','Sigil','Wraith','Prism','Trace','Bloom','Vein',
+  'Fracture','Rush','Pulse','Grid','Fade','Weave','Spire','Crest',
 ];
+
+CRATER.MOOD_TEMPLATES = {
+  fire: {
+    palettes: [
+      ['#ff5722','#ffab00','#3a1000'],
+      ['#e53935','#ffb300','#2a0000'],
+      ['#bf360c','#ffab40','#1a0500'],
+      ['#d84315','#ff8f00','#3a1500'],
+      ['#ff6b1a','#ffcf40','#7a1a00'],
+    ],
+    adjectives: ['Ember','Cinder','Molten','Solar','Blaze','Fever','Inferno','Scorch','Ashfall','Wildfire','Ignition','Phoenix'],
+    patterns: ['fade','chevron','waves','splatter','runes','stripes'],
+  },
+  ice: {
+    palettes: [
+      ['#0288d1','#4fc3f7','#01579b'],
+      ['#00bcd4','#b3e5fc','#004d5a'],
+      ['#0d47a1','#82b1ff','#050d20'],
+      ['#80deea','#e0f7fa','#004d5a'],
+      ['#039be5','#b3e5fc','#01324a'],
+    ],
+    adjectives: ['Frost','Sapphire','Deep','Aurora','Frostbite','Glacial','Arctic','Crystal','Iceborn','Polar','Blizzard','Wintermark'],
+    patterns: ['fade','hex','waves','prismatic','scales','tribal'],
+  },
+  nature: {
+    palettes: [
+      ['#00c853','#69f0ae','#0d3a1c'],
+      ['#43a047','#c6ff00','#0f2a10'],
+      ['#2e7d32','#a5d6a7','#0d2412'],
+      ['#33691e','#aeea00','#0e2205'],
+      ['#00e676','#b9f6ca','#0f3a20'],
+    ],
+    adjectives: ['Emerald','Verdant','Radiant','Chlorophyll','Forest','Moss','Jade','Ivy','Bloom','Thicket','Sprout','Meadow'],
+    patterns: ['fade','waves','scales','dots','circuit','hex'],
+  },
+  void: {
+    palettes: [
+      ['#4a148c','#7c4dff','#0a0018'],
+      ['#6a1b9a','#e040fb','#100022'],
+      ['#7c4dff','#ff4081','#100033'],
+      ['#8e24aa','#ff80ab','#180024'],
+      ['#311b92','#b39ddb','#08001f'],
+    ],
+    adjectives: ['Void','Nebula','Nightshade','Warp','Cosmic','Astral','Blackhole','Eclipse','Chasm','Umbra','Rift','Abyss'],
+    patterns: ['fade','prismatic','runes','waves','tribal','circuit'],
+  },
+  cyber: {
+    palettes: [
+      ['#00e5ff','#ff00e5','#0a0a1a'],
+      ['#00b8d4','#ffea00','#0f1a1a'],
+      ['#18ffff','#ff1744','#001622'],
+      ['#f50057','#00e5ff','#0a0a22'],
+      ['#ff4081','#40c4ff','#100022'],
+    ],
+    adjectives: ['Neon','Wired','Data','Hyper','Circuit','Pixel','Vector','Terminal','Firewall','Overclock','Cybercore','Nano'],
+    patterns: ['circuit','grid','pixel','prismatic','hex','fade'],
+  },
+  dark: {
+    palettes: [
+      ['#212121','#616161','#000000'],
+      ['#1c1c1c','#424242','#000000'],
+      ['#2c2c2c','#9e9e9e','#0a0a0a'],
+      ['#0d0d0d','#37474f','#000000'],
+      ['#0e1414','#455a64','#000000'],
+    ],
+    adjectives: ['Onyx','Obsidian','Ash','Shadow','Nightfall','Ravencloak','Umbra','Sable','Charcoal','Blackout'],
+    patterns: ['solid','stripes','fade','runes','chevron'],
+  },
+  metal: {
+    palettes: [
+      ['#cfd8dc','#eceff1','#455a64'],
+      ['#b0bec5','#eceff1','#37474f'],
+      ['#8d6e63','#d7ccc8','#3e2723'],
+      ['#b7410e','#e64a19','#3e1a05'],
+      ['#546e7a','#b0bec5','#263238'],
+    ],
+    adjectives: ['Chrome','Titanium','Rust','Copper','Steel','Alloy','Brass','Ironwork','Gunmetal','Plated'],
+    patterns: ['solid','fade','grid','stripes','hex'],
+  },
+  gold: {
+    palettes: [
+      ['#ffd700','#ffea00','#3a2b00'],
+      ['#ffb300','#fff176','#3a2500'],
+      ['#ffab00','#ffd54f','#331e00'],
+      ['#e4ae39','#fff176','#332200'],
+      ['#ffc107','#ffd54f','#3a2400'],
+    ],
+    adjectives: ['Golden','Regal','Zenith','Aegis','Crown','Bullion','Sovereign','Gilded','Opulent','Meridian'],
+    patterns: ['fade','tribal','runes','chevron','prismatic'],
+  },
+  blood: {
+    palettes: [
+      ['#c62828','#ff8a80','#310000'],
+      ['#b71c1c','#ef5350','#1a0000'],
+      ['#d50000','#ff5252','#210000'],
+      ['#e53935','#ff5252','#2b0000'],
+      ['#a71313','#ff8a80','#170000'],
+    ],
+    adjectives: ['Crimson','Blood','Ruby','Scarlet','Vein','Wound','Carmine','Cardinal','Cinnabar'],
+    patterns: ['splatter','fade','waves','runes','tribal'],
+  },
+  tech: {
+    palettes: [
+      ['#00bfa5','#64ffda','#00332a'],
+      ['#00acc1','#84ffff','#002a33'],
+      ['#0091ea','#40c4ff','#002238'],
+      ['#00897b','#80cbc4','#00251f'],
+      ['#0288d1','#81d4fa','#013a5c'],
+    ],
+    adjectives: ['Cypher','Fragment','Meridian','Signal','Node','Vector','Protocol','Uplink','Beacon','Trace'],
+    patterns: ['circuit','grid','hex','fade','pixel'],
+  },
+  orange: {
+    palettes: [
+      ['#f57c00','#ffb74d','#331500'],
+      ['#ff6f00','#ffca28','#331700'],
+      ['#ff9100','#ffd180','#331a00'],
+      ['#e65100','#ffab40','#2b1200'],
+    ],
+    adjectives: ['Splinter','Amber','Sunfall','Tangerine','Rust','Marigold','Persimmon','Ochre'],
+    patterns: ['fade','chevron','stripes','splatter'],
+  },
+  bone: {
+    palettes: [
+      ['#ffffff','#616161','#0a0a0a'],
+      ['#eeeeee','#bdbdbd','#212121'],
+      ['#f5f5f5','#9e9e9e','#171717'],
+      ['#e0e0e0','#757575','#111111'],
+    ],
+    adjectives: ['Skull','Bone','Marrow','Skeleton','Reliquary','Ossuary','Cathedral'],
+    patterns: ['runes','tribal','stripes','solid'],
+  },
+  storm: {
+    palettes: [
+      ['#455a64','#78909c','#1a2327'],
+      ['#37474f','#607d8b','#0f1418'],
+      ['#546e7a','#90a4ae','#212a2f'],
+      ['#263238','#546e7a','#0a1013'],
+    ],
+    adjectives: ['Cyclone','Storm','Tempest','Thunder','Squall','Gale','Whirlwind','Zephyr'],
+    patterns: ['waves','fade','chevron','stripes'],
+  },
+  toxic: {
+    palettes: [
+      ['#76ff03','#ffff00','#1a2200'],
+      ['#00e676','#c6ff00','#0d3a1c'],
+      ['#aeea00','#c6ff00','#182a00'],
+      ['#84ffff','#76ff03','#0a2a1a'],
+    ],
+    adjectives: ['Venom','Acid','Radiation','Sludge','Corrosion','Plague','Bio','Bile'],
+    patterns: ['splatter','dots','waves','camo'],
+  },
+  urban: {
+    palettes: [
+      ['#546e7a','#ff5252','#212a30'],
+      ['#455a64','#ffea00','#1a2227'],
+      ['#616161','#ff4081','#212121'],
+      ['#37474f','#00e5ff','#0f1418'],
+    ],
+    adjectives: ['Graffiti','Concrete','Rebar','Alley','Subway','Bricktop','Metro','Skyline','Blackout','Neon-Rush'],
+    patterns: ['splatter','stripes','pixel','grid','chevron'],
+  },
+  military: {
+    palettes: [
+      ['#4e5d3f','#8d9c62','#2c351f'],
+      ['#5d4e2f','#a08850','#2a2312'],
+      ['#3e4b3a','#7c8d5e','#1f261c'],
+      ['#4c4a2f','#a8a45d','#242212'],
+    ],
+    adjectives: ['Camo','Woodland','Desert','Digital','Fatigue','Ranger','Recon','Warhawk','Ironsight','Bunker','Frontline'],
+    patterns: ['camo','stripes','chevron','grid'],
+  },
+  tribal: {
+    palettes: [
+      ['#795548','#ff7043','#2c1810'],
+      ['#5d4037','#ffab40','#231613'],
+      ['#4e342e','#ffd54f','#1e1310'],
+      ['#3e2723','#ff8a65','#1a0f0a'],
+    ],
+    adjectives: ['Totem','Rune','Ancestral','Warpaint','Clan','Nomad','Shaman','Thunderbird','Wanderer'],
+    patterns: ['tribal','runes','stripes','chevron'],
+  },
+  prismatic: {
+    palettes: [
+      ['#7c4dff','#00e5ff','#0a0022'],
+      ['#e040fb','#00e676','#100022'],
+      ['#ff4081','#00e5ff','#100022'],
+      ['#00e5ff','#ff00e5','#0a0a1a'],
+    ],
+    adjectives: ['Rainbow','Holo','Refract','Iridescent','Chroma','Spectra','Kaleido'],
+    patterns: ['prismatic','fade','waves','hex'],
+  },
+  paint: {
+    palettes: [
+      ['#e91e63','#ffeb3b','#1a0a12'],
+      ['#03a9f4','#ffeb3b','#0a1a22'],
+      ['#8bc34a','#e91e63','#141a0a'],
+      ['#ff5722','#03a9f4','#221008'],
+    ],
+    adjectives: ['Splatter','Dripline','Airbrush','Stencil','Splash','Tag','Burst','Roller'],
+    patterns: ['splatter','stripes','waves','pixel'],
+  },
+  fauna: {
+    palettes: [
+      ['#3e2723','#ff8f00','#1a0a05'],
+      ['#212121','#ff5722','#0a0a0a'],
+      ['#4e342e','#e0e0e0','#1e1310'],
+      ['#5d4037','#c62828','#231613'],
+    ],
+    adjectives: ['Dragon','Tiger','Wolf','Phoenix','Cobra','Falcon','Bear','Panther','Leviathan','Kraken','Griffin'],
+    patterns: ['scales','tribal','runes','waves','camo'],
+  },
+  ancient: {
+    palettes: [
+      ['#8d6e63','#ffb74d','#3e2723'],
+      ['#a1887f','#ffca28','#4e342e'],
+      ['#795548','#ffd54f','#2c1810'],
+      ['#6d4c41','#ffab40','#241813'],
+    ],
+    adjectives: ['Ruin','Pharaoh','Hieroglyph','Antique','Relic','Ziggurat','Obelisk','Sanctum'],
+    patterns: ['runes','hex','tribal','grid'],
+  },
+  water: {
+    palettes: [
+      ['#006064','#4fc3f7','#00232a'],
+      ['#00838f','#80deea','#003a44'],
+      ['#01579b','#4dd0e1','#01324a'],
+      ['#0277bd','#81d4fa','#013a5c'],
+    ],
+    adjectives: ['Tide','Ripple','Abyss','Coral','Kelp','Undertow','Reef','Fathom'],
+    patterns: ['waves','scales','fade','dots'],
+  },
+  desert: {
+    palettes: [
+      ['#c98a3c','#ffd180','#3d260a'],
+      ['#d69752','#ffe0b2','#42280a'],
+      ['#b17434','#ffab40','#2f1806'],
+      ['#e0a570','#ffca80','#3a220a'],
+    ],
+    adjectives: ['Sand','Mirage','Dune','Sirocco','Oasis','Sunstroke','Nomadic'],
+    patterns: ['waves','fade','chevron','tribal'],
+  },
+};
+
+CRATER.generateSkins = function() {
+  const out = [];
+  const seen = new Set();
+  Object.entries(CRATER.MOOD_TEMPLATES).forEach(([mood, tpl]) => {
+    tpl.adjectives.forEach((adj, i) => {
+      // 2 variants per adjective (different palette + pattern-noun)
+      for (let v = 0; v < 2; v++) {
+        const palette = tpl.palettes[(i + v) % tpl.palettes.length];
+        const noun = CRATER.PATTERN_NOUNS[(i * 3 + v * 7 + mood.length) % CRATER.PATTERN_NOUNS.length];
+        const pattern = tpl.patterns[(i + v * 2) % tpl.patterns.length];
+        const name = `${adj} ${noun}`;
+        if (seen.has(name)) continue;
+        seen.add(name);
+        out.push({ name, colors: palette.slice(), mood, pattern });
+      }
+    });
+  });
+  return out;
+};
+
+CRATER.SKINS = CRATER.generateSkins();
 
 // Fast lookup
 CRATER.SKINS_BY_MOOD = CRATER.SKINS.reduce((m, s) => {
@@ -319,6 +520,7 @@ CRATER.buildCase = function(caseCfg) {
         cls: weaponCfg.cls,
         skin: skin.name,
         colors: skin.colors,
+        pattern: skin.pattern || 'solid',
         rarity: rarityKey,
         wear: wear.code,
         wearName: wear.name,
@@ -346,6 +548,7 @@ CRATER.buildCase = function(caseCfg) {
       cls: isGlove ? 'gloves' : 'knife',
       skin: skin.name,
       colors: skin.colors,
+      pattern: skin.pattern || 'solid',
       rarity: 'special',
       wear: wear.code,
       wearName: wear.name,
