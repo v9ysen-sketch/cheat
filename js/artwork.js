@@ -241,49 +241,103 @@ CRATER.WEAPON_ART = {
     const bodyFill = mainFill || main;
     return `
       <g>
+        <!-- stock -->
         <path d="M15 160 L60 145 L75 155 L75 200 L60 210 L15 195 Z" fill="${shade(main,20)}" stroke="${dark}" stroke-width="1.5"/>
+        <path d="M22 170 L58 155 M22 182 L58 178 M22 194 L58 202" stroke="${dark}" stroke-width="0.6" opacity="0.55"/>
+        <!-- receiver -->
         <rect x="75" y="155" width="115" height="40" fill="${bodyFill}" stroke="${dark}" stroke-width="1.5"/>
         <rect x="75" y="155" width="115" height="8" fill="${lighten(main,20)}" opacity="0.35"/>
-        <rect x="85" y="165" width="90" height="10" fill="${accent}" opacity="0.65"/>
+        <!-- ejection port -->
+        <rect x="140" y="164" width="30" height="10" fill="${dark}" opacity="0.85" rx="1"/>
+        <!-- accent strip -->
+        <rect x="85" y="165" width="52" height="10" fill="${accent}" opacity="0.7"/>
+        <rect x="173" y="165" width="17" height="10" fill="${accent}" opacity="0.7"/>
+        <!-- pump grip -->
         <rect x="200" y="170" width="70" height="18" fill="${shade(main,25)}" stroke="${dark}" stroke-width="1.5" rx="2"/>
         <line x1="210" y1="170" x2="210" y2="188" stroke="${dark}" stroke-width="1"/>
+        <line x1="220" y1="170" x2="220" y2="188" stroke="${dark}" stroke-width="1"/>
         <line x1="230" y1="170" x2="230" y2="188" stroke="${dark}" stroke-width="1"/>
+        <line x1="240" y1="170" x2="240" y2="188" stroke="${dark}" stroke-width="1"/>
         <line x1="250" y1="170" x2="250" y2="188" stroke="${dark}" stroke-width="1"/>
+        <line x1="260" y1="170" x2="260" y2="188" stroke="${dark}" stroke-width="1"/>
+        <!-- barrel -->
         <rect x="190" y="163" width="200" height="10" fill="${shade(main,10)}" stroke="${dark}" stroke-width="1.5"/>
+        <rect x="190" y="163" width="200" height="2" fill="${lighten(main,15)}"/>
+        <!-- muzzle choke -->
         <ellipse cx="385" cy="168" rx="7" ry="10" fill="${dark}"/>
+        <circle cx="385" cy="168" r="4" fill="${shade(dark,10)}"/>
+        <!-- bead sight -->
+        <circle cx="380" cy="160" r="2" fill="${accent}" opacity="0.9"/>
+        <!-- trigger guard -->
         <path d="M130 195 L135 218 L165 218 L160 195 Z" fill="${shade(main,25)}" stroke="${dark}" stroke-width="1.2"/>
         <circle cx="147" cy="208" r="4" fill="${dark}"/>
+        <!-- grip -->
         <path d="M155 195 L152 240 L182 240 L188 197 Z" fill="${shade(main,25)}" stroke="${dark}" stroke-width="1.5"/>
+        <line x1="155" y1="208" x2="185" y2="210" stroke="${dark}" stroke-width="0.6" opacity="0.5"/>
+        <line x1="154" y1="220" x2="184" y2="222" stroke="${dark}" stroke-width="0.6" opacity="0.5"/>
+        <line x1="153" y1="232" x2="183" y2="234" stroke="${dark}" stroke-width="0.6" opacity="0.5"/>
+        <!-- shell tube -->
         <rect x="190" y="188" width="80" height="10" fill="${shade(main,15)}" stroke="${dark}" stroke-width="1"/>
+        <line x1="200" y1="193" x2="260" y2="193" stroke="${dark}" stroke-width="0.6" opacity="0.5"/>
       </g>`;
   },
   heavy: function(main, accent, dark, mainFill) {
     const bodyFill = mainFill || main;
     return `
       <g>
+        <!-- stock -->
         <path d="M15 165 L55 150 L70 160 L70 200 L55 210 L15 195 Z" fill="${shade(main,20)}" stroke="${dark}" stroke-width="1.5"/>
+        <!-- receiver -->
         <rect x="70" y="152" width="180" height="50" fill="${bodyFill}" stroke="${dark}" stroke-width="1.5"/>
         <rect x="70" y="152" width="180" height="10" fill="${lighten(main,20)}" opacity="0.35"/>
-        <rect x="90" y="168" width="140" height="16" fill="${accent}" opacity="0.65"/>
+        <!-- feed tray cover -->
+        <rect x="150" y="152" width="60" height="16" fill="${shade(main,25)}" stroke="${dark}" stroke-width="1"/>
+        <line x1="150" y1="160" x2="210" y2="160" stroke="${dark}" stroke-width="0.7" opacity="0.6"/>
+        <!-- accent -->
+        <rect x="90" y="172" width="60" height="14" fill="${accent}" opacity="0.7"/>
+        <rect x="210" y="172" width="35" height="14" fill="${accent}" opacity="0.7"/>
+        <!-- panel gap -->
+        <line x1="150" y1="153" x2="150" y2="200" stroke="${dark}" stroke-width="0.8" opacity="0.5"/>
+        <line x1="210" y1="153" x2="210" y2="200" stroke="${dark}" stroke-width="0.8" opacity="0.5"/>
+        <!-- belt-feed ammo box -->
         <rect x="90" y="200" width="120" height="45" fill="${shade(main,20)}" stroke="${dark}" stroke-width="1.5" rx="3"/>
-        <g stroke="${dark}" stroke-width="1" opacity="0.7">
+        <g stroke="${dark}" stroke-width="1" opacity="0.75">
           <line x1="100" y1="212" x2="200" y2="212"/>
           <line x1="100" y1="222" x2="200" y2="222"/>
           <line x1="100" y1="232" x2="200" y2="232"/>
+          <line x1="100" y1="242" x2="200" y2="242"/>
         </g>
+        <!-- belt links visual -->
+        <g fill="${accent}" opacity="0.55">
+          <circle cx="106" cy="212" r="2"/><circle cx="126" cy="212" r="2"/>
+          <circle cx="146" cy="212" r="2"/><circle cx="166" cy="212" r="2"/>
+          <circle cx="186" cy="212" r="2"/>
+        </g>
+        <!-- barrel with cooling ribs -->
         <rect x="250" y="164" width="140" height="18" fill="${shade(main,10)}" stroke="${dark}" stroke-width="1.5"/>
-        <g stroke="${dark}" stroke-width="1.5" opacity="0.8">
+        <rect x="250" y="164" width="140" height="4" fill="${lighten(main,15)}"/>
+        <g stroke="${dark}" stroke-width="1.5" opacity="0.85">
           <line x1="270" y1="164" x2="270" y2="182"/>
-          <line x1="285" y1="164" x2="285" y2="182"/>
-          <line x1="300" y1="164" x2="300" y2="182"/>
-          <line x1="315" y1="164" x2="315" y2="182"/>
-          <line x1="330" y1="164" x2="330" y2="182"/>
-          <line x1="345" y1="164" x2="345" y2="182"/>
-          <line x1="360" y1="164" x2="360" y2="182"/>
+          <line x1="283" y1="164" x2="283" y2="182"/>
+          <line x1="296" y1="164" x2="296" y2="182"/>
+          <line x1="309" y1="164" x2="309" y2="182"/>
+          <line x1="322" y1="164" x2="322" y2="182"/>
+          <line x1="335" y1="164" x2="335" y2="182"/>
+          <line x1="348" y1="164" x2="348" y2="182"/>
+          <line x1="361" y1="164" x2="361" y2="182"/>
         </g>
+        <!-- muzzle brake -->
         <rect x="386" y="160" width="10" height="26" fill="${dark}"/>
+        <line x1="388" y1="165" x2="394" y2="165" stroke="${shade(main,30)}" stroke-width="0.8"/>
+        <line x1="388" y1="172" x2="394" y2="172" stroke="${shade(main,30)}" stroke-width="0.8"/>
+        <line x1="388" y1="179" x2="394" y2="179" stroke="${shade(main,30)}" stroke-width="0.8"/>
+        <!-- grip -->
         <path d="M210 200 L206 245 L240 248 L246 205 Z" fill="${shade(main,25)}" stroke="${dark}" stroke-width="1.5"/>
+        <line x1="210" y1="216" x2="243" y2="220" stroke="${dark}" stroke-width="0.6" opacity="0.55"/>
+        <line x1="209" y1="230" x2="242" y2="234" stroke="${dark}" stroke-width="0.6" opacity="0.55"/>
+        <!-- iron sight -->
         <rect x="140" y="140" width="10" height="14" fill="${dark}"/>
+        <rect x="220" y="140" width="10" height="14" fill="${dark}"/>
       </g>`;
   },
   knife: function(main, accent, dark, mainFill) {
