@@ -203,6 +203,12 @@
         colors: [rColor, '#ffd700', '#2be07b', item.colors[0], item.colors[1]],
       });
     }
+    if (typeof CRATER.rareSplash === 'function') {
+      const rColor = CRATER.RARITY[item.rarity].color;
+      if (item.rarity === 'special')    CRATER.rareSplash('★ MYTHIC DROP ★', rColor);
+      else if (item.rarity === 'covert') CRATER.rareSplash('COVERT!', rColor);
+      else if (item.rarity === 'classified') CRATER.rareSplash('CLASSIFIED', rColor);
+    }
     if (typeof CRATER.checkAchievements === 'function') CRATER.checkAchievements();
   }
   function hideResult() { modal.classList.remove('show'); }

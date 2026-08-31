@@ -197,6 +197,11 @@
       ${achievementsSection()}
       ${inventoryGrid()}
       ${historyList()}
+      <div style="margin-top:32px; padding: 14px 16px; border:1px dashed var(--border); text-align:right">
+        <button id="reset-progress" style="background:transparent; border:1px solid var(--border-alt); color:var(--text-muted); padding:8px 14px; font-family:var(--font-h); font-weight:700; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer">
+          ↺ Сбросить прогресс
+        </button>
+      </div>
     `;
 
     const daily = document.getElementById('claim-daily');
@@ -217,6 +222,14 @@
       CRATER.saveState();
       render();
       CRATER.mountHeader('profile');
+    });
+
+    const reset = document.getElementById('reset-progress');
+    if (reset) reset.addEventListener('click', () => {
+      if (!confirm('Сбросить ВСЁ: баланс, инвентарь, историю, статы, достижения, ранг? Это нельзя отменить.')) return;
+      if (!confirm('Точно уверен? Все данные будут удалены.')) return;
+      localStorage.removeItem('crater.state.v1');
+      location.reload();
     });
 
     const sellAll = document.getElementById('sell-all');

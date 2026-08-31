@@ -101,6 +101,18 @@ CRATER.confetti = (function () {
   };
 })();
 
+CRATER.rareSplash = function (text, color) {
+  const el = document.createElement('div');
+  el.className = 'rare-splash';
+  el.style.color = color || '#ffd700';
+  el.style.textShadow = `0 0 20px ${color || '#ffd700'}, 0 0 40px ${color || '#ffd700'}`;
+  el.textContent = text;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('go'));
+  setTimeout(() => { el.classList.add('out'); }, 1600);
+  setTimeout(() => el.remove(), 2400);
+};
+
 CRATER.screenFlash = function (color) {
   let el = document.querySelector('.screen-flash');
   if (!el) {

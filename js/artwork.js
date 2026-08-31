@@ -26,24 +26,55 @@ CRATER.WEAPON_ART = {
     const bodyFill = mainFill || main;
     return `
       <g>
+        <!-- stock -->
         <path d="M20 165 L70 145 L82 155 L82 195 L70 205 L20 185 Z" fill="${shade(main,20)}" stroke="${dark}" stroke-width="1.5"/>
+        <path d="M25 170 L65 155 M25 178 L65 172 M25 186 L65 190" stroke="${dark}" stroke-width="0.6" opacity="0.6"/>
+        <!-- receiver -->
         <rect x="80" y="150" width="180" height="42" fill="${bodyFill}" stroke="${dark}" stroke-width="1.5"/>
         <rect x="80" y="150" width="180" height="10" fill="${lighten(main,25)}" opacity="0.35"/>
         <rect x="80" y="184" width="180" height="8" fill="${shade(main,20)}" opacity="0.55"/>
-        <rect x="100" y="162" width="150" height="12" fill="${accent}" opacity="0.65"/>
+        <!-- ejection port -->
+        <rect x="180" y="163" width="26" height="14" fill="${dark}" opacity="0.85" rx="1"/>
+        <rect x="182" y="165" width="22" height="10" fill="${shade(main,40)}" opacity="0.6"/>
+        <!-- accent strip -->
+        <rect x="100" y="162" width="80" height="12" fill="${accent}" opacity="0.65"/>
+        <rect x="210" y="162" width="45" height="12" fill="${accent}" opacity="0.65"/>
+        <!-- panel gaps -->
+        <line x1="130" y1="151" x2="130" y2="184" stroke="${dark}" stroke-width="0.8" opacity="0.5"/>
+        <line x1="180" y1="151" x2="180" y2="184" stroke="${dark}" stroke-width="0.8" opacity="0.5"/>
+        <!-- magazine -->
         <path d="M140 190 L138 235 L200 235 L198 190 Z" fill="${shade(main,10)}" stroke="${dark}" stroke-width="1.5"/>
-        <rect x="146" y="200" width="45" height="4" fill="${accent}" opacity="0.7"/>
-        <rect x="146" y="212" width="45" height="4" fill="${accent}" opacity="0.7"/>
+        <rect x="146" y="200" width="45" height="3.5" fill="${accent}" opacity="0.7"/>
+        <rect x="146" y="212" width="45" height="3.5" fill="${accent}" opacity="0.7"/>
+        <rect x="146" y="224" width="45" height="3.5" fill="${accent}" opacity="0.7"/>
+        <!-- grip -->
         <path d="M220 190 L215 240 L245 245 L250 195 Z" fill="${shade(main,25)}" stroke="${dark}" stroke-width="1.5"/>
+        <line x1="223" y1="205" x2="248" y2="208" stroke="${dark}" stroke-width="0.6" opacity="0.6"/>
+        <line x1="222" y1="215" x2="247" y2="218" stroke="${dark}" stroke-width="0.6" opacity="0.6"/>
+        <line x1="221" y1="225" x2="246" y2="228" stroke="${dark}" stroke-width="0.6" opacity="0.6"/>
+        <!-- trigger guard -->
         <path d="M195 190 L200 215 L225 215 L220 190 Z" fill="${shade(main,25)}" stroke="${dark}" stroke-width="1.2"/>
         <circle cx="212" cy="205" r="4" fill="${dark}"/>
+        <!-- barrel -->
         <rect x="260" y="164" width="120" height="14" fill="${shade(main,10)}" stroke="${dark}" stroke-width="1.5"/>
         <rect x="260" y="164" width="120" height="4" fill="${lighten(main,15)}"/>
+        <!-- gas block -->
+        <rect x="295" y="158" width="18" height="26" fill="${shade(main,30)}" stroke="${dark}" stroke-width="1"/>
+        <!-- muzzle -->
         <rect x="378" y="160" width="8" height="22" fill="${dark}"/>
+        <rect x="386" y="164" width="4" height="14" fill="${shade(dark,10)}"/>
+        <!-- iron sights -->
         <rect x="150" y="140" width="6" height="12" fill="${dark}"/>
         <rect x="240" y="140" width="6" height="12" fill="${dark}"/>
+        <!-- top rail dots -->
         <rect x="105" y="158" width="140" height="1.5" fill="${accent}" opacity="0.6"/>
         <rect x="105" y="182" width="140" height="1.5" fill="${accent}" opacity="0.6"/>
+        <g fill="${dark}" opacity="0.5">
+          <circle cx="110" cy="150" r="0.8"/><circle cx="118" cy="150" r="0.8"/>
+          <circle cx="126" cy="150" r="0.8"/><circle cx="134" cy="150" r="0.8"/>
+          <circle cx="220" cy="150" r="0.8"/><circle cx="228" cy="150" r="0.8"/>
+          <circle cx="236" cy="150" r="0.8"/><circle cx="244" cy="150" r="0.8"/>
+        </g>
       </g>`;
   },
   sniper: function(main, accent, dark, mainFill) {
@@ -73,25 +104,54 @@ CRATER.WEAPON_ART = {
     const bodyFill = mainFill || main;
     return `
       <g>
+        <!-- slide -->
         <path d="M100 130 L280 130 L295 148 L295 170 L100 170 Z" fill="${bodyFill}" stroke="${dark}" stroke-width="1.5"/>
         <rect x="100" y="130" width="195" height="8" fill="${lighten(main,20)}" opacity="0.4"/>
         <rect x="115" y="148" width="160" height="10" fill="${accent}" opacity="0.65"/>
+        <!-- ejection port -->
+        <rect x="200" y="138" width="34" height="12" fill="${dark}" opacity="0.85" rx="1"/>
+        <rect x="202" y="140" width="30" height="8" fill="${shade(main,40)}" opacity="0.7"/>
+        <!-- slide serrations (front) -->
         <line x1="105" y1="140" x2="105" y2="165" stroke="${dark}" stroke-width="1.2"/>
         <line x1="112" y1="140" x2="112" y2="165" stroke="${dark}" stroke-width="1.2"/>
         <line x1="119" y1="140" x2="119" y2="165" stroke="${dark}" stroke-width="1.2"/>
-        <line x1="278" y1="140" x2="278" y2="165" stroke="${dark}" stroke-width="1.2"/>
-        <line x1="285" y1="140" x2="285" y2="165" stroke="${dark}" stroke-width="1.2"/>
+        <line x1="126" y1="140" x2="126" y2="165" stroke="${dark}" stroke-width="1.2" opacity="0.7"/>
+        <!-- slide serrations (rear) -->
+        <line x1="255" y1="140" x2="255" y2="165" stroke="${dark}" stroke-width="1.2"/>
+        <line x1="262" y1="140" x2="262" y2="165" stroke="${dark}" stroke-width="1.2"/>
+        <line x1="269" y1="140" x2="269" y2="165" stroke="${dark}" stroke-width="1.2"/>
+        <line x1="276" y1="140" x2="276" y2="165" stroke="${dark}" stroke-width="1.2"/>
+        <line x1="283" y1="140" x2="283" y2="165" stroke="${dark}" stroke-width="1.2" opacity="0.7"/>
+        <!-- sights -->
         <rect x="150" y="122" width="6" height="10" fill="${dark}"/>
         <rect x="240" y="122" width="6" height="10" fill="${dark}"/>
+        <!-- barrel tip -->
         <rect x="288" y="152" width="12" height="12" fill="${dark}"/>
+        <circle cx="294" cy="158" r="3" fill="${shade(dark,10)}"/>
+        <!-- safety lever -->
+        <rect x="145" y="155" width="10" height="4" fill="${dark}" rx="1"/>
+        <!-- trigger guard -->
         <path d="M155 170 L165 200 L220 200 L230 170 Z" fill="${shade(main,20)}" stroke="${dark}" stroke-width="1.5"/>
         <circle cx="195" cy="185" r="6" fill="${dark}"/>
+        <!-- trigger -->
+        <path d="M188 186 Q195 192 202 186" stroke="${accent}" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <!-- grip -->
         <path d="M100 165 L110 240 L200 245 L210 168 Z" fill="${shade(main,25)}" stroke="${dark}" stroke-width="1.5"/>
-        <line x1="120" y1="180" x2="200" y2="184" stroke="${dark}" stroke-width="1" opacity="0.5"/>
-        <line x1="122" y1="195" x2="200" y2="198" stroke="${dark}" stroke-width="1" opacity="0.5"/>
-        <line x1="124" y1="210" x2="200" y2="212" stroke="${dark}" stroke-width="1" opacity="0.5"/>
-        <line x1="125" y1="225" x2="197" y2="228" stroke="${dark}" stroke-width="1" opacity="0.5"/>
+        <!-- grip texture (stippling) -->
+        <g fill="${dark}" opacity="0.4">
+          <circle cx="125" cy="185" r="0.9"/><circle cx="140" cy="188" r="0.9"/>
+          <circle cx="155" cy="190" r="0.9"/><circle cx="170" cy="192" r="0.9"/>
+          <circle cx="185" cy="194" r="0.9"/><circle cx="130" cy="200" r="0.9"/>
+          <circle cx="145" cy="203" r="0.9"/><circle cx="160" cy="205" r="0.9"/>
+          <circle cx="175" cy="207" r="0.9"/><circle cx="190" cy="209" r="0.9"/>
+          <circle cx="135" cy="215" r="0.9"/><circle cx="150" cy="218" r="0.9"/>
+          <circle cx="165" cy="220" r="0.9"/><circle cx="180" cy="222" r="0.9"/>
+        </g>
+        <line x1="120" y1="180" x2="200" y2="184" stroke="${dark}" stroke-width="0.6" opacity="0.4"/>
+        <line x1="122" y1="195" x2="200" y2="198" stroke="${dark}" stroke-width="0.6" opacity="0.4"/>
+        <!-- magazine base -->
         <rect x="112" y="238" width="90" height="10" fill="${accent}" opacity="0.7"/>
+        <rect x="112" y="238" width="90" height="2" fill="${lighten(accent,25)}" opacity="0.6"/>
       </g>`;
   },
   smg: function(main, accent, dark, mainFill) {
