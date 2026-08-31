@@ -19,7 +19,25 @@
   const state = { speed: CRATER.state.prefs.speed || 'normal', busy: false, lastRoll: null };
 
   function drops() {
-    return box.items.map(it => CRATER.itemCardHTML(it, { hideWear: true })).join('');
+    // Group items by rarity, show header per group
+    const groups = {};
+    box.items.forEach(it => { (groups[it.rarity] = groups[it.rarity] || []).push(it); });
+    const rarityOrder = CRATER.RARITY_ORDER.slice().reverse();
+    return rarityOrder.filter(r => groups[r]).map(r => {
+      const items = groups[r];
+      const chance = CRATER.RARITY[r].chance;
+      const color = CRATER.RARITY[r].color;
+      return `
+        <div class="rarity-group">
+          <div class="rarity-header" style="border-left-color:${color}">
+            <span class="rh-name" style="color:${color}">${CRATER.RARITY[r].name}</span>
+            <span class="rh-meta">${items.length} шт · шанс ${chance}%</span>
+          </div>
+          <div class="drops-grid">
+            ${items.map(it => CRATER.itemCardHTML(it, { hideWear: true })).join('')}
+          </div>
+        </div>`;
+    }).join('');
   }
 
   function speedButtons() {
@@ -60,7 +78,7 @@
 
         <div class="case-drops">
           <h2>Возможные предметы <span style="color:var(--text-muted);font-size:13px;letter-spacing:1px">· ${box.items.length}</span></h2>
-          <div class="drops-grid">${drops()}</div>
+          ${drops()}
         </div>
       </div>
     `;

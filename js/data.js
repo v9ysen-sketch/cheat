@@ -445,8 +445,8 @@ CRATER.TIER_COUNTS = {
   1: { consumer: 5, industrial: 4, milspec: 3, restricted: 2, classified: 1, covert: 0, special: 0 },
   2: { consumer: 5, industrial: 4, milspec: 3, restricted: 2, classified: 1, covert: 1, special: 0 },
   3: { consumer: 4, industrial: 4, milspec: 3, restricted: 2, classified: 1, covert: 1, special: 0 },
-  4: { consumer: 3, industrial: 4, milspec: 3, restricted: 2, classified: 1, covert: 1, special: 1 },
-  5: { consumer: 3, industrial: 3, milspec: 3, restricted: 2, classified: 2, covert: 1, special: 2 },
+  4: { consumer: 3, industrial: 4, milspec: 4, restricted: 3, classified: 2, covert: 1, special: 1 },
+  5: { consumer: 3, industrial: 4, milspec: 4, restricted: 3, classified: 2, covert: 2, special: 2 },
 };
 
 // Rarity price multiplier off the base case price
