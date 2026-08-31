@@ -804,18 +804,12 @@ main { padding: 24px; max-width: 1440px; margin: 0 auto; }
 }
 .upgrade-meter {
   position: relative;
-  width: 240px; height: 240px;
-}
-.upgrade-meter svg { transform: rotate(-90deg); }
-.upgrade-meter .track { fill: none; stroke: var(--panel-hi); stroke-width: 14; }
-.upgrade-meter .fill  { fill: none; stroke: var(--accent); stroke-width: 14;
-  stroke-dasharray: 754; stroke-dashoffset: 754;
-  transition: stroke-dashoffset .3s;
-  filter: drop-shadow(0 0 8px var(--accent-glow));
+  width: 260px; height: 260px;
 }
 .upgrade-meter .center-text {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
+  pointer-events: none;
 }
 .upgrade-meter .chance {
   font-family: var(--font-h); font-weight: 700; font-size: 44px;
@@ -884,32 +878,53 @@ main { padding: 24px; max-width: 1440px; margin: 0 auto; }
   font-size: 10px; color: var(--text-dim); display: block; margin-top: 2px;
 }
 
-/* Upgrade arc animation */
-.upgrade-arc {
-  position: absolute; inset: 0;
-  pointer-events: none;
+/* Upgrade meter arc + needle */
+.upgrade-arc { position: absolute; inset: 0; }
+.upgrade-arc svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+.upgrade-arc .ring-bg     { fill: none; stroke: var(--panel);     stroke-width: 22; }
+.upgrade-arc .ring-groove { fill: none; stroke: var(--bg-alt);    stroke-width: 26; }
+.upgrade-arc .zone-lose {
+  fill: none; stroke: var(--danger); stroke-width: 22;
+  opacity: 0.55;
+  stroke-linecap: butt;
 }
-.upgrade-arc svg { transform: rotate(-90deg); }
 .upgrade-arc .zone-win {
-  fill: none; stroke: var(--accent); stroke-width: 14;
+  fill: none; stroke: var(--accent); stroke-width: 22;
+  stroke-linecap: butt;
   filter: drop-shadow(0 0 6px var(--accent-glow));
 }
-.upgrade-arc .zone-lose {
-  fill: none; stroke: var(--danger); stroke-width: 14; opacity: 0.35;
+.upgrade-arc .zone-win-hi {
+  fill: none; stroke: var(--accent-hi); stroke-width: 4;
+  stroke-linecap: butt;
+  opacity: 0.85;
 }
+.upgrade-arc .ticks line { stroke: var(--border-alt); stroke-width: 1.5; opacity: 0.7; }
+.upgrade-arc .ticks .tick-major { stroke: var(--text-muted); stroke-width: 2; opacity: 0.9; }
+
+.upgrade-arc .hub-plate  { fill: var(--bg-alt); stroke: var(--border);      stroke-width: 1.5; }
+.upgrade-arc .hub-ring   { fill: none;          stroke: var(--border-alt);  stroke-width: 1; }
+
 .upgrade-arc .needle {
-  transform-origin: 120px 120px;
+  transform-origin: 130px 130px;
   transition: transform 4s cubic-bezier(.15,.85,.35,1);
 }
-.upgrade-arc .needle line {
-  stroke: var(--text); stroke-width: 3;
-  filter: drop-shadow(0 0 4px rgba(255,255,255,0.6));
+.upgrade-arc .needle .n-shadow { fill: rgba(0,0,0,0.55); }
+.upgrade-arc .needle .n-light  { fill: var(--text); }
+.upgrade-arc .needle .n-dark   { fill: #6d7a6d; }
+.upgrade-arc .needle .n-tip {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 5px var(--accent));
 }
-.upgrade-arc .needle circle {
-  fill: var(--text); stroke: var(--accent); stroke-width: 2;
-}
-.upgrade-arc.result-win .needle line { stroke: var(--accent); }
-.upgrade-arc.result-lose .needle line { stroke: var(--danger); }
+.upgrade-arc .needle .n-pivot-outer { fill: var(--bg); stroke: var(--accent); stroke-width: 2.5; }
+.upgrade-arc .needle .n-pivot-inner { fill: var(--accent); }
+
+.upgrade-arc.result-win  .needle .n-tip { fill: var(--accent);  filter: drop-shadow(0 0 8px var(--accent)); }
+.upgrade-arc.result-win  .needle .n-pivot-outer { stroke: var(--accent); }
+.upgrade-arc.result-win  .needle .n-pivot-inner { fill: var(--accent); }
+.upgrade-arc.result-lose .needle .n-tip { fill: var(--danger); filter: drop-shadow(0 0 8px var(--danger)); }
+.upgrade-arc.result-lose .needle .n-pivot-outer { stroke: var(--danger); }
+.upgrade-arc.result-lose .needle .n-pivot-inner { fill: var(--danger); }
 
 /* ---------- Profile page ---------- */
 

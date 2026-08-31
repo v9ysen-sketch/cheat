@@ -7,14 +7,15 @@
 
   const HOUSE = 0.75;   // house factor: chance = src_price*HOUSE / tgt_price
   const RADIUS = 105;
-  const CIRC = 2 * Math.PI * RADIUS;   // 659.7
+  const CIRC = 2 * Math.PI * RADIUS;
+  const RADIUS_HI = 94;
+  const CIRC_HI = 2 * Math.PI * RADIUS_HI;
 
   // ---------- Refs ---------- //
   const srcSlot = document.getElementById('src-slot');
   const tgtSlot = document.getElementById('tgt-slot');
   const srcList = document.getElementById('src-list');
   const tgtList = document.getElementById('tgt-list');
-  const meterFill = document.getElementById('meter-fill');
   const chanceText = document.getElementById('chance');
   const arcHolder = document.getElementById('arc');
   const mults = document.getElementById('mults');
@@ -24,9 +25,6 @@
   const won = document.getElementById('won');
   const closeBtn = document.getElementById('btn-close');
   const resultTitle = document.getElementById('result-title');
-
-  meterFill.setAttribute('stroke-dasharray', String(CIRC));
-  meterFill.setAttribute('stroke-dashoffset', String(CIRC));
 
   const state = {
     src: null,
@@ -120,29 +118,98 @@
     return Math.max(0.005, Math.min(0.90, raw));
   }
   function updateMeter() {
+    const hasBoth = !!(state.src && state.tgt);
     const p = currentChance();
-    const offset = CIRC * (1 - p);
-    meterFill.setAttribute('stroke-dashoffset', String(offset));
+    if (hasBoth) {
+      const pct = (p * 100);
+      chanceText.innerHTML = pct.toFixed(pct < 10 ? 1 : 0) + '<span style="font-size:26px">%</span>';
+    } else {
+      chanceText.innerHTML = '<span style="color:var(--text-dim)">—</span>';
+    }
+    renderArc(hasBoth ? p : 0);
+    btnUpgrade.disabled = !(hasBoth && !state.busy);
     const pct = (p * 100);
-    chanceText.innerHTML = pct.toFixed(pct < 10 ? 1 : 0) + '<span style="font-size:26px">%</span>';
-    // Arc zones: green from 0 to p, rest red
-    renderArc(p);
-    btnUpgrade.disabled = !(state.src && state.tgt && !state.busy);
-    btnUpgrade.textContent = state.src && state.tgt
+    btnUpgrade.textContent = hasBoth
       ? `Апгрейд · шанс ${pct.toFixed(pct<10?1:0)}%`
       : 'Апгрейд';
   }
+
   function renderArc(chance) {
-    // Arc split into green (win) and red (lose) segments; a needle rotates over full circle.
+    // Ticks around outer edge, major every 6th (every 90°)
+    let ticks = '';
+    const TICK_N = 24;
+    for (let i = 0; i < TICK_N; i++) {
+      const ang = (i / TICK_N) * 360 - 90;   // start at top
+      const rad = ang * Math.PI / 180;
+      const isMajor = i % 6 === 0;
+      const inner = 122;
+      const outer = isMajor ? 132 : 127;
+      const x1 = (130 + Math.cos(rad) * inner).toFixed(2);
+      const y1 = (130 + Math.sin(rad) * inner).toFixed(2);
+      const x2 = (130 + Math.cos(rad) * outer).toFixed(2);
+      const y2 = (130 + Math.sin(rad) * outer).toFixed(2);
+      ticks += `<line class="${isMajor?'tick-major':''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    }
+
     const winLen = CIRC * chance;
+    const winLenHi = CIRC_HI * chance;
+
     arcHolder.innerHTML = `
-      <svg viewBox="0 0 240 240" width="240" height="240">
-        <circle class="zone-lose" cx="120" cy="120" r="105"/>
-        <circle class="zone-win"  cx="120" cy="120" r="105"
-          stroke-dasharray="${winLen} ${CIRC - winLen}" stroke-dashoffset="0"/>
-        <g class="needle" id="needle" transform="rotate(0)">
-          <line x1="120" y1="120" x2="120" y2="20"/>
-          <circle cx="120" cy="120" r="8"/>
+      <svg viewBox="0 0 260 260">
+        <defs>
+          <radialGradient id="ug-hub" cx="50%" cy="45%" r="65%">
+            <stop offset="0%" stop-color="#1c2620"/>
+            <stop offset="70%" stop-color="#0f1613"/>
+            <stop offset="100%" stop-color="#0a0e0b"/>
+          </radialGradient>
+          <linearGradient id="ug-needle-l" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#dfe8df"/>
+            <stop offset="100%" stop-color="#8a988a"/>
+          </linearGradient>
+          <linearGradient id="ug-needle-r" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#5c6a5c"/>
+            <stop offset="100%" stop-color="#2a3529"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Groove backdrop -->
+        <circle class="ring-groove" cx="130" cy="130" r="105"/>
+
+        <!-- Full lose zone -->
+        <circle class="zone-lose" cx="130" cy="130" r="105"
+          stroke-dasharray="${CIRC.toFixed(2)} 0"/>
+
+        <!-- Win arc (from top, clockwise) -->
+        <circle class="zone-win" cx="130" cy="130" r="105"
+          stroke-dasharray="${winLen.toFixed(2)} ${(CIRC - winLen).toFixed(2)}"
+          transform="rotate(-90 130 130)"/>
+
+        <!-- Inner bright edge on win arc -->
+        <circle class="zone-win-hi" cx="130" cy="130" r="94"
+          stroke-dasharray="${winLenHi.toFixed(2)} ${(CIRC_HI - winLenHi).toFixed(2)}"
+          transform="rotate(-90 130 130)"/>
+
+        <!-- Ticks -->
+        <g class="ticks">${ticks}</g>
+
+        <!-- Central hub -->
+        <circle class="hub-plate" cx="130" cy="130" r="76" fill="url(#ug-hub)"/>
+        <circle class="hub-ring"  cx="130" cy="130" r="70"/>
+        <circle class="hub-ring"  cx="130" cy="130" r="63"/>
+
+        <!-- Needle: rotates around (130,130). At rotation 0 points UP. -->
+        <g class="needle" id="needle" transform="rotate(0 130 130)">
+          <!-- soft shadow offset -->
+          <polygon class="n-shadow" points="130,34 137,128 130,138 123,128" transform="translate(2,4)"/>
+          <!-- right half (darker) -->
+          <polygon class="n-dark"  points="130,34 137,128 130,138" fill="url(#ug-needle-r)"/>
+          <!-- left half (lighter) -->
+          <polygon class="n-light" points="130,34 130,138 123,128" fill="url(#ug-needle-l)"/>
+          <!-- accent tip -->
+          <polygon class="n-tip"   points="130,20 137,38 123,38"/>
+          <!-- pivot cap -->
+          <circle class="n-pivot-outer" cx="130" cy="130" r="14"/>
+          <circle class="n-pivot-inner" cx="130" cy="130" r="5"/>
         </g>
       </svg>`;
   }
@@ -226,12 +293,12 @@
 
     const needle = document.getElementById('needle');
     needle.style.transition = 'none';
-    needle.setAttribute('transform', 'rotate(0)');
+    needle.setAttribute('transform', 'rotate(0 130 130)');
     // Layout tick
     // eslint-disable-next-line no-unused-expressions
     needle.getBoundingClientRect();
     needle.style.transition = `transform ${dur}ms ${ease}`;
-    needle.setAttribute('transform', `rotate(${finalDeg})`);
+    needle.setAttribute('transform', `rotate(${finalDeg} 130 130)`);
 
     setTimeout(() => {
       arcHolder.classList.remove('result-win', 'result-lose');
