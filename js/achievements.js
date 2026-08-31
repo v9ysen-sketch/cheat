@@ -56,6 +56,19 @@ CRATER.checkAchievements = function() {
       if (CRATER.sound) CRATER.sound.chime();
     });
   }
+  // Rank promotion check
+  if (typeof CRATER.getRank === 'function') {
+    const currentRankKey = CRATER.getRank().current.key;
+    if (CRATER.state.lastRankKey && CRATER.state.lastRankKey !== currentRankKey) {
+      const r = CRATER.getRank().current;
+      if (typeof CRATER.rareSplash === 'function') CRATER.rareSplash(`RANK UP: ${r.name}`, r.color);
+      if (CRATER.sound) CRATER.sound.bigwin();
+      if (typeof CRATER.confetti === 'function') CRATER.confetti({ count: 120, colors: [r.color, '#ffd700', '#2be07b'] });
+      CRATER.toast(`⬆ Новый ранг: ${r.name}`);
+    }
+    CRATER.state.lastRankKey = currentRankKey;
+    CRATER.saveState();
+  }
   return newly;
 };
 
