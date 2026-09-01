@@ -758,6 +758,31 @@ CRATER.artCase = function(cfg) {
         <stop offset="0%"  stop-color="#000" stop-opacity="0.7"/>
         <stop offset="100%" stop-color="#000" stop-opacity="0"/>
       </radialGradient>
+      <!-- Long specular streak on the top metal band -->
+      <linearGradient id="${uid}-spec" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"  stop-color="rgba(255,255,255,0)"/>
+        <stop offset="35%" stop-color="rgba(255,255,255,0.55)"/>
+        <stop offset="55%" stop-color="rgba(255,255,255,0.75)"/>
+        <stop offset="70%" stop-color="rgba(255,255,255,0.4)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </linearGradient>
+      <!-- Rust/wear patches (rotated splotch that we stamp near edges) -->
+      <radialGradient id="${uid}-rust" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"  stop-color="#4a2b10" stop-opacity="0.85"/>
+        <stop offset="60%" stop-color="#2a1808" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <!-- Rubber corner bumper (dark with soft edge) -->
+      <radialGradient id="${uid}-bumper" cx="50%" cy="50%" r="60%">
+        <stop offset="0%"  stop-color="#1a1a1a"/>
+        <stop offset="80%" stop-color="#0a0a0a"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0.85"/>
+      </radialGradient>
+      <!-- Fabric-weave strap overlay -->
+      <pattern id="${uid}-weave" width="4" height="4" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="0" x2="4" y2="4" stroke="rgba(255,255,255,0.08)" stroke-width="0.4"/>
+        <line x1="4" y1="0" x2="0" y2="4" stroke="rgba(0,0,0,0.3)" stroke-width="0.4"/>
+      </pattern>
     </defs>
 
     <!-- Backdrop -->
@@ -808,6 +833,8 @@ CRATER.artCase = function(cfg) {
 
       <!-- Top metal band -->
       <rect x="30" y="62" width="340" height="34" rx="14" fill="url(#${uid}-metal)"/>
+      <!-- specular streak on top band -->
+      <rect x="30" y="66" width="340" height="9" fill="url(#${uid}-spec)" opacity="0.7"/>
       <rect x="30" y="88" width="340" height="8" fill="url(#${uid}-metal-r)"/>
       <!-- rubber gasket seam -->
       <rect x="30" y="96" width="340" height="3" fill="url(#${uid}-gasket)"/>
@@ -835,6 +862,8 @@ CRATER.artCase = function(cfg) {
       <rect x="30" y="313" width="340" height="3" fill="url(#${uid}-gasket)"/>
       <!-- Bottom metal band -->
       <rect x="30" y="316" width="340" height="36" rx="14" fill="url(#${uid}-metal)"/>
+      <!-- specular streak on bottom band (subtler, on the lip) -->
+      <rect x="30" y="320" width="340" height="6" fill="url(#${uid}-spec)" opacity="0.5"/>
       <rect x="30" y="316" width="340" height="6" fill="url(#${uid}-metal-r)"/>
       <rect x="30" y="322" width="340" height="2" fill="${accent}" opacity="0.75"/>
       <!-- Vent slots on bottom band (industrial detail) -->
@@ -882,6 +911,7 @@ CRATER.artCase = function(cfg) {
       <g>
         <!-- left strap -->
         <rect x="108" y="96" width="26" height="220" fill="url(#${uid}-strap)"/>
+        <rect x="108" y="96" width="26" height="220" fill="url(#${uid}-weave)"/>
         <rect x="108" y="96" width="1" height="220" fill="rgba(255,255,255,0.2)"/>
         <rect x="133" y="96" width="1" height="220" fill="rgba(0,0,0,0.5)"/>
         <!-- upper buckle -->
@@ -896,6 +926,7 @@ CRATER.artCase = function(cfg) {
 
         <!-- right strap -->
         <rect x="266" y="96" width="26" height="220" fill="url(#${uid}-strap)"/>
+        <rect x="266" y="96" width="26" height="220" fill="url(#${uid}-weave)"/>
         <rect x="266" y="96" width="1" height="220" fill="rgba(255,255,255,0.2)"/>
         <rect x="291" y="96" width="1" height="220" fill="rgba(0,0,0,0.5)"/>
         <rect x="262" y="102" width="34" height="30" rx="2"
@@ -1005,6 +1036,21 @@ CRATER.artCase = function(cfg) {
       <g stroke="rgba(255,255,255,0.15)" stroke-width="0.6" fill="none">
         <path d="M60 100 L80 102"/>
         <path d="M330 180 L340 178"/>
+      </g>
+
+      <!-- Rust patches (positions deterministic from serial) -->
+      <g>
+        <ellipse cx="${100 + (serial % 60)}" cy="${210 + (serial % 40)}" rx="14" ry="9" fill="url(#${uid}-rust)"/>
+        <ellipse cx="${290 - (serial % 80)}" cy="${175 + ((serial >> 3) % 50)}" rx="10" ry="6" fill="url(#${uid}-rust)" opacity="0.85"/>
+        <ellipse cx="${170 + ((serial >> 5) % 90)}" cy="${300}" rx="8" ry="4" fill="url(#${uid}-rust)" opacity="0.7"/>
+      </g>
+
+      <!-- Rubber corner bumpers on all four corners of the case body -->
+      <g>
+        <ellipse cx="42"  cy="102" rx="14" ry="9" fill="url(#${uid}-bumper)"/>
+        <ellipse cx="358" cy="102" rx="14" ry="9" fill="url(#${uid}-bumper)"/>
+        <ellipse cx="42"  cy="312" rx="14" ry="9" fill="url(#${uid}-bumper)"/>
+        <ellipse cx="358" cy="312" rx="14" ry="9" fill="url(#${uid}-bumper)"/>
       </g>
 
     </g>
