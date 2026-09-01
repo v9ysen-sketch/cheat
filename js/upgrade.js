@@ -290,27 +290,32 @@
     btnUpgrade.disabled = true;
     if (CRATER.sound) CRATER.sound.click();
 
-    // Cumulative angle: always spin forward from current, never reset.
-    state.needleAngle = state.needleAngle || 0;
-    const startAngle = state.needleAngle;
-    const currentFrac = ((startAngle % 360) + 360) % 360 / 360;
-    let delta = ((targetFrac - currentFrac) % 1 + 1) % 1;   // 0..1, forward
-    const finalAngle = startAngle + spins * 360 + delta * 360;
-    state.needleAngle = finalAngle;
-
-    // rAF-based animation — deterministic, no CSS-transition weirdness on SVG attrs.
+    // Simple: needle DOM is always at rotate(0 130 130) when we start,
+    // because renderArc has re-created it just before. So spin from 0.
+    const totalSpin = spins * 360 + targetFrac * 360;
     const needle = document.getElementById('needle');
+
+    // Cancel any prior animation on this element (defensive — the DOM
+    // node is fresh so this is a no-op, but it protects against races).
+    if (needle && needle.getAnimations) {
+      needle.getAnimations().forEach(a => a.cancel());
+    }
+
+    // Kill any lingering transition — the CSS rule was removed, but
+    // an inline transition would still fight the rAF loop.
     if (needle) needle.style.transition = 'none';
+
     const startTs = performance.now();
     const easeOut = t => 1 - Math.pow(1 - t, 3.4);
+    let raf = 0;
     function tick(now) {
-      if (!needle) return;
+      if (!needle || !needle.isConnected) { cancelAnimationFrame(raf); return; }
       const t = Math.min(1, (now - startTs) / dur);
-      const angle = startAngle + (finalAngle - startAngle) * easeOut(t);
+      const angle = totalSpin * easeOut(t);
       needle.setAttribute('transform', `rotate(${angle.toFixed(2)} 130 130)`);
-      if (t < 1) requestAnimationFrame(tick);
+      if (t < 1) raf = requestAnimationFrame(tick);
     }
-    requestAnimationFrame(tick);
+    raf = requestAnimationFrame(tick);
 
     if (CRATER.sound) {
       const ticks = state.speed === 'gamble' ? 34 : 18;

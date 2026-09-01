@@ -723,6 +723,41 @@ CRATER.artCase = function(cfg) {
       <filter id="${uid}-emboss">
         <feDropShadow dx="0" dy="1" stdDeviation="0.8" flood-color="#000" flood-opacity="0.6"/>
       </filter>
+      <!-- Ambient-occlusion vignette in the four inner corners of the body -->
+      <radialGradient id="${uid}-ao-tl" cx="0%" cy="0%" r="30%">
+        <stop offset="0%"  stop-color="#000" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="${uid}-ao-tr" cx="100%" cy="0%" r="30%">
+        <stop offset="0%"  stop-color="#000" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="${uid}-ao-bl" cx="0%" cy="100%" r="30%">
+        <stop offset="0%"  stop-color="#000" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="${uid}-ao-br" cx="100%" cy="100%" r="30%">
+        <stop offset="0%"  stop-color="#000" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <!-- Rubber gasket stripe between metal bands and body -->
+      <linearGradient id="${uid}-gasket" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#0a0a0a"/>
+        <stop offset="50%"  stop-color="#1c1c1c"/>
+        <stop offset="100%" stop-color="#0a0a0a"/>
+      </linearGradient>
+      <!-- Phillips-head screw (reusable symbol) -->
+      <symbol id="${uid}-screw" viewBox="-5 -5 10 10">
+        <circle cx="0" cy="0" r="4.5" fill="url(#${uid}-metal)" stroke="#050505" stroke-width="0.6"/>
+        <circle cx="0" cy="0" r="3.4" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.5"/>
+        <path d="M-3 -0.5 L3 0.5 M-0.5 -3 L0.5 3" stroke="#050505" stroke-width="1.1"/>
+        <path d="M-2.5 -0.5 L2.5 0.5 M-0.5 -2.5 L0.5 2.5" stroke="rgba(255,255,255,0.35)" stroke-width="0.35"/>
+      </symbol>
+      <!-- Recess shadow under handle -->
+      <radialGradient id="${uid}-recess" cx="50%" cy="0%" r="60%">
+        <stop offset="0%"  stop-color="#000" stop-opacity="0.7"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
     </defs>
 
     <!-- Backdrop -->
@@ -737,14 +772,19 @@ CRATER.artCase = function(cfg) {
     <!-- Case group with drop shadow -->
     <g filter="url(#${uid}-shadow)">
 
+      <!-- Handle recess (dark shadow behind the handle) -->
+      <ellipse cx="200" cy="66" rx="80" ry="10" fill="url(#${uid}-recess)"/>
+
       <!-- Handle (top center) -->
       <g>
         <path d="M170 52 Q170 32 200 32 Q230 32 230 52" fill="none"
           stroke="url(#${uid}-metal)" stroke-width="7" stroke-linecap="round"/>
+        <path d="M170 52 Q170 34 200 34 Q230 34 230 52" fill="none"
+          stroke="rgba(255,255,255,0.35)" stroke-width="1.4" stroke-linecap="round"/>
         <rect x="163" y="48" width="16" height="20" fill="url(#${uid}-metal)" stroke="#0a0a0a" stroke-width="1" rx="2"/>
         <rect x="221" y="48" width="16" height="20" fill="url(#${uid}-metal)" stroke="#0a0a0a" stroke-width="1" rx="2"/>
-        <circle cx="171" cy="58" r="1.5" fill="${accent}" opacity="0.6"/>
-        <circle cx="229" cy="58" r="1.5" fill="${accent}" opacity="0.6"/>
+        <use href="#${uid}-screw" x="171" y="58" width="6" height="6" transform="translate(-3 -3)"/>
+        <use href="#${uid}-screw" x="229" y="58" width="6" height="6" transform="translate(-3 -3)"/>
       </g>
 
       <!-- Case body -->
@@ -753,6 +793,11 @@ CRATER.artCase = function(cfg) {
       <rect x="30" y="62" width="340" height="290" rx="14" fill="url(#${uid}-grid)"/>
       <!-- scratch overlay -->
       <rect x="30" y="62" width="340" height="290" rx="14" fill="url(#${uid}-scratch)"/>
+      <!-- Ambient occlusion in each corner (adds depth) -->
+      <rect x="30" y="62" width="340" height="290" rx="14" fill="url(#${uid}-ao-tl)"/>
+      <rect x="30" y="62" width="340" height="290" rx="14" fill="url(#${uid}-ao-tr)"/>
+      <rect x="30" y="62" width="340" height="290" rx="14" fill="url(#${uid}-ao-bl)"/>
+      <rect x="30" y="62" width="340" height="290" rx="14" fill="url(#${uid}-ao-br)"/>
       <!-- top highlight -->
       <rect x="30" y="62" width="340" height="290" rx="14" fill="url(#${uid}-hi)"/>
       <!-- outer edge dark -->
@@ -764,12 +809,12 @@ CRATER.artCase = function(cfg) {
       <!-- Top metal band -->
       <rect x="30" y="62" width="340" height="34" rx="14" fill="url(#${uid}-metal)"/>
       <rect x="30" y="88" width="340" height="8" fill="url(#${uid}-metal-r)"/>
-      <rect x="30" y="94" width="340" height="2" fill="${accent}" opacity="0.65"/>
-      <!-- rivets on top band -->
-      <g fill="${lighten(accent,10)}" stroke="#0a0a0a" stroke-width="0.6">
-        <circle cx="50"  cy="79" r="2.4"/>
-        <circle cx="350" cy="79" r="2.4"/>
-      </g>
+      <!-- rubber gasket seam -->
+      <rect x="30" y="96" width="340" height="3" fill="url(#${uid}-gasket)"/>
+      <rect x="30" y="99" width="340" height="1" fill="${accent}" opacity="0.65"/>
+      <!-- band phillips screws -->
+      <use href="#${uid}-screw" x="50"  y="79"/>
+      <use href="#${uid}-screw" x="350" y="79"/>
 
       <!-- 2 latches on top band -->
       <g>
@@ -786,49 +831,51 @@ CRATER.artCase = function(cfg) {
         <circle cx="310" cy="81" r="1.8" fill="${accent}"/>
       </g>
 
+      <!-- Rubber gasket seam above bottom band -->
+      <rect x="30" y="313" width="340" height="3" fill="url(#${uid}-gasket)"/>
       <!-- Bottom metal band -->
       <rect x="30" y="316" width="340" height="36" rx="14" fill="url(#${uid}-metal)"/>
       <rect x="30" y="316" width="340" height="6" fill="url(#${uid}-metal-r)"/>
       <rect x="30" y="322" width="340" height="2" fill="${accent}" opacity="0.75"/>
-      <g fill="${lighten(accent,10)}" stroke="#0a0a0a" stroke-width="0.6">
-        <circle cx="50"  cy="336" r="2.4"/>
-        <circle cx="350" cy="336" r="2.4"/>
+      <!-- Vent slots on bottom band (industrial detail) -->
+      <g fill="rgba(0,0,0,0.85)" stroke="rgba(0,0,0,0.9)" stroke-width="0.4">
+        <rect x="130" y="332" width="24" height="4" rx="1"/>
+        <rect x="164" y="332" width="24" height="4" rx="1"/>
+        <rect x="212" y="332" width="24" height="4" rx="1"/>
+        <rect x="246" y="332" width="24" height="4" rx="1"/>
       </g>
+      <!-- Bottom band phillips screws -->
+      <use href="#${uid}-screw" x="50"  y="336"/>
+      <use href="#${uid}-screw" x="350" y="336"/>
 
       <!-- Corner reinforcement plates (only inner corners visible above band) -->
       <g>
         <!-- top-left plate -->
         <path d="M30 96 L86 96 L86 128 Q86 140 74 140 L30 140 Z"
           fill="url(#${uid}-metal-r)" stroke="#0a0a0a" stroke-width="1"/>
-        <g fill="${lighten(accent,10)}" opacity="0.9">
-          <circle cx="42" cy="108" r="2"/>
-          <circle cx="70" cy="108" r="2"/>
-          <circle cx="56" cy="128" r="2"/>
-        </g>
+        <path d="M30 100 L82 100 L82 128 Q82 136 74 136 L30 136" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="0.7"/>
+        <use href="#${uid}-screw" x="42" y="108"/>
+        <use href="#${uid}-screw" x="70" y="108"/>
+        <use href="#${uid}-screw" x="56" y="130"/>
         <!-- top-right plate -->
         <path d="M370 96 L314 96 L314 128 Q314 140 326 140 L370 140 Z"
           fill="url(#${uid}-metal)" stroke="#0a0a0a" stroke-width="1"/>
-        <g fill="${lighten(accent,10)}" opacity="0.9">
-          <circle cx="358" cy="108" r="2"/>
-          <circle cx="330" cy="108" r="2"/>
-          <circle cx="344" cy="128" r="2"/>
-        </g>
+        <path d="M370 100 L318 100 L318 128 Q318 136 326 136 L370 136" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="0.7"/>
+        <use href="#${uid}-screw" x="358" y="108"/>
+        <use href="#${uid}-screw" x="330" y="108"/>
+        <use href="#${uid}-screw" x="344" y="130"/>
         <!-- bottom-left plate -->
         <path d="M30 316 L86 316 L86 284 Q86 272 74 272 L30 272 Z"
           fill="url(#${uid}-metal-r)" stroke="#0a0a0a" stroke-width="1"/>
-        <g fill="${lighten(accent,10)}" opacity="0.9">
-          <circle cx="42" cy="304" r="2"/>
-          <circle cx="70" cy="304" r="2"/>
-          <circle cx="56" cy="284" r="2"/>
-        </g>
+        <use href="#${uid}-screw" x="42" y="304"/>
+        <use href="#${uid}-screw" x="70" y="304"/>
+        <use href="#${uid}-screw" x="56" y="282"/>
         <!-- bottom-right plate -->
         <path d="M370 316 L314 316 L314 284 Q314 272 326 272 L370 272 Z"
           fill="url(#${uid}-metal)" stroke="#0a0a0a" stroke-width="1"/>
-        <g fill="${lighten(accent,10)}" opacity="0.9">
-          <circle cx="358" cy="304" r="2"/>
-          <circle cx="330" cy="304" r="2"/>
-          <circle cx="344" cy="284" r="2"/>
-        </g>
+        <use href="#${uid}-screw" x="358" y="304"/>
+        <use href="#${uid}-screw" x="330" y="304"/>
+        <use href="#${uid}-screw" x="344" y="282"/>
       </g>
 
       <!-- 2 vertical straps flanking the front -->
@@ -871,31 +918,45 @@ CRATER.artCase = function(cfg) {
 
       <!-- Central emblem (embossed disc top-center of panel) -->
       <g transform="translate(200 155)" filter="url(#${uid}-emboss)">
+        <!-- outer bevel ring -->
+        <circle r="32" fill="${shade(accent,45)}"/>
         <circle r="30" fill="url(#${uid}-emblem)" stroke="${shade(accent,30)}" stroke-width="1.5"/>
-        <circle r="26" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
-        <circle r="22" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.5"/>
-        <!-- Small rivets around perimeter -->
-        <g fill="${shade(accent,50)}">
-          <circle cx="0"  cy="-27" r="1.2"/>
-          <circle cx="27" cy="0"   r="1.2"/>
-          <circle cx="0"  cy="27"  r="1.2"/>
-          <circle cx="-27" cy="0"  r="1.2"/>
-          <circle cx="19" cy="-19" r="1.2"/>
-          <circle cx="19" cy="19"  r="1.2"/>
-          <circle cx="-19" cy="19" r="1.2"/>
-          <circle cx="-19" cy="-19" r="1.2"/>
-        </g>
-        <!-- Center glyph -->
-        <text text-anchor="middle" y="7" font-family="Rajdhani, Chakra Petch, sans-serif"
-          font-size="24" font-weight="700" fill="${shade(accent,55)}" letter-spacing="1">${glyph}</text>
+        <!-- highlight arc top -->
+        <path d="M-24 -15 A 30 30 0 0 1 24 -15" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1"/>
+        <!-- inner rings -->
+        <circle r="26" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1"/>
+        <circle r="22" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="0.5"/>
+        <!-- tiny screws around perimeter (4 cardinals + 4 diagonals) -->
+        <use href="#${uid}-screw" x="0"  y="-27" width="5" height="5" transform="translate(-2.5 -2.5)"/>
+        <use href="#${uid}-screw" x="27" y="0"   width="5" height="5" transform="translate(-2.5 -2.5)"/>
+        <use href="#${uid}-screw" x="0"  y="27"  width="5" height="5" transform="translate(-2.5 -2.5)"/>
+        <use href="#${uid}-screw" x="-27" y="0"  width="5" height="5" transform="translate(-2.5 -2.5)"/>
+        <!-- Center glyph — deep shadow first, highlight on top for embossed look -->
+        <text text-anchor="middle" y="9" font-family="Rajdhani, Chakra Petch, sans-serif"
+          font-size="28" font-weight="700" fill="rgba(255,255,255,0.35)" letter-spacing="1">${glyph}</text>
+        <text text-anchor="middle" y="8" font-family="Rajdhani, Chakra Petch, sans-serif"
+          font-size="28" font-weight="700" fill="${shade(accent,60)}" letter-spacing="1">${glyph}</text>
       </g>
 
       <!-- CRATER brass brand plate (below weapon) -->
       <g transform="translate(200 262)" filter="url(#${uid}-emboss)">
+        <!-- outer bevel shadow -->
+        <path d="M-74 -14 L74 -14 L80 0 L74 14 L-74 14 L-80 0 Z"
+          fill="${shade(accent,50)}"/>
+        <!-- plate -->
         <path d="M-72 -13 L72 -13 L78 0 L72 13 L-72 13 L-78 0 Z"
           fill="url(#${uid}-brass)" stroke="${shade(accent,40)}" stroke-width="1"/>
-        <path d="M-72 -13 L72 -13 L78 0 L72 13 L-72 13 L-78 0 Z"
-          fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="0.5"/>
+        <!-- top highlight -->
+        <path d="M-72 -13 L72 -13" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.8"/>
+        <!-- inner border -->
+        <path d="M-68 -10 L68 -10 L73 0 L68 10 L-68 10 L-73 0 Z"
+          fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.6"/>
+        <!-- Two tiny screws at ends -->
+        <use href="#${uid}-screw" x="-66" y="0" width="6" height="6" transform="translate(-3 -3)"/>
+        <use href="#${uid}-screw" x="66"  y="0" width="6" height="6" transform="translate(-3 -3)"/>
+        <!-- Embossed CRATER (shadow layer + highlight layer for depth) -->
+        <text text-anchor="middle" y="7" font-family="Rajdhani, Chakra Petch, sans-serif"
+          font-size="17" font-weight="700" fill="rgba(255,255,255,0.45)" letter-spacing="7">CRATER</text>
         <text text-anchor="middle" y="6" font-family="Rajdhani, Chakra Petch, sans-serif"
           font-size="17" font-weight="700" fill="${shade(accent,60)}" letter-spacing="7">CRATER</text>
       </g>

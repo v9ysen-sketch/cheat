@@ -418,6 +418,34 @@ CRATER.CASES = [
   { id: 'ascendant',  name: 'Ascendant',  tier: 5, mood: 'ice',    weapon: 'knife', primary:'#001a3a', secondary:'#0288d1', accent:'#b3e5fc', price: 86000, hasGloves: true },
   { id: 'apex',       name: 'Apex',       tier: 5, mood: 'metal',  weapon: 'knife', primary:'#0a0a0a', secondary:'#455a64', accent:'#e4ae39', price: 94000, hasGloves: true },
   { id: 'genesis',    name: 'Genesis',    tier: 5, mood: 'void',   weapon: 'knife', primary:'#000000', secondary:'#4a148c', accent:'#ffd700', price:100000, hasGloves: true },
+
+  // --- Prime (t2) drop, 5 fresh aesthetics ---
+  { id: 'prism_refraction',  name: 'Prism Refraction',  tier: 2, mood: 'prismatic', weapon: 'rifle',   primary:'#ff2fb3', secondary:'#3ad0ff', accent:'#fff45a', price:  4200 },
+  { id: 'splatter_riot',     name: 'Splatter Riot',     tier: 2, mood: 'paint',     weapon: 'smg',     primary:'#ff5b2e', secondary:'#2ee8a4', accent:'#ffe14a', price:  3100 },
+  { id: 'spring_bloom',      name: 'Spring Bloom',      tier: 2, mood: 'nature',    weapon: 'pistol',  primary:'#ff7fbf', secondary:'#7dd94f', accent:'#fff2a8', price:  2800 },
+  { id: 'arctic_aurora',     name: 'Arctic Aurora',     tier: 2, mood: 'ice',       weapon: 'sniper',  primary:'#5ae2ff', secondary:'#a679ff', accent:'#c7ffee', price:  6400 },
+  { id: 'sunset_chevron',    name: 'Sunset Chevron',    tier: 2, mood: 'orange',    weapon: 'shotgun', primary:'#ff6a1a', secondary:'#ffb347', accent:'#ff2e88', price:  3600 },
+
+  // --- Combat (t3) thematic ---
+  { id: 'shaman_totem',      name: 'Shaman Totem',      tier: 3, mood: 'tribal',  weapon: 'shotgun', primary:'#6b3a1f', secondary:'#c9a24a', accent:'#e8d3a1', price:  7200 },
+  { id: 'kraken_depths',     name: 'Kraken Depths',     tier: 3, mood: 'water',   weapon: 'sniper',  primary:'#0b2a3d', secondary:'#1f7a6b', accent:'#9be3d0', price: 11800, hasGloves: true },
+  { id: 'pharaoh_ruins',     name: 'Pharaoh Ruins',     tier: 3, mood: 'ancient', weapon: 'rifle',   primary:'#3a2510', secondary:'#d4a437', accent:'#f2e2b0', price: 13500 },
+  { id: 'sand_serpent',      name: 'Sand Serpent',      tier: 3, mood: 'desert',  weapon: 'smg',     primary:'#a67535', secondary:'#5c3a1a', accent:'#e6c98a', price:  6400 },
+  { id: 'plague_doctor',     name: 'Plague Doctor',     tier: 3, mood: 'toxic',   weapon: 'pistol',  primary:'#1a1f14', secondary:'#7ab53a', accent:'#c8e64a', price:  8900 },
+
+  // --- Elite (t4) industrial high-end ---
+  { id: 'aerospace_titanium',name: 'Aerospace Titanium',tier: 4, mood: 'metal',    weapon: 'sniper', primary:'#2a2f36', secondary:'#6b7480', accent:'#e8f1ff', price: 42000 },
+  { id: 'deepsea_salvage',   name: 'Deep Salvage',      tier: 4, mood: 'dark',     weapon: 'heavy',  primary:'#0a1a24', secondary:'#2d5c66', accent:'#c9a24b', price: 38500, hasGloves: true },
+  { id: 'neon_subway',       name: 'Neon Subway',       tier: 4, mood: 'cyber',    weapon: 'smg',    primary:'#141026', secondary:'#3a2e6b', accent:'#ff2f8a', price: 34000 },
+  { id: 'digital_camo',      name: 'Digital Camo',      tier: 4, mood: 'military', weapon: 'rifle',  primary:'#1c2418', secondary:'#4a5a3a', accent:'#d4e04a', price: 28500 },
+  { id: 'fabricator',        name: 'Fabricator',        tier: 4, mood: 'tech',     weapon: 'pistol', primary:'#1a1614', secondary:'#5c4a3a', accent:'#ff7a1a', price: 22000 },
+
+  // --- Legendary (t5) mythic hunt ---
+  { id: 'crimson_lair',      name: 'Crimson Lair',      tier: 5, mood: 'blood', weapon: 'knife', primary:'#2a0508', secondary:'#7a1220', accent:'#ff2a4a', price: 189000, hasGloves: true },
+  { id: 'void_obsidian',     name: 'Void Obsidian',     tier: 5, mood: 'void',  weapon: 'knife', primary:'#08060f', secondary:'#241a3a', accent:'#a678ff', price: 215000, hasGloves: true },
+  { id: 'molten_forge',      name: 'Molten Forge',      tier: 5, mood: 'fire',  weapon: 'heavy', primary:'#180806', secondary:'#8a2a10', accent:'#ffb347', price: 142000, hasGloves: true },
+  { id: 'arctic_apex',       name: 'Arctic Apex',       tier: 5, mood: 'ice',   weapon: 'sniper',primary:'#061a24', secondary:'#1e5a78', accent:'#7ff0ff', price: 168000, hasGloves: true },
+  { id: 'gold_monarchy',     name: 'Gold Monarchy',     tier: 5, mood: 'gold',  weapon: 'knife', primary:'#1a1206', secondary:'#7a5a12', accent:'#ffd24a', price: 248000, hasGloves: true },
 ];
 
 // ---------- Deterministic PRNG (mulberry32) ---------- //

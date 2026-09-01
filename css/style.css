@@ -1215,7 +1215,8 @@ main { padding: 24px; max-width: 1440px; margin: 0 auto; }
 
 .upgrade-arc .needle {
   transform-origin: 130px 130px;
-  transition: transform 4s cubic-bezier(.15,.85,.35,1);
+  /* NO transition — JS animates the SVG transform attribute directly.
+     Any CSS transition here fights the rAF loop and can cause runaway. */
 }
 .upgrade-arc .needle .n-shadow { fill: rgba(0,0,0,0.55); }
 .upgrade-arc .needle .n-light  { fill: var(--text); }
