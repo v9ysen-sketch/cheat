@@ -21,7 +21,7 @@ CRATER.showItemDetail = function (item, opts) {
     <div class="modal detail-modal">
       <button class="detail-close" data-close>×</button>
       <div class="detail-hero" style="background: radial-gradient(circle at 50% 40%, ${rColor}55, transparent 70%)">
-        ${CRATER.artWeapon(item, { bg: true })}
+        ${CRATER.itemVisual(item, { bg: true })}
       </div>
       <div class="detail-body">
         <div class="detail-rarity" style="color:${rColor}; border-color:${rColor}">${rName}</div>
@@ -68,9 +68,7 @@ document.addEventListener('click', function (e) {
   const caseId = routeParams.get('id');
   const box = caseId ? CRATER.getCase(caseId) : null;
   if (!box) return;
-  const idx = Array.from(card.parentNode.children).indexOf(card);
-  const items = card.parentNode.querySelectorAll('.item-card');
-  // Use case items order (drops sorted by rarity desc)
-  const item = box.items[Array.from(items).indexOf(card)];
+  const di = card.dataset.dropIdx;
+  const item = di != null ? box.items[+di] : null;
   if (item) CRATER.showItemDetail(item, { caseName: box.name });
 });

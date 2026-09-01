@@ -7,21 +7,29 @@
 
   const params = new URLSearchParams(location.search);
   const id = params.get('id') || 'rookie';
-  const box = CRATER.getCase(id);
+  let box = CRATER.getCase(id);
   const page = document.getElementById('page');
 
   if (!box) {
-    page.innerHTML = `<h1 class="page-title">Кейс не найден</h1>
-      <p class="page-subtitle"><a href="index.html" style="color:var(--accent)">← К каталогу</a></p>`;
-    return;
+    // CS2 case data may still be loading — retry once the catalog updates
+    page.innerHTML = `<div class="empty-state">Загружаю кейс…</div>`;
+    CRATER.onCatalogUpdate = () => {
+      box = CRATER.getCase(id);
+      if (box) render();
+      else page.innerHTML = `<h1 class="page-title">Кейс не найден</h1>
+        <p class="page-subtitle"><a href="index.html" style="color:var(--accent)">← К каталогу</a></p>`;
+    };
   }
 
   const state = { speed: CRATER.state.prefs.speed || 'normal', busy: false, lastRoll: null };
 
   function drops() {
-    // Group items by rarity, show header per group
+    // Group items by rarity, show header per group.
+    // data-drop-idx keeps the global index so the detail modal maps correctly.
     const groups = {};
-    box.items.forEach(it => { (groups[it.rarity] = groups[it.rarity] || []).push(it); });
+    box.items.forEach((it, gi) => {
+      (groups[it.rarity] = groups[it.rarity] || []).push({ it, gi });
+    });
     const rarityOrder = CRATER.RARITY_ORDER.slice().reverse();
     return rarityOrder.filter(r => groups[r]).map(r => {
       const items = groups[r];
@@ -34,7 +42,7 @@
             <span class="rh-meta">${items.length} шт · шанс ${chance}%</span>
           </div>
           <div class="drops-grid">
-            ${items.map(it => CRATER.itemCardHTML(it, { hideWear: true })).join('')}
+            ${items.map(({ it, gi }) => CRATER.itemCardHTML(it, { hideWear: true, dataset: `data-drop-idx="${gi}"` })).join('')}
           </div>
         </div>`;
     }).join('');
@@ -62,7 +70,7 @@
 
       <div class="case-detail">
         <div class="case-hero">
-          <div class="case-art">${CRATER.artCase(box)}</div>
+          <div class="case-art">${CRATER.caseVisual(box)}</div>
           <h1>${CRATER.esc(box.name)}</h1>
           <div class="price">${CRATER.fmt(box.price)}<span class="cur">БП</span></div>
           <div class="open-controls">
@@ -184,7 +192,7 @@
     const rColor = CRATER.RARITY[item.rarity].color;
     wonBox.style.borderBottomColor = rColor;
     wonBox.innerHTML = `
-      <div class="item-img">${CRATER.artWeapon(item, { bg: true })}</div>
+      <div class="item-img">${CRATER.itemVisual(item, { bg: true })}</div>
       <div class="weapon">${CRATER.esc(item.weaponName)} · ${item.wear}</div>
       <div class="name" style="color:${rColor}">${CRATER.esc(item.skin)}</div>
       <div class="price">+ ${CRATER.fmt(item.price)} <span class="cur">БП</span></div>
@@ -221,7 +229,7 @@
         CRATER.state.stats.earned += w.price;
         CRATER.state.history.unshift({
           weapon: w.weaponName, skin: w.skin, rarity: w.rarity, price: w.price,
-          caseName: box.name, at: Date.now(), cls: w.cls, colors: w.colors,
+          caseName: box.name, at: Date.now(), cls: w.cls, colors: w.colors, image: w.image || null,
         });
         CRATER.state.stats.opened += 1;
         if (w.price > (CRATER.state.stats.bestPrice || 0)) {
@@ -242,7 +250,7 @@
     CRATER.state.history.unshift({
       weapon: modalItem.weaponName, skin: modalItem.skin, rarity: modalItem.rarity,
       price: modalItem.price, caseName: box.name, at: Date.now(),
-      cls: modalItem.cls, colors: modalItem.colors,
+      cls: modalItem.cls, colors: modalItem.colors, image: modalItem.image || null,
     });
     if (CRATER.state.history.length > 200) CRATER.state.history.length = 200;
     CRATER.state.stats.opened += 1;
@@ -348,7 +356,7 @@
         ${wins.map(w => `
           <div class="mini-drop rarity-${w.rarity}" title="${CRATER.esc(w.skin)}"
                style="border-color:${CRATER.RARITY[w.rarity].color}">
-            <div class="mini-drop-img">${CRATER.artWeaponMini(w)}</div>
+            <div class="mini-drop-img">${CRATER.miniVisual(w)}</div>
             <div class="mini-drop-price">${CRATER.fmt(w.price)}</div>
           </div>`).join('')}
       </div>
@@ -366,7 +374,7 @@
     modal.classList.add('show');
   }
 
-  render();
+  if (box) render();
 
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {

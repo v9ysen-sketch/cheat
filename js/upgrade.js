@@ -105,7 +105,7 @@
     const rColor = CRATER.RARITY[item.rarity].color;
     el.innerHTML = `
       <div class="item-preview">
-        ${CRATER.artWeapon(item, { bg: false })}
+        ${CRATER.itemVisual(item, { bg: false })}
         <div class="name" style="color:${rColor}">${CRATER.esc(item.weaponName)} · ${CRATER.esc(item.skin)}</div>
         <div class="price">${CRATER.fmt(item.price)} <span class="cur" style="color:var(--text-muted);font-size:12px">БП</span></div>
       </div>`;
@@ -361,7 +361,7 @@
       const rColor = CRATER.RARITY[item.rarity].color;
       won.style.borderBottomColor = rColor;
       won.innerHTML = `
-        <div class="item-img">${CRATER.artWeapon(item, { bg: true })}</div>
+        <div class="item-img">${CRATER.itemVisual(item, { bg: true })}</div>
         <div class="weapon">${CRATER.esc(item.weaponName)} · ${item.wear}</div>
         <div class="name" style="color:${rColor}">${CRATER.esc(item.skin)}</div>
         <div class="price">+ ${CRATER.fmt(item.price)} <span class="cur">БП</span></div>`;

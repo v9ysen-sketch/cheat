@@ -11,8 +11,13 @@
   const sortEl = document.getElementById('sort');
 
   let activeTier = 'all';
+  let activePack = 'all';
   let query = '';
   let sortMode = 'tier';
+
+  function fullCatalog() {
+    return typeof CRATER.catalog === 'function' ? CRATER.catalog() : CRATER.CASES;
+  }
 
   function rarityPips(cfg) {
     const box = CRATER.getCase(cfg.id);
@@ -33,8 +38,8 @@
     return `
       <a class="case-card" href="case.html?id=${cfg.id}" data-tier="${cfg.tier}" data-name="${CRATER.esc(cfg.name.toLowerCase())}" style="--i:${i}">
         <div class="case-art">
-          <div class="case-tier">${tierName}</div>
-          ${CRATER.artCase(cfg)}
+          <div class="case-tier">${cfg.cs2 ? 'CS2' : tierName}</div>
+          ${CRATER.caseVisual(cfg)}
         </div>
         <div class="case-body">
           <div class="case-name">${CRATER.esc(cfg.name)}</div>
@@ -48,7 +53,9 @@
   }
 
   function render() {
-    let items = CRATER.CASES.filter(c => {
+    let items = fullCatalog().filter(c => {
+      if (activePack === 'cs2' && !c.cs2) return false;
+      if (activePack === 'crater' && c.cs2) return false;
       if (activeTier !== 'all' && String(c.tier) !== String(activeTier)) return false;
       if (query && !c.name.toLowerCase().includes(query.toLowerCase())) return false;
       return true;
@@ -61,10 +68,28 @@
       '<div class="empty-state">Ничего не найдено</div>';
   }
 
+  // Pack chips (CS2 / CRATER) appear once the CS2 data lands
+  function injectPackChips() {
+    if (document.querySelector('[data-pack]')) return;
+    const first = filters.querySelector('.chip');
+    if (!first) return;
+    first.insertAdjacentHTML('afterend', `
+      <button class="chip chip-pack" data-pack="cs2">CS2 · ${(CRATER.CS2_CASES || []).length}</button>
+      <button class="chip chip-pack" data-pack="crater">CRATER · ${CRATER.CASES.length}</button>`);
+  }
+
   filters.addEventListener('click', (e) => {
     const btn = e.target.closest('.chip');
     if (!btn) return;
-    filters.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    if (btn.dataset.pack) {
+      const was = btn.classList.contains('active');
+      filters.querySelectorAll('[data-pack]').forEach(c => c.classList.remove('active'));
+      activePack = was ? 'all' : btn.dataset.pack;
+      if (!was) btn.classList.add('active');
+      render();
+      return;
+    }
+    filters.querySelectorAll('.chip:not([data-pack])').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
     activeTier = btn.dataset.tier;
     render();
@@ -77,14 +102,15 @@
   // ---------- Home hero (rotating featured tier V cases) ---------- //
   const heroEl = document.getElementById('hero');
   if (heroEl) {
-    const featured = CRATER.CASES.filter(c => c.tier === 5);
     let idx = 0;
     function renderHero() {
+      const featured = fullCatalog().filter(c => c.tier === 5);
+      if (!featured.length) return;
       const c = featured[idx % featured.length];
       const drops = CRATER.buildFakeDrops(1)[0];
       heroEl.innerHTML = `
         <div class="hero-art" style="background:radial-gradient(ellipse at center, ${c.secondary}44 0%, transparent 70%)">
-          ${CRATER.artCase(c)}
+          ${CRATER.caseVisual(c)}
         </div>
         <div class="hero-info">
           <div class="hero-eyebrow">Топ кейс сегодня</div>
@@ -125,4 +151,13 @@
   rebuildTicker();
   // Refresh occasionally so it feels alive
   setInterval(rebuildTicker, 45000);
+
+  // When CS2 data lands: pack chips + regrid + fresh ticker/hero
+  CRATER.onCatalogUpdate = () => {
+    injectPackChips();
+    render();
+    rebuildTicker();
+  };
+  // Data may have loaded before this page module ran
+  if (CRATER.CS2_CASES && CRATER.CS2_CASES.length) CRATER.onCatalogUpdate();
 })();

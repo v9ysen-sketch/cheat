@@ -129,7 +129,7 @@ CRATER.addToInventory = function(item, caseCfg) {
   CRATER.state.history.unshift({
     weapon: item.weaponName, skin: item.skin, rarity: item.rarity, price: item.price,
     caseName: caseCfg ? caseCfg.name : (item.caseName || '—'),
-    at: Date.now(), cls: item.cls, colors: item.colors,
+    at: Date.now(), cls: item.cls, colors: item.colors, image: item.image || null,
   });
   if (CRATER.state.history.length > 200) CRATER.state.history.length = 200;
   CRATER.state.stats.opened += 1;
@@ -268,10 +268,37 @@ function escapeHtml(s) {
 function escapeAttr(s) { return escapeHtml(s); }
 CRATER.esc = escapeHtml;
 
+// ---------- Visuals: CDN image when the item has one, SVG otherwise ---------- //
+CRATER.itemVisual = function(item, opts) {
+  opts = opts || {};
+  if (item.image) {
+    const rColor = CRATER.RARITY[item.rarity] ? CRATER.RARITY[item.rarity].color : '#8a988a';
+    const glow = opts.bg === false ? '' :
+      `style="background: radial-gradient(ellipse at 50% 45%, ${rColor}33 0%, transparent 70%)"`;
+    return `<div class="econ-wrap" ${glow}><img class="econ-img" src="${escapeAttr(item.image)}" alt="" loading="lazy" draggable="false"></div>`;
+  }
+  return CRATER.artWeapon(item, opts);
+};
+CRATER.miniVisual = function(item) {
+  if (item.image) {
+    return `<img class="econ-img" src="${escapeAttr(item.image)}" alt="" loading="lazy" draggable="false">`;
+  }
+  return CRATER.artWeaponMini(item);
+};
+CRATER.caseVisual = function(cfg) {
+  if (cfg.image) {
+    return `<div class="cs2-case-visual">
+      <img class="econ-img" src="${escapeAttr(cfg.image)}" alt="" loading="lazy" draggable="false">
+      <span class="cs2-badge">CS2</span>
+    </div>`;
+  }
+  return CRATER.artCase(cfg);
+};
+
 // ---------- Item card component ---------- //
 CRATER.itemCardHTML = function(item, opts) {
   opts = opts || {};
-  const svg = CRATER.artWeapon(item, { bg: true });
+  const svg = CRATER.itemVisual(item, { bg: true });
   const rClass = 'rarity-' + item.rarity;
   const wearBit = opts.hideWear ? '' : `<span class="item-wear">${item.wear}</span>`;
   const price = opts.hidePrice ? '' : `<span class="item-price">${CRATER.fmt(item.price)} <span class="cur">БП</span></span>`;
@@ -289,7 +316,7 @@ CRATER.itemCardHTML = function(item, opts) {
 };
 
 CRATER.miniItemHTML = function(item) {
-  return `<div class="mini-item">${CRATER.artWeaponMini(item)}</div>`;
+  return `<div class="mini-item">${CRATER.miniVisual(item)}</div>`;
 };
 
 // ---------- Cookie banner ---------- //

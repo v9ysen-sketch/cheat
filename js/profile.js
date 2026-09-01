@@ -147,10 +147,10 @@
     const rows = h.slice(0, 40).map(r => {
       const ago = timeAgo(r.at);
       const rColor = CRATER.RARITY[r.rarity].color;
-      const item = { cls: r.cls, colors: r.colors, weaponName: r.weapon, skin: r.skin, rarity: r.rarity };
+      const item = { cls: r.cls, colors: r.colors, weaponName: r.weapon, skin: r.skin, rarity: r.rarity, image: r.image || null };
       return `
         <div class="history-row rarity-${r.rarity}">
-          <div class="mini">${CRATER.artWeaponMini(item)}</div>
+          <div class="mini">${CRATER.miniVisual(item)}</div>
           <div class="info">
             <div class="weapon">${CRATER.esc(r.weapon)}</div>
             <div class="name" style="color:${rColor}">${CRATER.esc(r.skin)}</div>

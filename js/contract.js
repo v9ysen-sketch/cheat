@@ -48,7 +48,7 @@
         if (it) {
           const rColor = CRATER.RARITY[it.rarity].color;
           html += `<div class="contract-slot filled" data-idx="${i}" title="Убрать" style="border-bottom-color:${rColor}">
-            <div class="slot-mini">${CRATER.artWeapon(it, { bg: false })}</div>
+            <div class="slot-mini">${CRATER.itemVisual(it, { bg: false })}</div>
             <div class="slot-name" style="color:${rColor}">${CRATER.esc(it.skin)}</div>
             <div class="slot-price">${CRATER.fmt(it.price)}</div>
           </div>`;
@@ -181,7 +181,7 @@
     resultTitle.style.color = 'var(--accent)';
     wonEl.style.borderBottomColor = rColor;
     wonEl.innerHTML = `
-      <div class="item-img">${CRATER.artWeapon(item, { bg: true })}</div>
+      <div class="item-img">${CRATER.itemVisual(item, { bg: true })}</div>
       <div class="weapon">${CRATER.esc(item.weaponName)} · ${item.wear}</div>
       <div class="name" style="color:${rColor}">${CRATER.esc(item.skin)}</div>
       <div class="price">${CRATER.fmt(item.price)} <span class="cur">БП</span></div>
