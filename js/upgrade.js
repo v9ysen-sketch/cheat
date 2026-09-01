@@ -199,19 +199,19 @@
         <circle class="hub-ring"  cx="130" cy="130" r="70"/>
         <circle class="hub-ring"  cx="130" cy="130" r="63"/>
 
-        <!-- Needle: rotates around (130,130). At rotation 0 points UP. -->
-        <g class="needle" id="needle" transform="rotate(0 130 130)">
-          <!-- soft shadow offset -->
-          <polygon class="n-shadow" points="130,34 137,128 130,138 123,128" transform="translate(2,4)"/>
-          <!-- right half (darker) -->
-          <polygon class="n-dark"  points="130,34 137,128 130,138" fill="url(#ug-needle-r)"/>
-          <!-- left half (lighter) -->
-          <polygon class="n-light" points="130,34 130,138 123,128" fill="url(#ug-needle-l)"/>
-          <!-- accent tip -->
-          <polygon class="n-tip"   points="130,20 137,38 123,38"/>
-          <!-- pivot cap -->
-          <circle class="n-pivot-outer" cx="130" cy="130" r="14"/>
-          <circle class="n-pivot-inner" cx="130" cy="130" r="5"/>
+        <!-- Needle: geometry drawn RELATIVE to (0,0), parent translates
+             to the arc center. Rotation is then a simple rotate(angle)
+             around 0,0 — no 3-arg form, no CSS transform-origin needed.
+             At rotation 0, the blade points UP (negative Y in SVG). -->
+        <g transform="translate(130 130)">
+          <g class="needle" id="needle" transform="rotate(0)">
+            <polygon class="n-shadow" points="0,-96 7,-2 0,8 -7,-2" transform="translate(2,4)"/>
+            <polygon class="n-dark"   points="0,-96 7,-2 0,8" fill="url(#ug-needle-r)"/>
+            <polygon class="n-light"  points="0,-96 0,8 -7,-2" fill="url(#ug-needle-l)"/>
+            <polygon class="n-tip"    points="0,-110 7,-92 -7,-92"/>
+            <circle class="n-pivot-outer" cx="0" cy="0" r="14"/>
+            <circle class="n-pivot-inner" cx="0" cy="0" r="5"/>
+          </g>
         </g>
       </svg>`;
   }
@@ -312,7 +312,7 @@
       if (!needle || !needle.isConnected) { cancelAnimationFrame(raf); return; }
       const t = Math.min(1, (now - startTs) / dur);
       const angle = totalSpin * easeOut(t);
-      needle.setAttribute('transform', `rotate(${angle.toFixed(2)} 130 130)`);
+      needle.setAttribute('transform', `rotate(${angle.toFixed(2)})`);
       if (t < 1) raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);

@@ -1213,11 +1213,10 @@ main { padding: 24px; max-width: 1440px; margin: 0 auto; }
 .upgrade-arc .hub-plate  { fill: var(--bg-alt); stroke: var(--border);      stroke-width: 1.5; }
 .upgrade-arc .hub-ring   { fill: none;          stroke: var(--border-alt);  stroke-width: 1; }
 
-.upgrade-arc .needle {
-  transform-origin: 130px 130px;
-  /* NO transition — JS animates the SVG transform attribute directly.
-     Any CSS transition here fights the rAF loop and can cause runaway. */
-}
+/* Needle rotation is done entirely via the SVG `transform` attribute
+   with an explicit center: `rotate(angle 130 130)`. NO CSS transform,
+   NO transform-origin, NO transition — those all fight the attribute
+   and cause the needle to translate off-pivot. */
 .upgrade-arc .needle .n-shadow { fill: rgba(0,0,0,0.55); }
 .upgrade-arc .needle .n-light  { fill: var(--text); }
 .upgrade-arc .needle .n-dark   { fill: #6d7a6d; }
