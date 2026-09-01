@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CRATER — Вход</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230d1310'/%3E%3Cpolygon points='16,10 56,10 46,54 6,54' fill='%232be07b'/%3E%3C/svg%3E"/>
+</head>
+<body>
+  <main>
+    <div class="login-page">
+      <h1>Вход через Steam</h1>
+      <p class="sub">Авторизуйся, чтобы твой профиль отображался в шапке и на странице профиля.</p>
+
+      <button class="steam-btn" id="steam-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5 0 0-.09-.4-.16-.87-.28.5-2.13.63-2.72-.66-.31-.68-.66-1.36-1.06-1.99a10 10 0 0 1 .18-8.55l4.5 1.86a3.06 3.06 0 0 0 4.83 2.24l4.44-3.24a4.06 4.06 0 1 0-4.51-6.24 4.05 4.05 0 0 0-1.6 3.55l-2.9 2.24a3.1 3.1 0 0 0-.75.12l-2.13-.88A10 10 0 0 1 12 2zm5.03 3.28a2.7 2.7 0 1 1 0 5.4 2.7 2.7 0 0 1 0-5.4zm-.02.9a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zm-8.65 9.7a2.36 2.36 0 0 1 2.7-1.62l.75.3a2.34 2.34 0 0 1-1.9 4.23l-1.53-.63a1.75 1.75 0 0 0 2.24.9 1.76 1.76 0 1 0-2.25-2.19l-.01.02z"/>
+        </svg>
+        Войти через Steam Community
+      </button>
+
+      <div class="demo-note">
+        <b>Демо-режим.</b> Настоящий Steam OpenID требует бэкенда, а CRATER — статичная игрушка в браузере. Просто заполни свои данные ниже — они сохранятся у тебя локально.
+      </div>
+
+      <div class="login-form" id="form" hidden>
+        <label for="name">Steam-ник</label>
+        <input id="name" placeholder="v9ysen"/>
+        <label for="avatar">URL аватарки (необязательно)</label>
+        <input id="avatar" placeholder="https://avatars.steamstatic.com/..._full.jpg"/>
+        <label for="steamid">SteamID (необязательно)</label>
+        <input id="steamid" placeholder="STEAM_0:1:12345678"/>
+        <button class="submit" id="submit">Готово</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/artwork.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/achievements.js"></script>
+  <script src="js/detail.js"></script>
+  <script src="js/cs2loader.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

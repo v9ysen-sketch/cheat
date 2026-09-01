@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CRATER — Контракт</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230d1310'/%3E%3Cpolygon points='16,10 56,10 46,54 6,54' fill='%232be07b'/%3E%3C/svg%3E"/>
+</head>
+<body>
+  <main>
+    <h1 class="page-title">Контракт</h1>
+    <p class="page-subtitle">Обменяй 10 предметов одной редкости на 1 предмет следующей редкости.</p>
+
+    <div class="filter-bar" id="contract-filter"></div>
+
+    <div class="contract-stage">
+      <div class="contract-slots" id="slots"></div>
+      <div class="contract-arrow">
+        <svg viewBox="0 0 60 60" width="60" height="60">
+          <path d="M10 30 L46 30 M34 18 L46 30 L34 42" stroke="var(--accent)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="contract-output" id="output">
+        <div class="contract-preview" id="preview">Выбери 10 предметов одной редкости</div>
+      </div>
+    </div>
+
+    <div class="contract-controls">
+      <button class="upgrade-go" id="btn-contract" disabled>Контракт</button>
+    </div>
+
+    <h2 class="section-title" style="margin-top:24px">Твой инвентарь <span class="count" id="inv-count"></span></h2>
+    <div class="inventory-grid" id="inv"></div>
+  </main>
+
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal">
+      <h2 id="result-title">Готово</h2>
+      <div class="won-item" id="won"></div>
+      <div class="actions">
+        <button class="btn-keep" id="btn-close">Ок</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/artwork.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/achievements.js"></script>
+  <script src="js/detail.js"></script>
+  <script src="js/cs2loader.js"></script>
+  <script src="js/contract.js"></script>
+</body>
+</html>
