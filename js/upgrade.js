@@ -127,6 +127,8 @@
       chanceText.innerHTML = '<span style="color:var(--text-dim)">—</span>';
     }
     renderArc(hasBoth ? p : 0);
+    // Fresh needle DOM element sits at rotate(0); reset cumulative angle to match.
+    state.needleAngle = 0;
     btnUpgrade.disabled = !(hasBoth && !state.busy);
     const pct = (p * 100);
     btnUpgrade.textContent = hasBoth
@@ -282,24 +284,33 @@
       const pad = Math.min(0.02, loseSpan * 0.1);
       targetFrac = winFrac + pad + Math.random() * Math.max(0.001, loseSpan - 2 * pad);
     }
-    const finalDeg = spins * 360 + targetFrac * 360;
     const dur = state.speed === 'gamble' ? 8500 : 3800;
-    const ease = state.speed === 'gamble'
-      ? 'cubic-bezier(.10,.72,.20,1)'
-      : 'cubic-bezier(.15,.85,.30,1)';
 
     state.busy = true;
     btnUpgrade.disabled = true;
     if (CRATER.sound) CRATER.sound.click();
 
+    // Cumulative angle: always spin forward from current, never reset.
+    state.needleAngle = state.needleAngle || 0;
+    const startAngle = state.needleAngle;
+    const currentFrac = ((startAngle % 360) + 360) % 360 / 360;
+    let delta = ((targetFrac - currentFrac) % 1 + 1) % 1;   // 0..1, forward
+    const finalAngle = startAngle + spins * 360 + delta * 360;
+    state.needleAngle = finalAngle;
+
+    // rAF-based animation — deterministic, no CSS-transition weirdness on SVG attrs.
     const needle = document.getElementById('needle');
-    needle.style.transition = 'none';
-    needle.setAttribute('transform', 'rotate(0 130 130)');
-    // Layout tick
-    // eslint-disable-next-line no-unused-expressions
-    needle.getBoundingClientRect();
-    needle.style.transition = `transform ${dur}ms ${ease}`;
-    needle.setAttribute('transform', `rotate(${finalDeg} 130 130)`);
+    if (needle) needle.style.transition = 'none';
+    const startTs = performance.now();
+    const easeOut = t => 1 - Math.pow(1 - t, 3.4);
+    function tick(now) {
+      if (!needle) return;
+      const t = Math.min(1, (now - startTs) / dur);
+      const angle = startAngle + (finalAngle - startAngle) * easeOut(t);
+      needle.setAttribute('transform', `rotate(${angle.toFixed(2)} 130 130)`);
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
 
     if (CRATER.sound) {
       const ticks = state.speed === 'gamble' ? 34 : 18;

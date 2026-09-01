@@ -6,23 +6,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Chakra+Petch:wght@400;600;700&display=swap');
 
 :root {
-  --bg:            #0d1310;
-  --bg-alt:        #0a0e0b;
-  --panel:         #141c17;
-  --panel-alt:     #1c2620;
-  --panel-hi:      #253028;
-  --border:        #2a3529;
-  --border-alt:    #3a4a3c;
-  --text:          #e8f0e8;
-  --text-muted:    #8a988a;
-  --text-dim:      #5a685a;
-  --accent:        #2be07b;
-  --accent-hi:     #4bffa0;
-  --accent-dark:   #148046;
-  --accent-glow:   rgba(43, 224, 123, 0.35);
-  --danger:        #e0483b;
-  --danger-glow:   rgba(224, 72, 59, 0.35);
-  --gold:          #e4ae39;
+  /* Blue liquid-glass palette */
+  --bg:            #051020;
+  --bg-alt:        #030b18;
+  --panel:         rgba(160, 200, 255, 0.08);
+  --panel-alt:     rgba(140, 180, 240, 0.10);
+  --panel-hi:      rgba(180, 220, 255, 0.15);
+  --border:        rgba(160, 200, 255, 0.18);
+  --border-alt:    rgba(180, 215, 255, 0.30);
+  --text:          #eaf3ff;
+  --text-muted:    #8ea6c8;
+  --text-dim:      #5b7391;
+  --accent:        #4fc3f7;
+  --accent-hi:     #82daff;
+  --accent-dark:   #0288d1;
+  --accent-glow:   rgba(79, 195, 247, 0.45);
+  --danger:        #ff6a8a;
+  --danger-glow:   rgba(255, 106, 138, 0.35);
+  --gold:          #f5cf5e;
+
+  /* Glass edges */
+  --glass-hi-top:  inset 0 1px 0 rgba(255,255,255,0.25);
+  --glass-hi-bot:  inset 0 -1px 0 rgba(0,0,0,0.35);
+  --glass-blur:    saturate(160%) blur(22px);
 
   --r-consumer:    #b0c3d9;
   --r-industrial:  #5e98d9;
@@ -44,9 +50,11 @@
 
 html, body {
   background:
-    radial-gradient(ellipse at 20% -10%, rgba(43,224,123,0.06), transparent 55%),
-    radial-gradient(ellipse at 90% 10%, rgba(43,224,123,0.04), transparent 45%),
-    linear-gradient(180deg, #0a0e0b 0%, #0d1310 100%);
+    radial-gradient(ellipse 60% 40% at 15% 10%,  rgba(79,195,247,0.30), transparent 60%),
+    radial-gradient(ellipse 55% 50% at 85% 30%,  rgba(2,136,209,0.28),  transparent 65%),
+    radial-gradient(ellipse 70% 40% at 20% 85%,  rgba(129,212,250,0.22), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 80% 100%, rgba(3,169,244,0.24),  transparent 65%),
+    linear-gradient(180deg, #051020 0%, #030b18 100%);
   background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-b);
@@ -1996,3 +2004,184 @@ main { padding: 24px; max-width: 1440px; margin: 0 auto; }
   main { padding: 12px; }
   .case-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
 }
+
+/* ================================================================
+   Blue Liquid Glass surfaces
+   Overrides opaque panel backgrounds with frosted-glass layers.
+   ================================================================ */
+
+.site-header,
+.case-card,
+.item-card,
+.upgrade-col,
+.upgrade-meter,
+.contract-stage,
+.contract-slot,
+.contract-output,
+.stat-card,
+.home-hero,
+.live-drops,
+.balance-badge,
+.balance-add,
+.user-chip,
+.rank-chip,
+.mute-btn,
+.filter-bar .chip,
+.filter-select,
+.filter-bar input[type="search"],
+.rank-badge,
+.daily-bonus,
+.rarity-header,
+.ach,
+.history-row,
+.toast,
+.cookie-banner,
+.case-hero,
+.case-drops,
+.modal,
+.speed-toggle button,
+.upgrade-speed button,
+.upgrade-mult-row button,
+.open-controls .btn-multi button,
+.roulette-stage,
+.mini-drop,
+.stat-card {
+  background-color: rgba(160, 200, 255, 0.06);
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 60%);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(160, 200, 255, 0.18);
+  box-shadow:
+    var(--glass-hi-top),
+    var(--glass-hi-bot),
+    0 8px 28px rgba(0, 20, 60, 0.35);
+  border-radius: 14px;
+}
+
+/* Chip pills stay pill-shaped, not rectangles */
+.filter-bar .chip, .filter-bar .chip-pack,
+.upgrade-mult-row button, .upgrade-speed button, .speed-toggle button,
+.open-controls .btn-multi button {
+  clip-path: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+}
+
+/* Header keeps its full-width bar */
+.site-header { border-radius: 0; border-left: none; border-right: none; border-top: none; }
+
+/* Case cards: keep the tier accent as a top rim highlight */
+.case-card {
+  border-top: 1px solid rgba(255,255,255,0.35);
+}
+.case-card[data-tier="1"] { box-shadow: var(--glass-hi-top), var(--glass-hi-bot), 0 8px 28px rgba(0,20,60,0.35), inset 0 3px 0 rgba(140,160,180,0.6); }
+.case-card[data-tier="2"] { box-shadow: var(--glass-hi-top), var(--glass-hi-bot), 0 8px 28px rgba(0,20,60,0.35), inset 0 3px 0 rgba(75,105,255,0.7); }
+.case-card[data-tier="3"] { box-shadow: var(--glass-hi-top), var(--glass-hi-bot), 0 8px 28px rgba(0,20,60,0.35), inset 0 3px 0 rgba(136,71,255,0.7); }
+.case-card[data-tier="4"] { box-shadow: var(--glass-hi-top), var(--glass-hi-bot), 0 8px 28px rgba(0,20,60,0.35), inset 0 3px 0 rgba(211,44,230,0.75); }
+.case-card[data-tier="5"] { box-shadow: var(--glass-hi-top), var(--glass-hi-bot), 0 8px 28px rgba(0,20,60,0.35), inset 0 3px 0 rgba(245,207,94,0.9); }
+
+/* Balance-add button stays accent-tinted with glass depth */
+.balance-add,
+.hero-open,
+.open-controls .btn-open,
+.upgrade-go,
+.daily-btn,
+.contract-controls .upgrade-go,
+.modal .btn-sell {
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 55%),
+    linear-gradient(180deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: #041826;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 999px;
+  clip-path: none;
+  box-shadow:
+    var(--glass-hi-top),
+    var(--glass-hi-bot),
+    0 10px 24px var(--accent-glow);
+}
+
+/* Steam button — glass blue */
+.steam-btn {
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, #4c7eae 0%, #2a4a70 100%);
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.28);
+}
+
+/* Filter chips: hover + active glow */
+.filter-bar .chip.active {
+  background-color: rgba(79,195,247,0.22);
+  border-color: rgba(130,218,255,0.55);
+  color: var(--accent-hi);
+  box-shadow: var(--glass-hi-top), 0 0 16px var(--accent-glow);
+}
+.filter-bar .chip-pack {
+  border-color: rgba(245,207,94,0.5);
+  color: var(--gold);
+}
+.filter-bar .chip-pack.active {
+  background-color: rgba(245,207,94,0.28);
+  color: #221600;
+  box-shadow: var(--glass-hi-top), 0 0 16px rgba(245,207,94,0.4);
+}
+
+/* Case cards: bump hover shine to a cool blue */
+.case-card:hover {
+  transform: translateY(-4px) rotate(-0.5deg);
+  border-color: rgba(180,215,255,0.4);
+  box-shadow:
+    var(--glass-hi-top),
+    var(--glass-hi-bot),
+    0 18px 40px rgba(0, 30, 80, 0.55),
+    0 0 32px var(--accent-glow);
+}
+
+/* Item cards: rarity glow on the bottom border, glass elsewhere */
+.item-card {
+  border-radius: 12px;
+}
+.item-card.rarity-consumer   { border-bottom: 3px solid var(--r-consumer); }
+.item-card.rarity-industrial { border-bottom: 3px solid var(--r-industrial); }
+.item-card.rarity-milspec    { border-bottom: 3px solid var(--r-milspec); }
+.item-card.rarity-restricted { border-bottom: 3px solid var(--r-restricted); }
+.item-card.rarity-classified { border-bottom: 3px solid var(--r-classified); }
+.item-card.rarity-covert     { border-bottom: 3px solid var(--r-covert); }
+.item-card.rarity-special    { border-bottom: 3px solid var(--r-special); }
+
+/* Brand mark */
+.brand-mark {
+  background: linear-gradient(135deg, var(--accent-hi) 0%, var(--accent-dark) 100%);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.brand-accent { color: var(--accent); }
+
+/* Nav active underline in blue */
+.main-nav a.active { color: var(--accent); }
+.main-nav a.active::after { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+
+/* Roulette pointer switches to accent blue automatically via var(--accent) */
+
+/* Scrollbar */
+::-webkit-scrollbar-thumb { background: rgba(160,200,255,0.20); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(180,220,255,0.35); }
+
+/* Cookie banner accept button — glass blue */
+.cookie-banner .accept {
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: #041826;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 999px;
+  box-shadow: var(--glass-hi-top), 0 0 12px var(--accent-glow);
+}
+
+/* Empty state pill */
+.empty-state { border-radius: 14px; background: rgba(160,200,255,0.04); }
+
+/* Modal overlay — deeper blur */
+.modal-overlay { background: rgba(3, 10, 25, 0.55); backdrop-filter: blur(10px); }
+.modal { border-radius: 18px; }
+.detail-modal { border-radius: 18px; }
