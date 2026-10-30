@@ -1,0 +1,5 @@
+node_modules/
+build/
+*.wav
+!music/*.wav
+models

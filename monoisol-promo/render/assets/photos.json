@@ -1,0 +1,450 @@
+[
+ {
+  "name": "pipe_ins_banner",
+  "file": "photos/pipe_ins_banner.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Light-grey MONOISOL pipe insulation tubes lying in front of the MONOISOL logo banner"
+ },
+ {
+  "name": "pipe_ins_print",
+  "file": "photos/pipe_ins_print.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Close-up of grey pipe insulation with printed marking \"MONOISOL Ø54 ст.13 Г-2\""
+ },
+ {
+  "name": "pipe_ins_on_pipes",
+  "file": "photos/pipe_ins_on_pipes.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Grey insulation sleeves fitted on steel and plastic pipes, teal background"
+ },
+ {
+  "name": "pipe_ins_metal",
+  "file": "photos/pipe_ins_metal.jpg",
+  "w": 542,
+  "h": 412,
+  "desc": "Grey insulation with MONOISOL print over a shiny metal pipe and plastic pipe"
+ },
+ {
+  "name": "pipe_ins_sizes",
+  "file": "photos/pipe_ins_sizes.jpg",
+  "w": 600,
+  "h": 338,
+  "desc": "Row of grey pipe-insulation tubes of different diameters in front of MONOISOL banner"
+ },
+ {
+  "name": "pipe_ins_cut",
+  "file": "photos/pipe_ins_cut.jpg",
+  "w": 400,
+  "h": 267,
+  "desc": "Cut ends of three grey foam pipe-insulation tubes on teal"
+ },
+ {
+  "name": "hd_tubes_1",
+  "file": "photos/hd_tubes_1.jpg",
+  "w": 1000,
+  "h": 1136,
+  "desc": "Dark-grey HD high-density pipe insulation tubes, three, vertical photo"
+ },
+ {
+  "name": "hd_tubes_2",
+  "file": "photos/hd_tubes_2.jpg",
+  "w": 1000,
+  "h": 1273,
+  "desc": "Dark-grey HD pipe insulation tubes stacked, vertical photo"
+ },
+ {
+  "name": "hd_print",
+  "file": "photos/hd_print.jpg",
+  "w": 1100,
+  "h": 399,
+  "desc": "Two dark-grey HD tubes with printed marking \"Monoisol ø35 ст.13 HD\" (wide strip)"
+ },
+ {
+  "name": "hd_tubes_4",
+  "file": "photos/hd_tubes_4.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Close-up of cut ends of dark-grey HD pipe insulation"
+ },
+ {
+  "name": "hd_category",
+  "file": "photos/hd_category.jpg",
+  "w": 700,
+  "h": 466,
+  "desc": "Dark-grey pipe insulation tubes with MONOISOL logo banner behind"
+ },
+ {
+  "name": "lam_red_bundle",
+  "file": "photos/lam_red_bundle.jpg",
+  "w": 1000,
+  "h": 928,
+  "desc": "Bundle of red laminated pipe insulation tubes in front of MONOISOL banner"
+ },
+ {
+  "name": "lam_red_blue",
+  "file": "photos/lam_red_blue.jpg",
+  "w": 900,
+  "h": 1015,
+  "desc": "Red and blue laminated pipe insulation tubes standing upright"
+ },
+ {
+  "name": "lam_blue_bundle",
+  "file": "photos/lam_blue_bundle.jpg",
+  "w": 1000,
+  "h": 969,
+  "desc": "Bundle of blue laminated pipe insulation tubes"
+ },
+ {
+  "name": "lam_with_pipe",
+  "file": "photos/lam_with_pipe.jpg",
+  "w": 1000,
+  "h": 617,
+  "desc": "Red laminated insulation over dark pipes, close-up of cut ends"
+ },
+ {
+  "name": "lam_pipes_2024",
+  "file": "photos/lam_pipes_2024.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Red laminated pipe insulation with black pipes inside on blue background"
+ },
+ {
+  "name": "lam_red_stack",
+  "file": "photos/lam_red_stack.jpg",
+  "w": 700,
+  "h": 467,
+  "desc": "Stack of red laminated pipe insulation, cut ends facing camera"
+ },
+ {
+  "name": "foil_roll_close",
+  "file": "photos/foil_roll_close.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Close-up of a roll of foil-faced foamed polyethylene sheet"
+ },
+ {
+  "name": "foil_roll_sample",
+  "file": "photos/foil_roll_sample.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Foil-faced foam roll with a cut sample piece on top"
+ },
+ {
+  "name": "foil_blue_rolls",
+  "file": "photos/foil_blue_rolls.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Reinforced foil rolls and blue foam sheet on teal"
+ },
+ {
+  "name": "foil_roll_selfadh",
+  "file": "photos/foil_roll_selfadh.jpg",
+  "w": 800,
+  "h": 460,
+  "desc": "Big roll of foil-faced self-adhesive foam sheet in front of MONOISOL banner"
+ },
+ {
+  "name": "white_rolls",
+  "file": "photos/white_rolls.jpg",
+  "w": 700,
+  "h": 969,
+  "desc": "White and beige foamed polyethylene rolls (vertical photo)"
+ },
+ {
+  "name": "foil_duct_insitu",
+  "file": "photos/foil_duct_insitu.jpg",
+  "w": 600,
+  "h": 400,
+  "desc": "Ventilation ducts wrapped with foil insulation in a building"
+ },
+ {
+  "name": "foil_attic_insitu",
+  "file": "photos/foil_attic_insitu.jpg",
+  "w": 600,
+  "h": 400,
+  "desc": "Foil insulation installed under a wooden roof / attic"
+ },
+ {
+  "name": "foil_wall_insitu",
+  "file": "photos/foil_wall_insitu.jpg",
+  "w": 600,
+  "h": 400,
+  "desc": "Room walls covered with foil-faced insulation (interior, in situ)"
+ },
+ {
+  "name": "foil_balcony_insitu",
+  "file": "photos/foil_balcony_insitu.jpg",
+  "w": 500,
+  "h": 375,
+  "desc": "Balcony floor and walls insulated with foil foam (in situ)"
+ },
+ {
+  "name": "foil_install_hands",
+  "file": "photos/foil_install_hands.jpg",
+  "w": 600,
+  "h": 323,
+  "desc": "Hands taping foil insulation seams during installation"
+ },
+ {
+  "name": "shock_rolls_1",
+  "file": "photos/shock_rolls_1.jpg",
+  "w": 1200,
+  "h": 1181,
+  "desc": "Large beige foam rolls (shock-absorbing multifunctional sheets) in a warehouse"
+ },
+ {
+  "name": "shock_rolls_2",
+  "file": "photos/shock_rolls_2.jpg",
+  "w": 1200,
+  "h": 900,
+  "desc": "Close-up of beige foam rolls with pink cores"
+ },
+ {
+  "name": "shock_rolls_3",
+  "file": "photos/shock_rolls_3.jpg",
+  "w": 1200,
+  "h": 1097,
+  "desc": "Three beige foam rolls on black background"
+ },
+ {
+  "name": "damper_pink",
+  "file": "photos/damper_pink.jpg",
+  "w": 1000,
+  "h": 633,
+  "desc": "Pink damper tape rolls with MONOISOL print"
+ },
+ {
+  "name": "damper_green_pink",
+  "file": "photos/damper_green_pink.jpg",
+  "w": 1000,
+  "h": 745,
+  "desc": "Green and pink damper tape rolls stacked"
+ },
+ {
+  "name": "damper_green",
+  "file": "photos/damper_green.jpg",
+  "w": 1000,
+  "h": 740,
+  "desc": "Green damper tape rolls"
+ },
+ {
+  "name": "damper_floor_insitu",
+  "file": "photos/damper_floor_insitu.jpg",
+  "w": 600,
+  "h": 400,
+  "desc": "Damper tape along the wall of an underfloor heating installation"
+ },
+ {
+  "name": "sealing_tape_1",
+  "file": "photos/sealing_tape_1.jpg",
+  "w": 1000,
+  "h": 1103,
+  "desc": "Black self-adhesive sealing tape rolls"
+ },
+ {
+  "name": "sealing_tape_2",
+  "file": "photos/sealing_tape_2.jpg",
+  "w": 1200,
+  "h": 900,
+  "desc": "Black sealing tape rolls close-up"
+ },
+ {
+  "name": "corr_red_blue_1",
+  "file": "photos/corr_red_blue_1.jpg",
+  "w": 803,
+  "h": 1070,
+  "desc": "Coils of red and blue corrugated pipe for water supply (vertical)"
+ },
+ {
+  "name": "corr_red_blue_3",
+  "file": "photos/corr_red_blue_3.jpg",
+  "w": 803,
+  "h": 804,
+  "desc": "Coils of blue and red corrugated pipe in front of MONOISOL banner"
+ },
+ {
+  "name": "corr_coils",
+  "file": "photos/corr_coils.jpg",
+  "w": 800,
+  "h": 413,
+  "desc": "Several coils of red and blue corrugated pipe, MONOISOL banners behind"
+ },
+ {
+  "name": "corr_blue_close",
+  "file": "photos/corr_blue_close.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Close-up of blue corrugated pipe coil"
+ },
+ {
+  "name": "corr_electric",
+  "file": "photos/corr_electric.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Black corrugated pipe with an electric cable coming out, teal background"
+ },
+ {
+  "name": "corr_black_pack",
+  "file": "photos/corr_black_pack.jpg",
+  "w": 873,
+  "h": 655,
+  "desc": "Packaged coil of black corrugated pipe for electrical cables with label, MONOISOL banner"
+ },
+ {
+  "name": "cords_1",
+  "file": "photos/cords_1.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "White and blue foam cords (джгути) on teal background"
+ },
+ {
+  "name": "cords_3",
+  "file": "photos/cords_3.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "White foam cords of different thickness, close-up"
+ },
+ {
+  "name": "cords_cut",
+  "file": "photos/cords_cut.jpg",
+  "w": 575,
+  "h": 400,
+  "desc": "Cut ends of white and blue foam cords"
+ },
+ {
+  "name": "profile_u",
+  "file": "photos/profile_u.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "White and blue U-shaped foam profiles in front of MONOISOL banner"
+ },
+ {
+  "name": "profile_mix",
+  "file": "photos/profile_mix.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Assorted foam packaging profiles (U, L, corner) on teal"
+ },
+ {
+  "name": "profile_furniture",
+  "file": "photos/profile_furniture.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "Foam U-profile protecting the edge of a furniture panel"
+ },
+ {
+  "name": "profile_corner_furniture",
+  "file": "photos/profile_corner_furniture.jpg",
+  "w": 600,
+  "h": 662,
+  "desc": "Furniture cabinet protected with blue foam corner profiles"
+ },
+ {
+  "name": "lodgement_device",
+  "file": "photos/lodgement_device.jpg",
+  "w": 600,
+  "h": 400,
+  "desc": "White foam lodgement (custom insert) holding a device"
+ },
+ {
+  "name": "lodgements",
+  "file": "photos/lodgements.jpg",
+  "w": 800,
+  "h": 533,
+  "desc": "White foam lodgements and packaging sheets, MONOISOL banners"
+ },
+ {
+  "name": "bubble_rolls",
+  "file": "photos/bubble_rolls.jpg",
+  "w": 700,
+  "h": 850,
+  "desc": "Rolls of air-bubble wrap film (vertical)"
+ },
+ {
+  "name": "bubble_banner",
+  "file": "photos/bubble_banner.jpg",
+  "w": 930,
+  "h": 700,
+  "desc": "Air-bubble film rolls in front of MONOISOL banner"
+ },
+ {
+  "name": "pp_pipes_banner",
+  "file": "photos/pp_pipes_banner.jpg",
+  "w": 577,
+  "h": 433,
+  "desc": "Bundle of beige polypropylene pipes (cut ends) in front of MONOISOL banner"
+ },
+ {
+  "name": "pp_pipes_3",
+  "file": "photos/pp_pipes_3.jpg",
+  "w": 577,
+  "h": 433,
+  "desc": "Beige polypropylene pipes with red stripe, MONOISOL banner"
+ },
+ {
+  "name": "pp_hd_scheme_ua",
+  "file": "photos/pp_hd_scheme_ua.jpg",
+  "w": 1200,
+  "h": 620,
+  "desc": "Diagram \"Серія HD\": three-layer PP pipe (поліпропілен / поліпропілен армований скловолокном / поліпропілен), white background"
+ },
+ {
+  "name": "pp_print",
+  "file": "photos/pp_print.jpg",
+  "w": 1152,
+  "h": 277,
+  "desc": "Long strip photo of PP pipe printed \"MONOISOL HD DN25 PN25 PPR-GF-PPR\""
+ },
+ {
+  "name": "fittings_1",
+  "file": "photos/fittings_1.jpg",
+  "w": 1000,
+  "h": 750,
+  "desc": "Polypropylene fittings arranged on a foam sheet, MONOISOL banner"
+ },
+ {
+  "name": "fittings_2",
+  "file": "photos/fittings_2.jpg",
+  "w": 1000,
+  "h": 750,
+  "desc": "Polypropylene fittings and brass-thread adapters, MONOISOL banner"
+ },
+ {
+  "name": "fittings_3",
+  "file": "photos/fittings_3.jpg",
+  "w": 1000,
+  "h": 750,
+  "desc": "PP elbow fittings with MONOISOL banner behind"
+ },
+ {
+  "name": "collage_1",
+  "file": "photos/collage_1.png",
+  "w": 1000,
+  "h": 619,
+  "desc": "Product collage on black with MONOISOL logo in the centre (rolls, pipes, cords, PP pipes, corrugated)"
+ },
+ {
+  "name": "collage_2",
+  "file": "photos/collage_2.png",
+  "w": 1000,
+  "h": 619,
+  "desc": "Product collage on black with MONOISOL logo (packaging profiles, bubble film, sheets, tapes)"
+ },
+ {
+  "name": "ukraine_map",
+  "file": "photos/ukraine_map.png",
+  "w": 594,
+  "h": 400,
+  "desc": "Map of Ukraine with oblasts in blue and city names (sales geography), transparent/black background"
+ },
+ {
+  "name": "worker_corr",
+  "file": "photos/worker_corr.jpg",
+  "w": 517,
+  "h": 434,
+  "desc": "Worker laying red and blue corrugated pipes on a floor (installation)"
+ }
+]
