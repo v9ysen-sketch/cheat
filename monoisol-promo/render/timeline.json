@@ -93,7 +93,7 @@
    "file": "s03.js",
    "start": 33.8,
    "dur": 11.4667,
-   "transition": "iris",
+   "transition": "fade",
    "cues": [
     {
      "k": 0,
@@ -631,7 +631,7 @@
    "file": "s11.js",
    "start": 174.1333,
    "dur": 5.8667,
-   "transition": "flash",
+   "transition": "fade",
    "cues": [],
    "onscreen": [
     {

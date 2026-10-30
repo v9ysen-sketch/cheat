@@ -28,7 +28,7 @@ const CARD2_B = { x: 318, y: 528, w: 276, h: 210, rot: 0.06 };
 const HS = { x0: 760, x1: 1230, gy: 770, f2: 585, ey: 404, ay: 252, by: 868, ax: 995 };
 const LIST = { x: 1338, y0: 292, dy: 118, r: 40 };
 const SYS = [
-  { key: 'heat', label: 'Опалення', col: '#FF8A3D', off: -0.15 },
+  { key: 'heat', label: 'Опалення', col: '#FF8A3D', off: 0.0 },
   { key: 'water', label: 'Водогін', col: '#4FB0FF', off: 0.85 },
   { key: 'sewer', label: 'Каналізація', col: '#CDB98F', off: 1.8 },
   { key: 'vent', label: 'Вентиляція', col: '#5BD68C', off: 3.1 },
@@ -45,11 +45,11 @@ const PATHS = {
 const TUBE = { x0: 200, x1: 1720, y: 300, R: 40, r: 19 };
 const DIM_Y = 412;
 const RINGS = { floor: 862, x0: 190, gap: 28, scale: 1.75, wall: 13, d: [15, 22, 28, 35, 54, 76, 114] };
-const COUNTER = { x: 1320, y: 764, size: 78 };
+const COUNTER = { x: 1306, y: 764, size: 72, unit: 44 };
 // ---- beat D geometry
 const SEC = { y: 684, rIn: 56, k: 5.2, gap: 96, mm: [6, 9, 13, 20] };
 // ---- beat E geometry
-const CARD_E = { x: 880, y: 262, w: 920, h: 518 };
+const CARD_E = { x: 936, y: 282, w: 864, h: 486 };
 const PLATE = { x: M, y: 421, w: 720, h: 200 };
 
 const FOAM = { color: '#D2D8DF', shade: '#7D8A9C' };
@@ -183,7 +183,7 @@ const polyLen = pts => { let s = 0; for (let i = 1; i < pts.length; i++) s += Ma
 // ---------------------------------------------------------------- foam sleeve (3/4 view from the left)
 // angle φ around the axis: 0 = top, π/2 = towards the viewer, π = bottom. Surface point → (x + eR·sinφ, y − R·cosφ)
 function sleeve(ctx, L, x0, x1, y, R, r, o = {}) {
-  const { e = 0.3, th = 0, gap = 0, slitA = 0, rot = 0, alpha = 1, knit = 0, knitX = 0, sheen = -1, shadow = true, clipX = null } = o;
+  const { e = 0.3, th = 0, gap = 0, slitA = 0, rot = 0, alpha = 1, knit = 0, knitX = 0, knitFill = false, sheen = -1, shadow = true, clipX = null } = o;
   if (alpha <= 0.002) return;
   const { C } = L;
   const eR = e * R, er = e * r;
@@ -206,14 +206,20 @@ function sleeve(ctx, L, x0, x1, y, R, r, o = {}) {
     ctx.fillStyle = hg; ctx.fillRect(x0 - 4, y - R - 4, x1 - x0 + eR + 8, 2 * R + 8);
     // knitted amber pattern (scarf), running as a band along the sleeve
     if (knit > 0.002) {
-      const band = 210;
-      const wg = ctx.createLinearGradient(knitX - band * 1.6, 0, knitX + band * 1.6, 0);
-      wg.addColorStop(0, L.rgba(C.amber, 0)); wg.addColorStop(0.5, L.rgba(C.amber, 0.30 * knit)); wg.addColorStop(1, L.rgba(C.amber, 0));
-      ctx.fillStyle = wg; ctx.fillRect(x0 - 4, y - R - 4, x1 - x0 + eR + 8, 2 * R + 8);
+      const band = 210, soft = 170;
+      if (knitFill) { // soft-edged wipe: everything left of knitX is covered
+        const wg = ctx.createLinearGradient(knitX - soft, 0, knitX + soft, 0);
+        wg.addColorStop(0, L.rgba(C.amber, 0.26 * knit)); wg.addColorStop(1, L.rgba(C.amber, 0));
+        ctx.fillStyle = wg; ctx.fillRect(x0 - 4, y - R - 4, x1 - x0 + eR + 8, 2 * R + 8);
+      } else {
+        const wg = ctx.createLinearGradient(knitX - band * 1.6, 0, knitX + band * 1.6, 0);
+        wg.addColorStop(0, L.rgba(C.amber, 0)); wg.addColorStop(0.5, L.rgba(C.amber, 0.30 * knit)); wg.addColorStop(1, L.rgba(C.amber, 0));
+        ctx.fillStyle = wg; ctx.fillRect(x0 - 4, y - R - 4, x1 - x0 + eR + 8, 2 * R + 8);
+      }
       const dPhi = 15 / R, ph0 = ((rot % dPhi) + dPhi) % dPhi;
       ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 3.2;
       for (let cx = x0 + 10; cx < x1 + 4; cx += 19) {
-        const m = Math.exp(-Math.pow((cx - knitX) / band, 2)) * knit;
+        const m = (knitFill ? L.clamp((knitX - cx) / (2 * soft) + 0.5) : Math.exp(-Math.pow((cx - knitX) / band, 2))) * knit;
         if (m < 0.03) continue;
         ctx.strokeStyle = L.rgba('#FFC46B', 0.85 * m);
         ctx.beginPath();
@@ -370,6 +376,7 @@ function caliperIcon(ctx, L, x, y, size, color, open) {
 }
 
 // running motif: small house with five windows (same drawing as scene 5); window 1 lights in this scene
+const MOTIF = require('./_motif');
 function houseIcon(ctx, L, x, y, alpha, lit1) {
   if (alpha <= 0.001) return;
   const { C } = L;
@@ -434,13 +441,12 @@ function houseCut(ctx, L, t, hp, sysP, glowK, alpha) {
     ctx.beginPath(); ctx.moveTo(x0 - 34, ey + 18); ctx.lineTo(ax, ay); ctx.lineTo(x1 + 34, ey + 18); ctx.closePath(); ctx.fillStyle = L.rgba('#9CC8F0', 0.035 * fa); ctx.fill();
     // structure lines (drawn progressively)
     const S = (pts, p, w, a) => { polyPath(ctx, pts, p); ctx.lineWidth = w; ctx.strokeStyle = L.rgba('#CFE3F7', a); ctx.stroke(); };
-    const p1 = L.clamp(hp * 1.6), p2 = L.clamp(hp * 1.6 - 0.35), p3 = L.clamp(hp * 1.6 - 0.6);
+    const p1 = L.clamp(hp * 1.6), p2 = L.clamp(hp * 1.6 - 0.35);
     S([[x0, gy], [x0, ey], [x1, ey], [x1, gy]], p1, 4, 0.8);
     S([[x0 - 34, ey + 18], [ax, ay], [x1 + 34, ey + 18]], p1, 5, 0.85);
     S([[650, gy], [1262, gy]], p1, 3, 0.6);
     S([[x0, gy], [x0, by], [x1, by], [x1, gy]], p2, 3, 0.45);
     S([[x0, f2], [x1, f2]], p2, 3, 0.55);
-    S([[x0 + 160, f2], [x0 + 160, f2 - 36]], p3, 2.5, 0.35);
     S([[x0, ey], [x1, ey]], p2, 3, 0.55);
     // soil hatch
     if (fa > 0) {
@@ -521,33 +527,38 @@ module.exports = {
     const c0 = cueStart(env, 0, DEF[0]), c1 = cueStart(env, 1, DEF[1]), c2 = cueStart(env, 2, DEF[2]), c3 = cueStart(env, 3, DEF[3]);
 
     // ---- clocks
+    // (offsets measured on the voice track: «огортає» ≈ c0+1.4, «мов теплий шарф» ≈ c0+2.9;
+    //  «шість/дев'ять/тринадцять/двадцять» ≈ c3+0.5/1.38/2.12/2.98, «міліметрів» ends ≈ c3+4.3,
+    //  «а інші розміри» ≈ c3+4.48, «під замовлення» ≈ c3+5.46)
     const hlIn = c0 - 0.45;                    // headline
-    const ws = c0 + 1.25;                      // sleeve starts wrapping
-    const knitA = c0 + 0.25, knitD = 1.1;      // knitted pattern sweep
-    const curtA = c0 + 2.6, curtD = 0.75;       // curtain reveal of card 1
-    const card2A = c0 + 3.35;                  // card 2 lands
-    const mvA = c1 - 0.35;                     // cards → left third
+    const ws = c0 + 1.6;                       // sleeve starts wrapping («огортає труби»)
+    const knitA = c0 + 0.55, knitD = 1.1;      // knitted pattern sweep while it spins
+    const scarfA = ws + 0.85;                  // warm knit settles over the wrapped sleeve («мов теплий шарф»)
+    const curtA = c0 + 2.95, curtD = 0.75;      // curtain reveal of card 1
+    const card2A = c0 + 3.5;                   // card 2 lands
+    const mvA = c1 - 0.25;                     // cards → left third
     const bOut = c2 - 0.75;                    // beat B exit
     const cOut = c3 - 0.8;                     // beat C exit
-    const dOut = c3 + 3.1;                     // beat D exit
-    const morphA = c3 + 3.1;                   // bg → card
-    const plateA = c3 + 3.9;                   // «Інші розміри — під замовлення»
-    const houseA = c3 + 5.35, winA = c3 + 6.05;
+    const dOut = c3 + 3.63;                    // beat D exit (after «двадцять міліметрів»)
+    const morphA = c3 + 3.73;                  // bg → card
+    const plateA = c3 + 4.28;                  // «Інші розміри —»
+    const plate2A = c3 + 5.18;                 // «під замовлення»
+    const houseA = c3 + 5.9, winA = c3 + 6.55;
 
     // ---- background
     baseBackground(ctx, L, t);
     const bpA = ep(t, c2 - 0.85, 0.9, 'inOutSine');
-    const morph = ep(t, morphA, 1.0, 'inOutCubic');
+    const morph = ep(t, morphA, 0.9, 'inOutCubic');
     blueprint(ctx, L, t, bpA, morph);
     drift(ctx, L, t, 1 - 0.5 * bpA * (1 - morph));
 
     // ============================================================ BEAT A + B (photo cards, headline, vector)
-    const mv = ep(t, mvA, 0.9, 'inOutCubic');
+    const mv = ep(t, mvA, 0.85, 'inOutCubic');
     const bo = ep(t, bOut, 0.6, 'inOutCubic');
     if (bo < 1) {
       // ---- vector: pipe + sleeve (before the curtain has passed)
       const cq = ease.inOutCubic(prog(t, curtA, curtD));
-      const curtX = lerp(860, 1830, cq);
+      const curtX = lerp(740, 1830, cq);
       if (cq < 1) L.save(ctx, () => {
         ctx.beginPath(); ctx.rect(curtX, 0, W - curtX + 10, H); ctx.clip();
         const va = ep(t, -0.9, 0.9);
@@ -569,10 +580,17 @@ module.exports = {
         steelPipe(ctx, L, PIPE.x0, PIPE.x1, py, PIPE.r, { warm });
         if (heat > 0.01) { L.heatWaves(ctx, 1150, py - 44, 540, 240, t, 0.75 * heat, C.orange); L.heatWaves(ctx, 1580, py - 44, 300, 210, t + 0.4, 0.6 * heat, C.ember); }
         // sleeve
-        const knit = L.envelope(t, knitA, knitA + knitD, 0.3, 0.35);
-        const knitX = lerp(SLV.x0 - 200, SLV.x1 + 220, ease.inOutSine(prog(t, knitA, knitD)));
-        const sheen = prog(t, ws + 0.85, 0.75);
-        sleeve(ctx, L, SLV.x0, SLV.x1, sy, SLV.R, SLV.r, { e, th, gap, slitA: 1, rot: th, knit, knitX, sheen: sheen > 0 && sheen < 1 ? sheen : -1 });
+        const scarf = ep(t, scarfA, 0.35, 'outCubic');
+        let knit, knitX, knitFill = false;
+        if (t < scarfA) {
+          knit = L.envelope(t, knitA, knitA + knitD, 0.3, 0.35);
+          knitX = lerp(SLV.x0 - 200, SLV.x1 + 220, ease.inOutSine(prog(t, knitA, knitD)));
+        } else {
+          knit = scarf; knitFill = true;
+          knitX = lerp(SLV.x0 - 200, SLV.x1 + 260, ease.inOutSine(prog(t, scarfA, 0.65)));
+        }
+        if (scarf > 0) L.save(ctx, () => { ctx.globalCompositeOperation = 'lighter'; L.glow(ctx, (SLV.x0 + SLV.x1) / 2, sy, 420, C.amber, 0.10 * scarf); });
+        sleeve(ctx, L, SLV.x0, SLV.x1, sy, SLV.R, SLV.r, { e, th, gap, slitA: 1, rot: th, knit, knitX, knitFill });
         // pipe parts in front of / visible through the sleeve end face
         const dx = SLV.x0, eR = e * SLV.R;
         L.save(ctx, () => { ctx.beginPath(); ctx.rect(0, 0, dx, H); ctx.clip(); steelPipe(ctx, L, PIPE.x0, dx + 2, py, PIPE.r, { warm, right: false }); });
@@ -586,15 +604,26 @@ module.exports = {
         ctx.beginPath(); ctx.moveTo(curtX, 190); ctx.lineTo(curtX, 940); ctx.stroke();
       });
 
-      // ---- photo cards
-      const kb = clamp((t - curtA) / 12);
       const bAlpha = 1 - bo;
       const bShift = -40 * bo;
+      // ---- beat B: house cut-away + systems list (drawn under the card stack, which slides away over it)
+      if (t > mvA - 0.5) {
+        const hpB = ep(t, c1 - 0.1, 1.2, 'inOutSine');
+        const sysP = SYS.map(s => ep(t, c1 + s.off, 0.75, 'inOutCubic'));
+        const glowK = SYS.map(s => { const q = t - (c1 + s.off); return q < 0 ? 0 : q < 0.5 ? q / 0.5 : Math.max(0.25, 1 - (q - 0.5) / 1.2); });
+        L.at(ctx, { x: bShift, alpha: bAlpha }, () => {
+          houseCut(ctx, L, t, hpB, sysP, glowK, clamp(hpB * 3));
+          SYS.forEach((s, i) => listRow(ctx, L, s, i, t, ep(t, c1 + s.off - 0.1, 0.55, 'linear'), prog(t, c1 + s.off + 0.05, 0.8)));
+        });
+      }
+
+      // ---- photo cards
+      const kb = clamp((t - curtA) / 12);
       if (cq > 0) {
         const R1 = rectLerp(L, CARD1_A, CARD1_B, mv); R1.x += bShift;
         card(ctx, L, 'pipe_ins_on_pipes', R1, { alpha: bAlpha, zoom: lerp(1.0, 1.08, ease.inOutSine(kb)), fx: lerp(0.4, 0.62, ease.inOutSine(kb)), fy: 0.5, clipX: cq < 1 ? curtX : null });
       }
-      const c2p = ep(t, card2A, 0.75, 'outCubic');
+      const c2p = ep(t, card2A, 0.62, 'outCubic');
       if (c2p > 0) {
         const R2 = rectLerp(L, CARD2_A, CARD2_B, mv); R2.x += bShift;
         R2.rot += (1 - c2p) * 0.22; R2.x += (1 - c2p) * 90; R2.y += (1 - c2p) * -60;
@@ -610,16 +639,6 @@ module.exports = {
         L.revealText(ctx, 'Трубна ізоляція', M, 482, clamp(hp * 1.2), { role: 'display', size: 104, maxWidth: 640, lineHeight: 1.16, stagger: 0.35, out: hout });
       }
 
-      // ---- beat B: house cut-away + systems list
-      if (t > mvA - 0.5) {
-        const hpB = ep(t, c1 - 0.3, 1.2, 'inOutSine');
-        const sysP = SYS.map(s => ep(t, c1 + s.off, 0.75, 'inOutCubic'));
-        const glowK = SYS.map(s => { const q = t - (c1 + s.off); return q < 0 ? 0 : q < 0.5 ? q / 0.5 : Math.max(0.25, 1 - (q - 0.5) / 1.2); });
-        L.at(ctx, { x: bShift, alpha: bAlpha }, () => {
-          houseCut(ctx, L, t, hpB, sysP, glowK, clamp(hpB * 3));
-          SYS.forEach((s, i) => listRow(ctx, L, s, i, t, ep(t, c1 + s.off - 0.1, 0.55, 'linear'), prog(t, c1 + s.off + 0.05, 0.8)));
-        });
-      }
     }
 
     // ============================================================ BEAT C (blueprint: 2 m, Ø 15–114 мм)
@@ -664,32 +683,51 @@ module.exports = {
           x += ro * 2 + RINGS.gap;
         });
       });
-      // counter «Ø 15–114 мм», tracking the ring that is growing
+      // counter «Ø 15–114 мм»: odometer roll to each ring's diameter as that ring grows; the unit glides smoothly
       const sp = ep(t, r0 - 0.2, 0.6, 'outCubic');
       if (sp > 0) {
-        const D = RINGS.d, idx = clamp((t - r0 - 0.12) / rStep, 0, D.length - 1);
-        const i0 = Math.floor(idx), f = ease.inOutSine(idx - i0);
-        const n = Math.round(lerp(D[i0], D[Math.min(D.length - 1, i0 + 1)], f));
-        const val = n > 15 ? 'Ø 15–' + n : 'Ø 15';
+        const D = RINGS.d, sz = COUNTER.size;
+        const kk = clamp((t - r0 - 0.14) / rStep, 0, D.length - 1);
+        const j = Math.min(D.length - 1, Math.floor(kk + 0.55));              // value being rolled to
+        const q = j === 0 ? 1 : ease.inOutCubic(clamp((kk - (j - 0.55)) / 0.55));
+        const suf = i => (i <= 0 ? '' : '–' + D[i]);
         L.save(ctx, () => {
           ctx.globalAlpha *= ca * clamp(sp * 1.4);
-          const y = COUNTER.y + (1 - sp) * 40;
-          const vw = L.text(ctx, val, COUNTER.x, y, { role: 'display', size: COUNTER.size, color: C.white });
-          L.text(ctx, 'мм', COUNTER.x + vw + 16, y, { role: 'displaySemi', size: 30, color: C.brandHi });
+          const y = COUNTER.y + (1 - sp) * 40, x = COUNTER.x;
+          const wPre = L.measure(ctx, 'Ø 15', 'display', sz);
+          const wOld = j > 0 ? L.measure(ctx, suf(j - 1), 'display', sz) : 0, wNew = L.measure(ctx, suf(j), 'display', sz);
+          const ux = x + wPre + lerp(wOld, wNew, q) + 18;
+          L.text(ctx, 'Ø 15', x, y, { role: 'display', size: sz, color: C.white });
+          ctx.save(); ctx.beginPath(); ctx.rect(x + wPre - 2, y - sz * 0.95, ux - 10 - (x + wPre - 2), sz * 1.2); ctx.clip();
+          const hRoll = sz * 0.9;
+          if (j >= 2) {   // dash stays, only the number rolls
+            const wD = L.measure(ctx, '–', 'display', sz);
+            L.text(ctx, '–', x + wPre, y, { role: 'display', size: sz, color: C.white });
+            if (q < 1) L.text(ctx, String(D[j - 1]), x + wPre + wD, y - hRoll * q, { role: 'display', size: sz, color: C.white, alpha: 1 - q });
+            L.text(ctx, String(D[j]), x + wPre + wD, y + hRoll * (1 - q), { role: 'display', size: sz, color: C.white, alpha: q });
+          } else if (j === 1) { // «–22» rolls in after «Ø 15»
+            L.text(ctx, suf(1), x + wPre, y + hRoll * (1 - q), { role: 'display', size: sz, color: C.white, alpha: q });
+          }
+          ctx.restore();
+          L.text(ctx, 'мм', ux, y, { role: 'displaySemi', size: COUNTER.unit, color: C.brandHi });
         });
       }
     }
 
     // ============================================================ BEAT D (wall thickness)
-    const dOutP = ep(t, dOut, 0.6, 'inOutCubic');
+    const dOutP = ep(t, dOut, 0.5, 'inOutCubic');
     if (t > c3 - 0.6 && dOutP < 1) {
       const da = 1 - dOutP;
       const ti = ep(t, c3 - 0.4, 0.8, 'outCubic');
-      const thk = SEC.mm.map((_, i) => [0.62, 0.98, 1.5, 2.33][i]).map(o => c3 + o);
+      const thk = [0.42, 1.28, 2.02, 2.88].map(o => c3 + o);   // each lands on its spoken number
       // section centres
       const outs = SEC.mm.map(mm => SEC.rIn + mm * SEC.k);
       const total = outs.reduce((s, r) => s + 2 * r, 0) + SEC.gap * (outs.length - 1);
       let x = 960 - total / 2; const cxs = outs.map(r => { const c = x + r; x += 2 * r + SEC.gap; return c; });
+      // centre the whole «6 · 9 · 13 · 20 мм» row (incl. the unit) on the frame; sections move with their numbers
+      const nw = SEC.mm.map(mm => L.measure(ctx, String(mm), 'display', 88)), wmm = L.measure(ctx, 'мм', 'display', 88);
+      const rowL = cxs[0] - nw[0] / 2, rowR = cxs[3] + nw[3] / 2 + 22 + wmm, sh = 960 - (rowL + rowR) / 2;
+      for (let i = 0; i < cxs.length; i++) cxs[i] += sh;
       // title
       L.save(ctx, () => {
         ctx.globalAlpha *= da;
@@ -704,10 +742,9 @@ module.exports = {
           const after = i < 3 ? ep(t, thk[i + 1] - 0.05, 0.5) : 0;
           const colF = L.mixColor(col, C.white, after);
           L.text(ctx, String(mm), cxs[i], ny, { role: 'display', size: 88, color: colF, align: 'center', alpha: clamp(np * 1.4) });
-          if (i < 3) L.text(ctx, '·', (cxs[i] + cxs[i + 1]) / 2, ny, { role: 'display', size: 88, color: L.rgba('#CFE3F7', 0.55), align: 'center', alpha: clamp(np * 1.4) });
+          if (i < 3) L.text(ctx, '·', ((cxs[i] + nw[i] / 2) + (cxs[i + 1] - nw[i + 1] / 2)) / 2, ny, { role: 'display', size: 88, color: L.rgba('#CFE3F7', 0.55), align: 'center', alpha: clamp(np * 1.4) });
         });
-        const w20 = L.measure(ctx, '20', 'display', 88);
-        L.text(ctx, 'мм', cxs[3] + w20 / 2 + 22, ny, { role: 'display', size: 88, color: C.white, alpha: clamp(np * 1.4) });
+        L.text(ctx, 'мм', cxs[3] + nw[3] / 2 + 22, ny, { role: 'display', size: 88, color: C.white, alpha: clamp(np * 1.4) });
       });
       // sections
       SEC.mm.forEach((mm, i) => {
@@ -717,7 +754,7 @@ module.exports = {
         const wall = lerp(2, mm, g) * SEC.k;
         const sc = lerp(0.8, 1, ap) * lerp(1, 0.85, dOutP);
         const cy = SEC.y + (1 - ap) * 30 + 20 * dOutP;
-        const act = clamp(1 - Math.abs(t - thk[i] - 0.4) / 0.7);
+        const act = clamp(1 - Math.abs(t - thk[i] - 0.3) / 0.7);
         L.at(ctx, { x: cxs[i], y: cy, scale: sc, alpha: clamp(ap * 1.5) * da }, () => {
           foamRing(ctx, L, 0, 0, SEC.rIn, SEC.rIn + wall, { glow: act * 0.8, hl: act });
           // steel pipe inside
@@ -749,7 +786,7 @@ module.exports = {
         caliperIcon(ctx, L, ix + 2, iy + 2, 98, C.white, open);
         const tx = PLATE.x + 192;
         L.revealText(ctx, 'Інші розміри —', tx, iy - 16, clamp(pp * 1.3 - 0.1), { role: 'displaySemi', size: 48, maxWidth: 620, stagger: 0.2 });
-        L.revealText(ctx, 'під замовлення', tx, iy + 48, clamp(pp * 1.3 - 0.3), { role: 'displaySemi', size: 48, maxWidth: 620, color: C.brandHi, stagger: 0.2 });
+        L.revealText(ctx, 'під замовлення', tx, iy + 48, ep(t, plate2A, 0.7, 'linear'), { role: 'displaySemi', size: 48, maxWidth: 620, color: C.brandHi, stagger: 0.25 });
       });
     }
     // running motif: house emblem, first window lights up
@@ -757,7 +794,7 @@ module.exports = {
     if (ha > 0) {
       const w1 = ep(t, winA, 0.45, 'outCubic');
       const pop = Math.sin(Math.PI * prog(t, winA - 0.05, 0.6)) * 0.07;
-      L.at(ctx, { x: 148, y: 150 + (1 - ha) * 16, scale: 1 + pop }, () => houseIcon(ctx, L, 0, 0, ha, w1));
+      MOTIF.houseEmblem(ctx, L, MOTIF.EMB.x, MOTIF.EMB.y + (1 - ha) * 16, MOTIF.EMB.s * (1 + pop), [w1, 0, 0, 0, 0], ha); // shared with s05–s08
       if (w1 > 0 && w1 < 1) L.save(ctx, () => { ctx.strokeStyle = L.rgba(C.amber, 0.8 * (1 - w1)); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(148 - 23, 150 - 44, 10 + 40 * w1, 0, Math.PI * 2); ctx.stroke(); });
     }
 

@@ -169,6 +169,10 @@ async function main() {
     const n = +(a[1] || 36);
     const frames = Array.from({ length: n }, (_, j) => { const T = (DURATION * (j + 0.5)) / n; return [`${T.toFixed(1)}s`, ctx => drawFrame(ctx, T)]; });
     contact(frames, a[0], 6, 400);
+  } else if (mode === 'boundaries') { // 3 frames around every scene boundary
+    const frames = [];
+    scenes.slice(1).forEach(sc => { for (const dt of [-0.3, 0, 0.3]) frames.push([`${sc.id - 1}→${sc.id} ${sc.transition} ${(sc.start + dt).toFixed(2)}s`, ctx => drawFrame(ctx, sc.start + dt)]); });
+    contact(frames, a[0], 6, 400);
   } else if (mode === 'perf') {
     const k = sceneIdx(a[0]), s = scenes[k], n = +(a[1] || 30); drawScene(x, k, s.start + 0.01);
     const t0 = Date.now(); for (let j = 0; j < n; j++) { drawScene(x, k, s.start + (s.dur * j) / n); c.data(); } // data() forces rasterisation
