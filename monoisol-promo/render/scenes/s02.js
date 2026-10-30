@@ -199,8 +199,8 @@ function drawPipeGroup(ctx, L, t, warm) {
   ctx.translate(OX, PY + xf.dy); ctx.rotate(ANG); ctx.scale(xf.s, xf.s);
   // soft contact shadow / cold halo beneath
   ctx.save(); ctx.scale(1, 0.18); L.glow(ctx, 0, (SR + 70) / 0.18, 1100, '#000000', 0.35); ctx.restore();
-  // steel pipe (full length)
-  tube(ctx, U0, U1, PR, ...steel);
+  // steel pipe — only where it is not hidden by the sleeve, so the pipe doesn't ghost through while the group fades out
+  tube(ctx, Math.max(U0, uf - PR * 0.3 - 3), U1, PR, ...steel); // (keeps the cap hole filled)
   // ---- sleeve body ----
   if (uf > U0) {
     ctx.save();

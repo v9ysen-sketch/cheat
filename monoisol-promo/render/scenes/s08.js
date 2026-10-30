@@ -12,7 +12,7 @@
 //        captions; panel: box opens, bubble film + lodgement wrap a fragile cup, the box rides a truck over bumps,
 //        green check. 14.8 s: stretch film / cardboard / foam-block icons are crossed out one per spoken word and
 //        turn into green MONOISOL packaging icons; pill «Замість стрейч-плівки, картону, пінопласту».
-//        17.5 s: fifth window of the running house emblem lights up.
+//        17.5 s: fifth window of the running house emblem (same white tile as scenes 6–7) lights up.
 // Top-right corner (x>1500, y<150) stays free for the global logo; no text below y≈920.
 
 // ---------------------------------------------------------------- layout
@@ -22,7 +22,7 @@ const BAND_Y = 322, BAND_H = 510;
 const PILL_Y = 892;
 const CARD1 = { x: LM, y: BAND_Y, w: 765, h: BAND_H };
 const P1 = { x: 945, y: BAND_Y, w: 855, h: BAND_H };
-const WIN = { x: 300, y: 58, w: 420, h: 394, g: 28, prof: 44 };   // window opening inside P1 (panel-local)
+const WIN = { x: 240, y: 58, w: 420, h: 394, g: 28, prof: 44 };   // window opening inside P1 (panel-local)
 const CL = { x: LM, y: BAND_Y, w: 800, h: BAND_H }, CR = { x: 1000, y: BAND_Y, w: 800, h: BAND_H };
 const B1 = { x: LM, y: BAND_Y, w: 450, h: BAND_H };
 const B2 = { x: 594, y: BAND_Y, w: 346, h: 243 };
@@ -48,7 +48,7 @@ function timing(env) {
     head3: c2 - 0.22, bento: c2 - 0.18, caps: c2 + 0.3,
     box: c2 + 0.06, open: c2 + 0.3, cup: c2 + 0.5, wrap: c2 + 0.7, lodg: c2 + 0.85, drop: c2 + 1.05,
     close: c2 + 1.3, boxOut: c2 + 1.62, truck: c2 + 1.8, stop: c2 + 2.5, check: c2 + 2.66,
-    stageOut: c2 + 3.2, comp: c2 + 3.3, pillR: c2 + 3.42,
+    stageOut: c2 + 3.2, comp: c2 + 3.4, pillR: c2 + 3.42,
     xs: [c2 + 3.95, c2 + 4.65, c2 + 5.25],
     house: c2 + 5.35, win5: c2 + 5.95,
   };
@@ -195,7 +195,7 @@ function showcase1(ctx, L, t, d, T) {
   const { C, ep, prog, clamp } = L;
   kineticTitle(ctx, L, 'Джгути', LM, HEAD_Y, t, T.head1);
   L.photo(ctx, 'cords_1', CARD1.x, CARD1.y, CARD1.w, CARD1.h, prog(t, T.card1, 0.8), clamp((t + 0.4) / 7.2),
-    { zoom: [1.05, 1.17], focus: [0.4, 0.72, 0.5, 0.8], r: 22, borderW: 4 });
+    { zoom: [1.18, 1.28], focus: [0.38, 0.92, 0.46, 0.7], r: 22, borderW: 4 });
   const pa = ep(t, T.panel1, 0.75);
   if (pa > 0) {
     L.at(ctx, { y: (1 - pa) * 70, alpha: clamp(pa * 1.4) }, () => {
@@ -402,7 +402,7 @@ function showcase2(ctx, L, t, d, T) {
   L.photo(ctx, 'corr_electric', CL.x, CL.y, CL.w, CL.h, prog(t, T.cardL, 0.8), k, { zoom: [1.2, 1.3], focus: [0.3, 0.55, 0.45, 0.58], r: 22, borderW: 4 });
   if (prog(t, T.cardL, 0.8) >= 1) cardVeil(ctx, L, CL, 0.5 * actR, actL);
   sheen(ctx, L, CL, prog(t, T.pillE + 0.05, 0.9));
-  L.photo(ctx, 'worker_corr', CR.x, CR.y, CR.w, CR.h, prog(t, T.cardR, 0.8), k, { zoom: [1.0, 1.08], focus: [0.5, 0.5, 0.42, 0.62], r: 22, borderW: 4 });
+  L.photo(ctx, 'worker_corr', CR.x, CR.y, CR.w, CR.h, prog(t, T.cardR, 0.8), k, { zoom: [1.0, 1.05], focus: [0.5, 0.12, 0.46, 0.22], r: 22, borderW: 4 });
   if (prog(t, T.cardR, 0.8) >= 1) cardVeil(ctx, L, CR, 0.5 * actL, actR);
   sheen(ctx, L, CR, prog(t, T.pillW + 0.05, 0.9));
   L.at(ctx, { alpha: 1 - 0.35 * actR }, () => L.pill(ctx, 'Електропроводка · УФ-стійкий ПНД', CL.x, PILL_Y, prog(t, T.pillE, 0.55), { size: 30, icon: 'sun', iconColor: C.amber }));
@@ -416,7 +416,7 @@ function showcase3(ctx, L, t, d, T) {
   const k = clamp((t - 10.8) / 7.8), rec = ep(t, T.stageOut, 0.5, 'inOutSine');
   const cards = [
     ['bubble_rolls', B1, { zoom: [1.04, 1.14], focus: [0.5, 0.4, 0.55, 0.5] }, 'Бульбашкова плівка'],
-    ['profile_mix', B2, { zoom: [1.3, 1.4], focus: [0.5, 0.88, 0.55, 0.92] }, 'П- та L-профілі'],
+    ['profile_mix', B2, { zoom: [1.48, 1.56], focus: [0.56, 1, 0.6, 1] }, 'П- та L-профілі'],
     ['lodgement_device', B3, { zoom: [1.06, 1.16], focus: [0.45, 0.55, 0.55, 0.5] }, 'Ложементи'],
   ];
   cards.forEach(([name, R, o, cap], i) => {
@@ -432,7 +432,7 @@ function showcase3(ctx, L, t, d, T) {
       L.save(ctx, () => {
         L.roundRect(ctx, P3.x + 2, P3.y + 2, P3.w - 4, P3.h - 4, 22); ctx.clip();
         ctx.translate(P3.x, P3.y);
-        const sa = 1 - ep(t, T.stageOut, 0.4, 'inOutSine');
+        const sa = 1 - ep(t, T.stageOut + 0.25, 0.3, 'inOutSine');   // road fades once the truck has mostly left
         if (sa > 0) boxStage(ctx, L, t, T, sa);
         const ca = ep(t, T.comp, 0.45);
         if (ca > 0) compStage(ctx, L, t, T, ca);
@@ -440,11 +440,20 @@ function showcase3(ctx, L, t, d, T) {
     });
   }
   L.pill(ctx, 'Замість стрейч-плівки, картону, пінопласту', P3.x, PILL_Y, prog(t, T.pillR, 0.55), { size: 30 });
-  // running motif: house emblem, the fifth window lights up
-  const ha = ep(t, T.house, 0.6), w5 = ep(t, T.win5, 0.45);
+}
+
+// running motif overlay (drawn after the vignette so the white tile reads as white, as in scenes 6–7)
+function emblem(ctx, L, t, T) {
+  const { ep, prog } = L;
+  const ha = ep(t, T.house, 0.6), w5 = ep(t, T.win5, 0.45, 'outCubic');
   if (ha > 0) {
     const pop = Math.sin(Math.PI * prog(t, T.win5 - 0.05, 0.6)) * 0.07;
-    houseIcon(ctx, L, 148, 144, ha, w5, 1 + pop, t);
+    houseEmblem(ctx, L, EMB.x, EMB.y + (1 - ha) * 14, EMB.s * (1 + pop), [1, 1, 1, 1, w5], ha);
+    if (w5 > 0 && w5 < 1) {   // light burst from the fifth (top-right) window, as in scenes 6–7
+      const bx = EMB.x + (48 - 34 + 11) * EMB.s, by = EMB.y + (-70 + 10 + 9) * EMB.s;
+      ctx.save(); ctx.strokeStyle = L.rgba('#FFB547', 0.8 * (1 - w5)); ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(bx, by, 10 + 40 * w5, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    }
   }
 }
 
@@ -601,9 +610,9 @@ function boxStage(ctx, L, t, T, a) {
       });
     }
     // ---- part 2: the loaded truck drives in and over bumps, stops; green check — cup intact
-    const tIn = prog(t, T.truck, 0.6), out = prog(t, T.stageOut, 0.6);
+    const tIn = prog(t, T.truck, 0.6), out = prog(t, T.stageOut, 0.5);
     if (tIn <= 0) return;
-    const truckX = 400 + lerp(-640, 0, ease.outCubic(tIn)) + 760 * ease.inCubic(out);
+    const truckX = 400 + lerp(-640, 0, ease.outCubic(tIn)) + 820 * ease.inQuad(out);
     const speed = tt => 900 * ease.inOutSine(prog(tt, T.truck + 0.3, 0.3)) * (1 - ease.inOutSine(prog(tt, T.stop, 0.35)));
     let dist = 0; for (let tt = T.truck + 0.3; tt < t; tt += 1 / 60) dist += speed(tt) / 60;
     const bumps = [620, 820];
@@ -745,26 +754,30 @@ function compStage(ctx, L, t, T, a) {
   });
 }
 
-// running motif: small house with five windows (same drawing as scene 5); windows 1–4 lit, w5 = fifth window
-function houseIcon(ctx, L, x, y, alpha, w5, scale, t) {
-  if (alpha <= 0.001) return;
-  const { C } = L;
-  L.save(ctx, () => {
-    ctx.globalAlpha *= alpha; ctx.translate(x, y); ctx.scale(scale, scale);
+// running motif: the same house emblem as scenes 6–7 (white tile, ink line drawing, same window layout), so the
+// window count carries straight on. Window order: bottom-left, bottom-right, top-left, top-middle, top-right;
+// windows 1–4 were lit by scenes 4–7, the fifth (top-right) lights here. lit = array 0..1
+const EMB = { x: LM + 50, y: 146, s: 0.72 };   // a touch smaller than in s06/s07: this scene's headline is larger and sits higher;
+                                               // tile left edge aligns with the left margin, ~35 px clear of the headline caps
+function houseEmblem(ctx, L, x, y, s, lit, alpha) {
+  if (alpha <= 0.002) return;
+  const INK = '#14233A';
+  L.at(ctx, { x, y, scale: s, alpha }, () => {
+    const w = 96, h = 70, rh = 36;
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 22; ctx.shadowOffsetY = 6;
+    L.roundRect(ctx, -w / 2 - 22, -h - rh - 22, w + 44, h + rh + 40, 26); ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fill(); ctx.restore();
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    ctx.fillStyle = 'rgba(10,14,20,0.35)'; ctx.beginPath(); ctx.moveTo(-42, 0); ctx.lineTo(-42, -60); ctx.lineTo(0, -96); ctx.lineTo(42, -60); ctx.lineTo(42, 0); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(220,228,238,0.85)'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(-52, -56); ctx.lineTo(0, -98); ctx.lineTo(52, -56); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-42, -64); ctx.lineTo(-42, 0); ctx.lineTo(42, 0); ctx.lineTo(42, -64); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(-7, -20); ctx.lineTo(7, -20); ctx.lineTo(7, 0); ctx.stroke();
-    const wins = [[-23, -44], [0, -44], [23, -44], [-23, -21], [23, -21]];
+    ctx.strokeStyle = INK; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(-w / 2 - 8, -h + 2); ctx.lineTo(0, -h - rh); ctx.lineTo(w / 2 + 8, -h + 2); ctx.stroke();
+    ctx.strokeRect(-w / 2, -h, w, h);
+    const wins = [[-w / 2 + 12, -30], [w / 2 - 34, -30], [-w / 2 + 12, -h + 10], [-11, -h + 10], [w / 2 - 34, -h + 10]];
     wins.forEach(([wx, wy], i) => {
-      const lit = i < 4 ? 0.94 + 0.06 * Math.sin(t * 3 + i) : w5;
-      if (lit > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; L.glow(ctx, wx, wy, 24, C.amber, 0.55 * lit); ctx.restore(); }
-      ctx.fillStyle = L.mixColor('#1A222C', '#FFC266', lit); ctx.fillRect(wx - 7, wy - 7, 14, 14);
-      ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(220,228,238,0.85)'; ctx.strokeRect(wx - 7, wy - 7, 14, 14);
+      const l = L.clamp(lit[i] || 0);
+      if (l > 0.01) L.glow(ctx, wx + 11, wy + 9, 34, '#FFB547', 0.55 * l);
+      ctx.fillStyle = L.mixColor('#E3E7EC', '#FFB547', l); ctx.fillRect(wx, wy, 22, 18);
+      ctx.lineWidth = 2.5; ctx.strokeStyle = INK; ctx.strokeRect(wx, wy, 22, 18);
     });
-    if (w5 > 0 && w5 < 1) { ctx.strokeStyle = L.rgba(C.amber, 0.8 * (1 - w5)); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(23, -21, 9 + 30 * w5, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.fillStyle = INK; L.roundRect(ctx, -9, -30, 18, 30, 3); ctx.fill();
   });
 }
 
@@ -782,5 +795,6 @@ module.exports = {
     shutter(ctx, L, t, T.mid1);
     shutter(ctx, L, t, T.mid2);
     L.vignette(ctx, 0.42);
+    if (seg === 3) emblem(ctx, L, t, T);
   },
 };

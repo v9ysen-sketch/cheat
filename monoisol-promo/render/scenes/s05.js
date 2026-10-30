@@ -334,8 +334,9 @@ function featureIcon(ctx, L, kind, x, y, t, p) {
   const { C, clamp } = L;
   if (p <= 0.001) return;
   L.save(ctx, () => {
-    ctx.translate(x, y); ctx.globalAlpha *= clamp(p * 1.6);
-    ctx.beginPath(); ctx.arc(0, 0, 42, 0, Math.PI * 2); ctx.clip();
+    // icon art is authored in a ±30 box; drawn 1.22× inside the 48 px badge so it reads at TV distance
+    ctx.translate(x, y); ctx.scale(1.22, 1.22); ctx.globalAlpha *= clamp(p * 1.6);
+    ctx.beginPath(); ctx.arc(0, 0, 37.5, 0, Math.PI * 2); ctx.clip();
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     if (kind === 'water') {
       // slanted surface; drops bead, slide down and drip off the edge
@@ -376,26 +377,10 @@ function featureIcon(ctx, L, kind, x, y, t, p) {
   });
 }
 
-// running motif: small house with five windows (window 1 lit from scene 4, window 2 lights here)
+// running motif (shared with scenes 4–8, see _motif.js): window 1 lit since scene 4, window 2 lights here
+const MOTIF = require('./_motif');
 function houseIcon(ctx, L, x, y, alpha, lit2) {
-  if (alpha <= 0.001) return;
-  const { C } = L;
-  L.save(ctx, () => {
-    ctx.globalAlpha *= alpha; ctx.translate(x, y);
-    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    ctx.fillStyle = 'rgba(10,14,20,0.35)'; ctx.beginPath(); ctx.moveTo(-42, 0); ctx.lineTo(-42, -60); ctx.lineTo(0, -96); ctx.lineTo(42, -60); ctx.lineTo(42, 0); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(220,228,238,0.85)'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(-52, -56); ctx.lineTo(0, -98); ctx.lineTo(52, -56); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-42, -64); ctx.lineTo(-42, 0); ctx.lineTo(42, 0); ctx.lineTo(42, -64); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(-7, -20); ctx.lineTo(7, -20); ctx.lineTo(7, 0); ctx.stroke();
-    const wins = [[-23, -44], [0, -44], [23, -44], [-23, -21], [23, -21]];
-    wins.forEach(([wx, wy], i) => {
-      const lit = i === 0 ? 1 : i === 1 ? lit2 : 0;
-      if (lit > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; L.glow(ctx, wx, wy, 24, C.amber, 0.55 * lit); ctx.restore(); }
-      ctx.fillStyle = L.mixColor('#1A222C', '#FFC266', lit); ctx.fillRect(wx - 7, wy - 7, 14, 14);
-      ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(220,228,238,0.85)'; ctx.strokeRect(wx - 7, wy - 7, 14, 14);
-    });
-  });
+  MOTIF.houseEmblem(ctx, L, MOTIF.EMB.x, MOTIF.EMB.y, MOTIF.EMB.s, [1, lit2, 0, 0, 0], alpha);
 }
 
 // ---------------------------------------------------------------- scene
@@ -408,8 +393,9 @@ module.exports = {
     // beat clocks
     const tStamp = c0 + 1.2;                  // «HD» badge impact (on "серія HD")
     const tHeadUp = c0 + 1.33;                // headline glides from centre to the top
-    const tWall = c0 + 1.63, tDens = c0 + 3.72, tRecede = c0 + 7.6, tWear = c0 + 8.36;
-    const wipeA = c1 - 0.45, wipeD = 0.7;     // amber-red line wipe A → B
+    // tRecede: density stats stay until «…кубічний метр» (~9.0) is nearly spoken, and are gone before the hd_print strip wipes in
+    const tWall = c0 + 1.63, tDens = c0 + 3.72, tRecede = c0 + 7.65, tWear = c0 + 8.36;
+    const wipeA = c1 - 0.5, wipeD = 0.85;     // amber-red line wipe A → B (10.83–11.68; calm speed)
     const tB = c1;
     const tC = c2, tD = c3;
     const lk = ep(t, tC - 0.5, 1.1, 'inOutSine');
@@ -441,7 +427,7 @@ module.exports = {
       L.headline(ctx, 816, 200 + hu, prog(t, c0 - 0.3, 1.3), { kicker: 'Преміум-сегмент', title: 'Серія HD', titleSize: 104, maxWidth: 1000, highlight: ['HD'] });
 
       // --- wall section + density cube (recede before the wear beat)
-      const rc = ease.inOutCubic(prog(t, tRecede, 0.55));
+      const rc = ease.inOutCubic(prog(t, tRecede, 0.5));
       if (rc < 1) L.at(ctx, { x: 0, y: -rc * 40, alpha: 1 - rc }, () => {
         const sx = 1000, sy = 560, R = 152, r = 88;
         hdSection(ctx, L, sx, sy, R, r, prog(t, tWall, 0.9));
@@ -457,19 +443,24 @@ module.exports = {
         densityCube(ctx, L, cx, cy, a, pe, lv, 1);
         const sp = prog(t, tDens + 0.05, 0.6);
         if (sp > 0) {
+          // «25» counts up; «–30» then rises in as one piece (~0.35 s before «до тридцяти» ≈ 6.39) — no odd «25–25…25–29» ticks
           const n1 = Math.round(lerp(0, 25, ease.outCubic(prog(t, tDens + 0.1, 1.25))));
-          const n2p = prog(t, tDens + 1.5, 0.65), n2 = Math.round(lerp(25, 30, ease.outCubic(n2p)));
-          const val = n2p > 0 ? `${n1}–${n2}` : `${n1}`;
-          const fw = L.measure(ctx, '25–30', 'display', 84) + 14 + L.measure(ctx, 'кг/м³', 'displaySemi', 84 * 0.42);
+          const n2p = prog(t, tDens + 1.65, 0.55);
+          const val = '25–30';
+          const fw = L.measure(ctx, val, 'display', 84) + 14 + L.measure(ctx, 'кг/м³', 'displaySemi', 84 * 0.42);
           const x2 = cx - fw / 2;
           const up = prog(t, tDens + 2.1, 0.5);
-          stat(ctx, L, x2, 872, sp, val, null, 84, C.amber);
+          stat(ctx, L, x2, 872, sp, `${n1}`, null, 84, C.amber);
+          if (n2p > 0) {
+            const e2 = ease.outCubic(n2p);
+            L.text(ctx, '–30', x2 + L.measure(ctx, '25', 'display', 84), 872 + (1 - e2) * 26, { role: 'display', size: 84, color: C.white, alpha: clamp(n2p * 1.6) });
+          }
           if (up > 0) { const vw = L.measure(ctx, val, 'display', 84); L.text(ctx, 'кг/м³', x2 + vw + 14 + (1 - ease.outCubic(up)) * 16, 872, { role: 'displaySemi', size: 84 * 0.42, color: C.amber, alpha: up }); }
         }
       });
 
       // --- wear-resistant surface
-      const ps = ep(t, tWear - 0.55, 0.9);
+      const ps = ep(t, tWear - 0.3, 0.9);
       if (ps > 0) {
         const sk = clamp((t - (tWear - 0.55)) / 2.9);
         card(ctx, L, 'hd_print', 816, 600, 1008, 275, {
@@ -517,20 +508,21 @@ module.exports = {
         }
       }
       // label + check
-      labelPill(ctx, L, 'Зносостійка поверхня', 1312, 539, prog(t, tWear - 0.3, 0.6), prog(t, tWear + 0.15, 0.6), { size: 34 });
+      labelPill(ctx, L, 'Зносостійка поверхня', 1312, 539, prog(t, tWear - 0.2, 0.6), prog(t, tWear + 0.2, 0.6), { size: 34 });
     });
 
     // ================================================================ BEAT B — HD V2 fire-resistant
     if (wq > 0 && t < tC + 0.6) L.save(ctx, () => {
       if (wq < 1) { ctx.beginPath(); ctx.moveTo(-10, -10); ctx.lineTo(lx + slant, -10); ctx.lineTo(lx, H + 10); ctx.lineTo(-10, H + 10); ctx.closePath(); ctx.clip(); }
-      const bo = ease.inOutCubic(prog(t, tC - 0.72, 0.42));
+      // exit: gentle (the big bright photo leaves over 0.65 s, the rest over 0.5 s), all gone before «Ламінована…» at tC - 0.3
+      const bo = ease.inOutSine(prog(t, tC - 0.8, 0.5)), boC = ease.inOutSine(prog(t, tC - 0.95, 0.65));
       // headline
       accentBar(ctx, L, 96, 252, prog(t, tB - 0.35, 0.6) * (1 - bo), C.amber, C.red);
       L.revealText(ctx, 'Пожежостійка серія HD V2', 96, 335, prog(t, tB - 0.3, 1.2), { role: 'display', size: 80, maxWidth: 840, highlight: ['HD', 'V2'], highlightColor: C.amber, out: bo });
       // photo card, Ken Burns along the printed marking (no punch-in)
       const pc = ep(t, tB - 0.15, 0.9), kb = clamp((t - tB + 0.4) / 5.8);
-      card(ctx, L, 'pipe_ins_print', 1000 + bo * 60, 250 + (1 - pc) * 60, 824, 549, {
-        alpha: clamp(pc * 1.6) * (1 - bo), zoom: lerp(1.14, 1.17, kb), fx: lerp(0.2, 0.8, ease.inOutSine(kb)), fy: 0.42,
+      card(ctx, L, 'pipe_ins_print', 1000 + boC * 50, 250 + (1 - pc) * 60, 824, 549, {
+        alpha: clamp(pc * 1.6) * (1 - boC), scale: 1 - 0.03 * boC, zoom: lerp(1.14, 1.17, kb), fx: lerp(0.2, 0.8, ease.inOutSine(kb)), fy: 0.42,
       });
       // ---- line-icon diagram: source flame touches the tube, retracts, flame on tube dies out
       const da = clamp(prog(t, tB + 0.1, 0.5) * 1.5) * (1 - bo);
@@ -548,8 +540,9 @@ module.exports = {
         ctx.restore();
         // source (lighter) approaches from below, touches, then retracts
         const fxp = 350;
-        const appr = ease.outCubic(prog(t, tB + 0.55, 0.45)), retr = ease.inOutCubic(prog(t, tB + 2.1, 0.55));
-        const sOff = (1 - appr) * 140 + retr * 150, sA = clamp(appr * 1.6) * (1 - retr);
+        // retracts down and fades out completely before the «Згасає…» pill (below it) starts to appear
+        const appr = ease.outCubic(prog(t, tB + 0.55, 0.45)), retr = ease.inOutCubic(prog(t, tB + 1.95, 0.5));
+        const sOff = (1 - appr) * 140 + retr * 70, sA = clamp(appr * 1.6) * (1 - clamp(retr * 1.5));
         if (sA > 0) L.save(ctx, () => {
           ctx.globalAlpha *= sA; const by = ty + th + 74 + sOff;
           ctx.strokeStyle = 'rgba(214,222,232,0.9)'; ctx.lineWidth = 3.5;
@@ -559,7 +552,7 @@ module.exports = {
           lineFlame(ctx, L, fxp, by - 14, 0.7, t, 1, 3);
         });
         // flame on the tube: grows on contact, dies out after the source leaves
-        const ign = ease.outCubic(prog(t, tB + 0.95, 0.5)), die = ease.inOutSine(prog(t, tB + 2.55, 1.0));
+        const ign = ease.outCubic(prog(t, tB + 0.95, 0.5)), die = ease.inOutSine(prog(t, tB + 2.4, 1.1));
         const fs = 0.92 * ign * (1 - die);
         lineFlame(ctx, L, fxp + 4, ty - th - 2, fs, t, 1, 7);
         // little smoke curl once extinguished
@@ -576,7 +569,7 @@ module.exports = {
           L.at(ctx, { x: 810, y: ty, scale: lerp(0.7, 1, e), alpha: clamp(shp * 1.8) }, () => { L.drawIcon(ctx, 'shield', 0, 0, 170, C.brandHi, 1, 6.5); });
         }
       });
-      labelPill(ctx, L, 'Згасає без джерела вогню', 96, 820, prog(t, tB + 2.2, 0.6) * (1 - bo), prog(t, tB + 2.5, 0.6), { size: 34 });
+      labelPill(ctx, L, 'Згасає без джерела вогню', 96, 846, prog(t, tB + 2.25, 0.6) * (1 - bo), prog(t, tB + 2.55, 0.6), { size: 34 });
     });
 
     // amber-red transition line
@@ -590,22 +583,28 @@ module.exports = {
     if (t > tC - 0.6) {
       // collage (right) with gentle parallax
       const pv = ep(t, tC - 0.3, 1.0), ph = ep(t, tC + 0.05, 1.0), kk = clamp((t - tC + 0.5) / 10.5);
-      const vx = 1000 - kk * 14, vy = 196 + (1 - pv) * 70, hx = 1268 + kk * 10, hy = 512 + (1 - ph) * 80;
+      // right edge of the collage stays ≥ 96 px from the frame edge (incl. the tilt)
+      const vx = 980 - kk * 14, vy = 196 + (1 - pv) * 70, hx = 1246 + kk * 10, hy = 512 + (1 - ph) * 80;
+      // zoom ≥ 1.37 with fy = 1 keeps the banner (logo, «…виробник…» line and the www.monoisol.com line) fully outside the card
       card(ctx, L, 'lam_red_blue', vx, vy, 452, 510, {
-        alpha: clamp(pv * 1.6), zoom: lerp(1.26, 1.31, kk), fx: lerp(0.42, 0.55, kk), fy: 1, rot: -0.025,
+        alpha: clamp(pv * 1.6), zoom: lerp(1.38, 1.43, kk), fx: lerp(0.42, 0.55, kk), fy: 1, rot: -0.025,
         after: (w, h) => {
           // D: UV — sun glint sweeps the top corner, reflected
           const uq = prog(t, tD + 1.95, 1.6);
           if (uq > 0 && uq < 1) L.save(ctx, () => { ctx.globalCompositeOperation = 'lighter'; L.glow(ctx, w * 0.9, h * 0.06, 220, C.amber, 0.35 * Math.sin(Math.PI * uq)); });
         },
       });
+      // the blurred banner swoosh behind the top pipe can't be cropped without cutting the hero pipe rim (y 80–210 of 533),
+      // so keep the whole product: low zoom, fy slightly up so the top foam ring is never clipped
       card(ctx, L, 'lam_pipes_2024', hx, hy, 556, 370, {
-        alpha: clamp(ph * 1.6), zoom: lerp(1.05, 1.11, kk), fx: lerp(0.35, 0.6, kk), fy: 0.5, rot: 0.02,
+        alpha: clamp(ph * 1.6), zoom: lerp(1.05, 1.1, kk), fx: lerp(0.35, 0.6, kk), fy: 0.4, rot: 0.02,
         after: (w, h) => {
           // D: wear — a light swipe across the surface, nothing scratched
           const sq = prog(t, tD + 1.45, 0.75);
           if (sq > 0 && sq < 1) {
-            const gx = lerp(-160, w + 160, ease.inOutSine(sq)), g = ctx.createLinearGradient(gx - 110, 0, gx + 110, 0);
+            // gradient is built in the rotated, card-centred space so the band starts and ends fully outside the card
+            const reach = (w / 2) * Math.cos(0.35) + (h / 2) * Math.sin(0.35) + 120;
+            const gx = lerp(-reach, reach, ease.inOutSine(sq)), g = ctx.createLinearGradient(gx - 110, 0, gx + 110, 0);
             g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.32)'); g.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.translate(w / 2, h / 2); ctx.rotate(0.35); ctx.fillRect(-w, -h, w * 2, h * 2); ctx.restore();
           }
@@ -640,10 +639,10 @@ module.exports = {
         rows.forEach(([kind, label, ts], i) => {
           const p = prog(t, ts, 0.6), y = 548 + i * 118;
           if (p <= 0) return;
-          iconCircle(ctx, L, 140, y, 44, p);
-          featureIcon(ctx, L, kind, 140, y, t - ts, p);
+          iconCircle(ctx, L, 144, y, 48, p);
+          featureIcon(ctx, L, kind, 144, y, t - ts, p);
           const e = ease.outCubic(p);
-          L.text(ctx, label, 214 + (1 - e) * -20, y + 1, { role: 'bodyBold', size: 40, color: C.white, baseline: 'middle', alpha: clamp(p * 1.4) });
+          L.text(ctx, label, 226 + (1 - e) * -20, y + 1, { role: 'bodyBold', size: 40, color: C.white, baseline: 'middle', alpha: clamp(p * 1.4) });
         });
       }
       // running motif: house icon, second window lights at the end of the scene

@@ -44,7 +44,7 @@ const PATHS = {
 // ---- beat C geometry
 const TUBE = { x0: 200, x1: 1720, y: 300, R: 40, r: 19 };
 const DIM_Y = 412;
-const RINGS = { floor: 862, x0: 190, gap: 28, scale: 1.95, wall: 9, d: [15, 22, 28, 35, 54, 76, 114] };
+const RINGS = { floor: 862, x0: 190, gap: 28, scale: 1.75, wall: 13, d: [15, 22, 28, 35, 54, 76, 114] };
 const COUNTER = { x: 1320, y: 764, size: 78 };
 // ---- beat D geometry
 const SEC = { y: 684, rIn: 56, k: 5.2, gap: 96, mm: [6, 9, 13, 20] };
@@ -124,8 +124,8 @@ function blueprint(ctx, L, t, a, m) {
     if (sharpA > 0) { ctx.globalAlpha *= sharpA; L.drawCover(ctx, L.img('pipe_ins_sizes'), R.x, R.y, R.w, R.h, zoom, fx, 0.5); ctx.globalAlpha /= sharpA; }
     const tint = 1 - L.ease.outCubic(L.clamp(m * 1.5));
     if (tint > 0.002) {
-      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = L.rgba('#1F5FB0', 0.85 * tint); ctx.fillRect(R.x, R.y, R.w, R.h); ctx.restore();
-      ctx.fillStyle = L.rgba('#06162E', 0.62 * tint); ctx.fillRect(R.x, R.y, R.w, R.h);
+      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = L.rgba('#2A6BC0', 0.8 * tint); ctx.fillRect(R.x, R.y, R.w, R.h); ctx.restore();
+      ctx.fillStyle = L.rgba('#06162E', 0.5 * tint); ctx.fillRect(R.x, R.y, R.w, R.h);
       // edge vignette to keep text areas calm
       const vg = ctx.createRadialGradient(R.x + R.w / 2, R.y + R.h / 2, R.h * 0.3, R.x + R.w / 2, R.y + R.h / 2, R.h * 1.05);
       vg.addColorStop(0, 'rgba(3,10,22,0)'); vg.addColorStop(1, `rgba(3,10,22,${0.55 * tint})`);
@@ -358,7 +358,7 @@ function caliperIcon(ctx, L, x, y, size, color, open) {
     ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     // main beam
     L.roundRect(ctx, -46, -30, 92, 16, 3); ctx.stroke();
-    for (let i = -36; i <= 36; i += 9) { ctx.beginPath(); ctx.moveTo(i, -30); ctx.lineTo(i, i % 18 === 0 ? -22 : -25); ctx.lineWidth = 3; ctx.stroke(); }
+    for (let i = -36; i <= 36; i += 12) { ctx.beginPath(); ctx.moveTo(i, -30); ctx.lineTo(i, i % 24 === 0 ? -21 : -25); ctx.lineWidth = 3; ctx.stroke(); }
     ctx.lineWidth = 6;
     // fixed jaw
     ctx.beginPath(); ctx.moveTo(-46, -14); ctx.lineTo(-46, 34); ctx.lineTo(-34, 22); ctx.lineTo(-34, -14); ctx.stroke();
@@ -366,9 +366,6 @@ function caliperIcon(ctx, L, x, y, size, color, open) {
     const sx = -20 + open * 46;
     L.roundRect(ctx, sx - 4, -36, 26, 28, 4); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(sx, -8); ctx.lineTo(sx, 34); ctx.lineTo(sx + 12, 22); ctx.lineTo(sx + 12, -8); ctx.stroke();
-    // measured object (tube section) between the jaws
-    ctx.lineWidth = 4; ctx.globalAlpha *= 0.85;
-    const w = sx - (-34); ctx.beginPath(); ctx.ellipse(-34 + w / 2, 14, Math.max(2, w / 2 - 2), 11, 0, 0, Math.PI * 2); ctx.stroke();
   });
 }
 
@@ -478,7 +475,7 @@ function houseCut(ctx, L, t, hp, sysP, glowK, alpha) {
         [[780, 690], [780, 506]].forEach(([rx, ry]) => { L.roundRect(ctx, rx, ry, 88, 44, 6); ctx.fill(); ctx.stroke(); for (let k = 1; k < 5; k++) { ctx.beginPath(); ctx.moveTo(rx + k * 17.6, ry + 6); ctx.lineTo(rx + k * 17.6, ry + 38); ctx.stroke(); } });
         L.roundRect(ctx, 900, 795, 54, 62, 6); ctx.fill(); ctx.stroke();
         ctx.beginPath(); ctx.arc(927, 826, 10, 0, Math.PI * 2); ctx.stroke();
-        L.heatWaves(ctx, 824, 680, 70, 70, t, 0.6 * da, s.col);
+        L.heatWaves(ctx, 824, 498, 64, 60, t, 0.45 * da, s.col);
       } else if (s.key === 'water') {
         [[1146, 470], [1146, 655]].forEach(([tx, ty]) => { ctx.beginPath(); ctx.moveTo(tx + 4, ty); ctx.lineTo(tx - 18, ty); ctx.quadraticCurveTo(tx - 26, ty, tx - 26, ty + 10); ctx.stroke(); ctx.beginPath(); ctx.moveTo(tx - 8, ty); ctx.lineTo(tx - 8, ty - 12); ctx.moveTo(tx - 16, ty - 12); ctx.lineTo(tx, ty - 12); ctx.stroke(); });
       } else if (s.key === 'sewer') {
@@ -509,7 +506,7 @@ function listRow(ctx, L, s, i, t, p, act) {
     // flash ring
     if (act > 0 && act < 1) { ctx.strokeStyle = L.rgba(s.col, 0.8 * (1 - act)); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, LIST.r + 4 + act * 34, 0, Math.PI * 2); ctx.stroke(); }
     const fl = act > 0 ? Math.sin(Math.PI * L.clamp(act)) : 0;
-    if (fl > 0.01) L.glow(ctx, 0, 0, LIST.r * 2.6, s.col, 0.45 * fl);
+    if (fl > 0.01) L.glow(ctx, 0, 0, LIST.r * 2.0, s.col, 0.28 * fl);
     ctx.beginPath(); ctx.arc(0, 0, LIST.r, 0, Math.PI * 2); ctx.fillStyle = L.rgba(s.col, 0.14 + 0.16 * fl); ctx.fill();
     ctx.lineWidth = 2.5; ctx.strokeStyle = L.rgba(s.col, 0.85); ctx.stroke();
     sysIcon(ctx, L, s.key, 0, 0, 44, L.mixColor('#F6FAFF', s.col, 0.25), t);
@@ -527,20 +524,20 @@ module.exports = {
     const hlIn = c0 - 0.45;                    // headline
     const ws = c0 + 1.25;                      // sleeve starts wrapping
     const knitA = c0 + 0.25, knitD = 1.1;      // knitted pattern sweep
-    const curtA = c0 + 2.6, curtD = 0.8;       // curtain reveal of card 1
+    const curtA = c0 + 2.6, curtD = 0.75;       // curtain reveal of card 1
     const card2A = c0 + 3.35;                  // card 2 lands
     const mvA = c1 - 0.35;                     // cards → left third
     const bOut = c2 - 0.75;                    // beat B exit
     const cOut = c3 - 0.8;                     // beat C exit
-    const dOut = c3 + 3.25;                    // beat D exit
-    const morphA = c3 + 3.3;                   // bg → card
-    const plateA = c3 + 3.85;                  // «Інші розміри — під замовлення»
+    const dOut = c3 + 3.1;                     // beat D exit
+    const morphA = c3 + 3.1;                   // bg → card
+    const plateA = c3 + 3.9;                   // «Інші розміри — під замовлення»
     const houseA = c3 + 5.35, winA = c3 + 6.05;
 
     // ---- background
     baseBackground(ctx, L, t);
     const bpA = ep(t, c2 - 0.85, 0.9, 'inOutSine');
-    const morph = ep(t, morphA, 1.1, 'inOutCubic');
+    const morph = ep(t, morphA, 1.0, 'inOutCubic');
     blueprint(ctx, L, t, bpA, morph);
     drift(ctx, L, t, 1 - 0.5 * bpA * (1 - morph));
 
@@ -631,7 +628,8 @@ module.exports = {
       const ca = 1 - co;
       // tube extrudes left → right
       const tp = ep(t, c2 - 0.55, 0.9, 'inOutCubic');
-      const tubeY = TUBE.y - 50 * co;
+      const lift = 120 * (1 - ep(t, c2 + 1.15, 0.9, 'inOutCubic'));   // «2 м» first holds centre stage, then makes room
+      const tubeY = TUBE.y + lift - 50 * co;
       if (tp > 0) {
         const cx = lerp(TUBE.x0 - 20, TUBE.x1 + 30, tp);
         sleeve(ctx, L, TUBE.x0, TUBE.x1, tubeY, TUBE.R, TUBE.r, { e: 0.3, rot: t * 0.25, alpha: ca, clipX: cx, shadow: true });
@@ -640,7 +638,7 @@ module.exports = {
       const dp = ep(t, c2 - 0.3, 0.75, 'inOutCubic');
       if (dp > 0) L.save(ctx, () => {
         ctx.globalAlpha *= ca;
-        const y = DIM_Y - 50 * co, mid = 960, half = (TUBE.x1 - TUBE.x0) / 2, gapH = 150;
+        const y = DIM_Y + lift - 50 * co, mid = 960, half = (TUBE.x1 - TUBE.x0) / 2, gapH = 150;
         ctx.strokeStyle = L.rgba('#CFE3F7', 0.75); ctx.fillStyle = L.rgba(C.brandHi, 0.95); ctx.lineWidth = 2.5;
         // extension lines
         ctx.save(); ctx.setLineDash([6, 6]); ctx.globalAlpha *= clamp(dp * 2);
@@ -652,31 +650,32 @@ module.exports = {
         L.save(ctx, () => { ctx.beginPath(); ctx.rect(mid - 200, y - 80, 400, 130); ctx.clip(); L.text(ctx, '2 м', mid, y + 30 + (1 - lp) * 70, { role: 'display', size: 84, color: C.white, align: 'center', alpha: clamp(lp * 1.4) }); });
       });
       // rings, bottom-aligned, growing small → large
-      const fl = ep(t, c2 + 1.7, 0.8, 'inOutCubic');
+      const r0 = c2 + 1.55, rStep = 0.3;                                    // ring i starts at r0 + i·rStep
+      const fl = ep(t, r0 - 0.35, 0.8, 'inOutCubic');
       L.save(ctx, () => {
         ctx.globalAlpha *= ca;
-        if (fl > 0) { ctx.strokeStyle = L.rgba('#CFE3F7', 0.35); ctx.lineWidth = 2; ctx.setLineDash([8, 8]); ctx.beginPath(); ctx.moveTo(RINGS.x0 - 20, RINGS.floor + 1); ctx.lineTo(lerp(RINGS.x0 - 20, 1250, fl), RINGS.floor + 1); ctx.stroke(); ctx.setLineDash([]); }
+        if (fl > 0) { ctx.strokeStyle = L.rgba('#CFE3F7', 0.35); ctx.lineWidth = 2; ctx.setLineDash([8, 8]); ctx.beginPath(); ctx.moveTo(RINGS.x0 - 20, RINGS.floor + 1); ctx.lineTo(lerp(RINGS.x0 - 20, 1290, fl), RINGS.floor + 1); ctx.stroke(); ctx.setLineDash([]); }
         let x = RINGS.x0;
         RINGS.d.forEach((dm, i) => {
           const ro = (dm + 2 * RINGS.wall) * RINGS.scale / 2, ri = dm * RINGS.scale / 2;
-          const rp = ep(t, c2 + 2.15 + i * 0.27, 0.6, 'outBack');
+          const rp = ep(t, r0 + i * rStep, 0.6, 'outBack');
           const k = Math.max(0, rp);
-          if (k > 0.001) foamRing(ctx, L, x + ro, RINGS.floor - ro * k, ri * k, ro * k, { alpha: clamp(rp * 2) * (1 - co * 0.0) });
+          if (k > 0.001) foamRing(ctx, L, x + ro, RINGS.floor - ro * k, ri * k, ro * k, { alpha: clamp(rp * 2) });
           x += ro * 2 + RINGS.gap;
         });
       });
-      // counter «Ø 15–114 мм»
-      const sp = ep(t, c2 + 1.95, 0.7, 'outCubic');
+      // counter «Ø 15–114 мм», tracking the ring that is growing
+      const sp = ep(t, r0 - 0.2, 0.6, 'outCubic');
       if (sp > 0) {
-        const cnt = ease.outCubic(prog(t, c2 + 2.15, 2.0));
-        const n = Math.round(lerp(15, 114, cnt));
-        const val = 'Ø 15–' + n;
+        const D = RINGS.d, idx = clamp((t - r0 - 0.12) / rStep, 0, D.length - 1);
+        const i0 = Math.floor(idx), f = ease.inOutSine(idx - i0);
+        const n = Math.round(lerp(D[i0], D[Math.min(D.length - 1, i0 + 1)], f));
+        const val = n > 15 ? 'Ø 15–' + n : 'Ø 15';
         L.save(ctx, () => {
           ctx.globalAlpha *= ca * clamp(sp * 1.4);
           const y = COUNTER.y + (1 - sp) * 40;
-          const vw = L.text(ctx, val, COUNTER.x, y, { role: 'display', size: 80, color: C.white });
+          const vw = L.text(ctx, val, COUNTER.x, y, { role: 'display', size: COUNTER.size, color: C.white });
           L.text(ctx, 'мм', COUNTER.x + vw + 16, y, { role: 'displaySemi', size: 30, color: C.brandHi });
-          ctx.fillStyle = L.rgba(C.brandHi, 0.9); ctx.fillRect(COUNTER.x, y - 108, 64 * ease.outCubic(sp), 5);
         });
       }
     }
@@ -695,7 +694,7 @@ module.exports = {
       L.save(ctx, () => {
         ctx.globalAlpha *= da;
         const y = 236 - 30 * dOutP;
-        L.text(ctx, 'Товщина стінки', 960, y + (1 - ti) * 24, { role: 'bodyBold', size: 40, color: C.brandHi, align: 'center', alpha: clamp(ti * 1.4), letterSpacing: 1 });
+        L.text(ctx, 'Товщина стінки', 960, y + (1 - ti) * 24, { role: 'bodyBold', size: 44, color: C.brandHi, align: 'center', alpha: clamp(ti * 1.4), letterSpacing: 1 });
         // numbers row «6 · 9 · 13 · 20 мм», each number above its section
         const np = ep(t, c3 - 0.15, 0.8, 'outCubic');
         const ny = 392 - 30 * dOutP + (1 - np) * 30;
@@ -745,12 +744,12 @@ module.exports = {
       L.at(ctx, { x: (1 - e) * -40, alpha: clamp(pp * 1.5) }, () => {
         L.panel(ctx, PLATE.x, PLATE.y, PLATE.w, PLATE.h, { r: 26, fill: 'rgba(10,30,56,0.78)', stroke: L.rgba(C.brandHi, 0.45), accent: C.brandHi });
         const ix = PLATE.x + 104, iy = PLATE.y + PLATE.h / 2;
-        ctx.beginPath(); ctx.arc(ix, iy, 58, 0, Math.PI * 2); ctx.fillStyle = L.rgba(C.brand, 0.2); ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = L.rgba(C.brandHi, 0.8); ctx.stroke();
+        ctx.beginPath(); ctx.arc(ix, iy, 62, 0, Math.PI * 2); ctx.fillStyle = L.rgba(C.brand, 0.2); ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = L.rgba(C.brandHi, 0.8); ctx.stroke();
         const open = 0.45 + 0.35 * Math.sin(t * 1.3);
-        caliperIcon(ctx, L, ix, iy + 2, 84, C.white, open);
+        caliperIcon(ctx, L, ix + 2, iy + 2, 98, C.white, open);
         const tx = PLATE.x + 192;
-        L.revealText(ctx, 'Інші розміри —', tx, iy - 12, clamp(pp * 1.3 - 0.1), { role: 'displaySemi', size: 44, maxWidth: 600, stagger: 0.2 });
-        L.revealText(ctx, 'під замовлення', tx, iy + 50, clamp(pp * 1.3 - 0.3), { role: 'displaySemi', size: 44, maxWidth: 600, color: C.brandHi, stagger: 0.2 });
+        L.revealText(ctx, 'Інші розміри —', tx, iy - 16, clamp(pp * 1.3 - 0.1), { role: 'displaySemi', size: 48, maxWidth: 620, stagger: 0.2 });
+        L.revealText(ctx, 'під замовлення', tx, iy + 48, clamp(pp * 1.3 - 0.3), { role: 'displaySemi', size: 48, maxWidth: 620, color: C.brandHi, stagger: 0.2 });
       });
     }
     // running motif: house emblem, first window lights up

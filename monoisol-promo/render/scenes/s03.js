@@ -6,16 +6,16 @@
 //           thin walls, white highlights); headline recedes, label «Закриті комірки» with a leader line;
 //           warm particles pulse calmly inside the cells, cold arrows bounce off the surface
 //   C 6.27  split screen: vertical card white_rolls → crossfade shock_rolls_2 (left); three badges with ~1 s
-//           micro-animations synced to the words: «Пружний» (~7.1), «Майже не вбирає вологу» (~7.9), «Поглинає шум» (~10.0)
+//           micro-animations synced to the words (measured from line08.wav): «пружний» 7.12, «майже» 7.80, «поглинає» ~9.77
 // Top-right corner (x>1500, y<150) is kept free for the global logo; nothing but ambience below y≈910.
 
-const CARD = { x: 960, y: 230, w: 780, h: 520 };       // beat A photo card
+const CARD = { x: 960, y: 268, w: 780, h: 444, fy: 1 }; // beat A photo card (bottom-anchored crop: hides the cut-off banner at the photo top)
 const PIV = [165, 220];                                // cut foam wall of the bottom-right tube end (pipe_ins_cut px)
 const LENS = { x: 1290, y: 520, r: 330 };              // beat B macro lens
 const HL = { x: 120, y1: 478, y1b: 410, lh: 112, size: 96, recScale: 0.66 };
 const LABEL_Y = 604;                                   // beat B label centre
-const SPLIT = { x: 150, y: 162, w: 550, h: 756 };      // beat C vertical card
-const TILE = { x: 962, s: 190, rows: [300, 540, 780] };// beat C badge tiles (centre x, size, centre ys)
+const SPLIT = { x: 170, y: 162, w: 550, h: 756 };      // beat C vertical card
+const TILE = { x: 990, s: 190, rows: [300, 540, 780] };// beat C badge tiles (centre x, size, centre ys)
 const PILL_X = TILE.x + TILE.s / 2 + 42;
 
 // ---------------------------------------------------------------- precomputed geometry
@@ -54,9 +54,9 @@ function hexPath(ctx, x, y, R, rot, vf, cr) {
 }
 
 // photo in a rounded frame; image zoomed by k (>=1) about photo point P (keeps the frame covered)
-function pivotCard(ctx, L, name, x, y, w, h, k, P, { r = 22, alt = null, altA = 0, border = 'rgba(255,255,255,0.88)', bw = 4, shadow = true } = {}) {
+function pivotCard(ctx, L, name, x, y, w, h, k, P, { r = 22, alt = null, altA = 0, border = 'rgba(255,255,255,0.88)', bw = 4, shadow = true, fy = 0.5 } = {}) {
   const im = L.img(name), iw = im.width, ih = im.height;
-  const s0 = Math.max(w / iw, h / ih), ox = x + (w - iw * s0) / 2, oy = y + (h - ih * s0) / 2;
+  const s0 = Math.max(w / iw, h / ih), ox = x + (w - iw * s0) / 2, oy = y + (h - ih * s0) * fy;
   const qx = ox + P[0] * s0, qy = oy + P[1] * s0, s = s0 * k, dx = qx - P[0] * s, dy = qy - P[1] * s;
   if (shadow) L.save(ctx, () => { ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 24; L.roundRect(ctx, x, y, w, h, r); ctx.fillStyle = '#0B1A2E'; ctx.fill(); });
   L.save(ctx, () => {
@@ -278,8 +278,8 @@ function animSpring(ctx, L, t, t0) {
   // compression chevrons
   const sq = L.clamp((H0 - h) / (H0 - Hc));
   if (sq > 0.05) L.save(ctx, () => {
-    ctx.strokeStyle = L.rgba(C.ice, 0.8 * sq); ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    for (const s of [-1, 1]) { const x = s * (w / 2 + 14); ctx.beginPath(); ctx.moveTo(x - s * 0, base - h / 2 - 9); ctx.lineTo(x + s * 8, base - h / 2); ctx.lineTo(x - s * 0, base - h / 2 + 9); ctx.stroke(); }
+    ctx.strokeStyle = L.rgba(C.ice, 0.8 * sq); ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const s of [-1, 1]) { const x = s * (w / 2 + 8); ctx.beginPath(); ctx.moveTo(x, base - h / 2 - 7); ctx.lineTo(x + s * 6, base - h / 2); ctx.lineTo(x, base - h / 2 + 7); ctx.stroke(); }   // kept clear of the tile rim
   });
 }
 
@@ -295,7 +295,7 @@ function animDrops(ctx, L, t, t0) {
       const a = tt - q.d; if (a < 0) continue;
       const ph = a % P; let x = q.x, y, shape, al = 1;
       const fall = 0.38;
-      if (ph < fall) { const k = L.ease.inQuad(ph / fall); y = L.lerp(-86, top - 10, k); shape = 0; al = L.clamp(ph / 0.1); }
+      if (ph < fall) { const k = L.ease.inQuad(ph / fall); y = L.lerp(-62, top - 10, k); shape = 0; al = L.ease.outQuad(L.clamp(ph / 0.16)); }
       else if (ph < fall + 0.14) { y = top - 9.5; shape = (ph - fall) / 0.14; }
       else if (ph < fall + 0.42) { y = top - 9.5; shape = 1; }
       else {
@@ -358,12 +358,12 @@ module.exports = {
     // ---------- beat A/B timings
     const zRaw = prog(t, c1 - 0.62, 1.05), zE = ease.inOutCubic(zRaw);           // dive into the tube end
     const lensE = ep(t, c1 - 0.45, 0.95, 'inOutCubic');                          // lens growth
-    const outB = ep(t, c2 - 0.72, 0.62, 'inOutCubic');                           // beat B exit (lens closes)
+    const outB = ep(t, c2 - 0.85, 0.8, 'inOutCubic');                            // beat B exit (lens closes)
     const recede = ep(t, c1 - 0.75, 0.8, 'inOutCubic');                           // headline recedes
     const textOut = prog(t, c2 - 0.85, 0.45);
 
     // ---------- beat A: photo card (with camera dive into the cut foam wall)
-    const cardIn = ep(t, c0 - 0.45, 0.95);
+    const cardIn = ep(t, c0 - 0.8, 1.1);
     const cardA = clamp(cardIn * 1.4) * (1 - ease.inOutSine(clamp((zRaw - 0.42) / 0.28)));
     if (cardA > 0.002 && t < c2) {
       const kb = lerp(1.02, 1.1, ease.inOutSine(prog(t, -0.4, c1 - 0.2)));
@@ -374,15 +374,15 @@ module.exports = {
         ctx.globalAlpha *= cardA;
         ctx.translate(cx, cy + rise); ctx.scale(fs, fs); ctx.translate(-cx, -cy);
         pivotCard(ctx, L, 'pipe_ins_cut', CARD.x, CARD.y, CARD.w, CARD.h, kb * dive, PIV,
-          { alt: L.blurred('pipe_ins_cut', 9), altA: clamp(zRaw * 2.2) });
+          { alt: L.blurred('pipe_ins_cut', 9), altA: clamp(zRaw * 2.2), fy: CARD.fy });
       });
     }
 
     // ---------- beat B: macro lens
-    const lensA = clamp(lensE * 2.2) * (1 - ease.inOutSine(clamp((outB - 0.35) / 0.42)));
+    const lensA = clamp(lensE * 2.2) * (1 - ease.inOutSine(clamp((outB - 0.5) / 0.48)));   // closes almost to a point before it fades
     if (lensA > 0.002) {
       const im = L.img('pipe_ins_cut'), s0 = Math.max(CARD.w / im.width, CARD.h / im.height);
-      const Q0 = [CARD.x + (CARD.w - im.width * s0) / 2 + PIV[0] * s0, CARD.y + (CARD.h - im.height * s0) / 2 + PIV[1] * s0];
+      const Q0 = [CARD.x + (CARD.w - im.width * s0) / 2 + PIV[0] * s0, CARD.y + (CARD.h - im.height * s0) * CARD.fy + PIV[1] * s0];
       const lc = [lerp(Q0[0], LENS.x, ease.inOutCubic(clamp(zRaw * 1.15))), lerp(Q0[1], LENS.y, ease.inOutCubic(clamp(zRaw * 1.15)))];
       const R = lerp(18, LENS.r, lensE) * (1 - outB);
       const kbB = 1 + 0.07 * ease.inOutSine(prog(t, c1, c2 - c1));
@@ -430,19 +430,24 @@ module.exports = {
     }
 
     // ---------- beat C: split screen
-    const inC = ep(t, c2 - 0.52, 0.95);
+    const inC = ep(t, c2 - 0.72, 1.1);
+    const wipeC = ease.inOutSine(prog(t, c2 - 0.72, 1.0));                            // calmer wipe (was the fastest edge in the scene)
     if (inC > 0.002) {
-      const xf = ep(t, c2 + 2.25, 0.75, 'inOutSine');                                   // white_rolls → shock_rolls_2
+      const xf = ep(t, c2 + 2.05, 0.7, 'inOutSine');                                    // white_rolls → shock_rolls_2 (done before badge 3)
       const { x, y, w, h } = SPLIT, rise = (1 - inC) * 40;
       L.save(ctx, () => {
         ctx.globalAlpha *= clamp(inC * 3);
         ctx.translate(0, rise);
-        const hh = (h + 140) * ease.inOutCubic(clamp(inC * 1.15));
+        const hh = (h + 140) * wipeC;
         ctx.beginPath(); ctx.rect(x - 80, y + h + 70 - hh, w + 160, hh); ctx.clip();
         L.save(ctx, () => { ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 24; L.roundRect(ctx, x, y, w, h, 22); ctx.fillStyle = '#0B1A2E'; ctx.fill(); });
+        // white_rolls: starts tight on the rolls (top edge below the banner logos, ~1:1 pixels), then the camera rises and
+        // eases back until the whole MONOISOL banner is in frame, so no logo row sits sliced at the card edge while it holds
+        const kw = ease.inOutSine(prog(t, c2 - 0.55, 2.8));
         const k = prog(t, c2 - 0.4, d - c2 + 0.8);
-        if (xf < 0.999) coverCard(ctx, L, 'white_rolls', x, y, w, h, lerp(1.08, 1.16, k), 0.42, lerp(0.92, 0.3, ease.inOutSine(clamp(k * 1.6))));
-        if (xf > 0.001) L.save(ctx, () => { ctx.globalAlpha *= xf; coverCard(ctx, L, 'shock_rolls_2', x, y, w, h, lerp(1.04, 1.1, k), 0.4, lerp(0.75, 0.2, ease.inOutSine(clamp(k * 1.3 - 0.2)))); });
+        if (xf < 0.999) coverCard(ctx, L, 'white_rolls', x, y, w, h, lerp(1.3, 1.08, kw), 0.42, lerp(1, 0, kw));
+        // shock_rolls_2: slow push-in that keeps rising until the top roll's pink core is whole (not touching the card edge)
+        if (xf > 0.001) L.save(ctx, () => { ctx.globalAlpha *= xf; coverCard(ctx, L, 'shock_rolls_2', x, y, w, h, lerp(1.03, 1.09, k), 0.4, lerp(0.6, 0.02, ease.inOutSine(prog(t, c2 + 1.9, d - c2 - 1.3)))); });
         L.save(ctx, () => {
           L.roundRect(ctx, x, y, w, h, 22); ctx.clip();
           const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, 'rgba(255,255,255,0.06)'); g.addColorStop(0.55, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,0.22)');
@@ -453,12 +458,14 @@ module.exports = {
 
       // badges: tile with micro-animation + label plate
       const B = [
-        { str: 'Пружний', at: c2 + 0.38, anim: animSpring },
+        // word starts measured from the voice line's energy envelope (line08.wav): «пружний» +0.85 s, «майже» +1.53 s,
+        // «поглинає» +3.5 s after c2 → each label is fully readable 0.3–0.4 s before its word
+        { str: 'Пружний', at: c2 + 0.22, anim: animSpring },
         { str: 'Майже не вбирає вологу', at: c2 + 1.18, anim: animDrops },
-        { str: 'Поглинає шум', at: c2 + 3.28, anim: animWave },
+        { str: 'Поглинає шум', at: c2 + 3.05, anim: animWave },
       ];
       // thin vertical guide connecting the tiles
-      const gp = ep(t, c2 + 0.2, 3.4, 'inOutCubic');
+      const gp = ep(t, c2 + 0.1, 3.2, 'inOutCubic');
       if (gp > 0.002) L.save(ctx, () => {
         const y0 = TILE.rows[0], y1 = lerp(y0, TILE.rows[2], gp);
         ctx.strokeStyle = L.rgba(C.brandHi, 0.22); ctx.lineWidth = 2; ctx.setLineDash([4, 10]);

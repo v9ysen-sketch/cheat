@@ -103,20 +103,20 @@ function genFrost(L, panes, seed, o) {
   for (const pn of panes) {
     const { x, y, w, h } = pn;
     const inside = (px, py) => px > x + 0.15 && px < x + w - 0.15 && py > y + 0.15 && py < y + h - 0.15;
-    const grow = (px, py, ang, len, depth, b) => {
-      const step = depth === 0 ? o.step : o.step * 0.72, n = Math.max(1, Math.round(len / step));
-      let side = r() < 0.5 ? 1 : -1;
+    // feather/fern frost: gently curving stems with paired barbs on every step, and tiny sub-barbs
+    const grow = (px, py, ang, len, depth, b, curv = 0) => {
+      const step = depth === 0 ? o.step : depth === 1 ? o.step * 0.6 : o.step * 0.45, n = Math.max(1, Math.round(len / step));
       for (let i = 0; i < n; i++) {
-        ang += (r() - 0.5) * 0.28;
+        ang += curv + (r() - 0.5) * (depth === 0 ? 0.14 : 0.2);
         const nx = px + Math.cos(ang) * step, ny = py + Math.sin(ang) * step;
         if (!inside(nx, ny)) return;
         const b1 = b + step / o.reach;
         segs.push([px, py, nx, ny, b, b1, depth]);
-        if (depth < 2 && i % 2 === 1 && i < n - 1 && (depth === 0 || r() < 0.55)) {
-          side = -side;
-          const cl = len * (0.3 + r() * 0.14) * (1 - (i / n) * 0.55);
-          grow(nx, ny, ang + side * (0.95 + r() * 0.25), cl, depth + 1, b1);
-          if (depth === 0 && r() < 0.4) grow(nx, ny, ang - side * (0.95 + r() * 0.25), cl * 0.8, depth + 1, b1);
+        if (depth === 0 && i >= 1 && i < n - 1) {
+          const bl = len * (0.2 + r() * 0.1) * (0.35 + 0.65 * (1 - i / n));
+          for (const sd of [-1, 1]) if (r() < 0.78) grow(nx, ny, ang + sd * (0.78 + r() * 0.22), bl, 1, b1, sd * 0.035);
+        } else if (depth === 1 && i % 2 === 1 && i < n - 1 && r() < 0.45) {
+          grow(nx, ny, ang + (r() < 0.5 ? -1 : 1) * (0.75 + r() * 0.2), len * (0.4 + r() * 0.15), 2, b1, 0);
         }
         px = nx; py = ny; b = b1;
       }
@@ -124,13 +124,13 @@ function genFrost(L, panes, seed, o) {
     const corners = [[x, y, Math.PI / 4], [x + w, y, Math.PI * 3 / 4], [x, y + h, -Math.PI / 4], [x + w, y + h, -Math.PI * 3 / 4]];
     for (const [cx, cy, a] of corners) for (let k = 0; k < o.cornerSeeds; k++) {
       const aa = a + (k - (o.cornerSeeds - 1) / 2) * 0.42 + (r() - 0.5) * 0.2;
-      grow(cx + Math.cos(aa) * 0.5, cy + Math.sin(aa) * 0.5, aa, o.len * (0.85 + r() * 0.5), 0, r() * 0.05);
+      grow(cx + Math.cos(aa) * 0.5, cy + Math.sin(aa) * 0.5, aa, o.len * (0.85 + r() * 0.5), 0, r() * 0.05, (r() - 0.5) * 0.06);
     }
     const edges = [[x, y, w, 0, Math.PI / 2], [x, y + h, w, 0, -Math.PI / 2], [x, y, 0, h, 0], [x + w, y, 0, h, Math.PI]];
     for (const [ex, ey, ew, eh, nrm] of edges) for (let k = 0; k < o.edgeSeeds; k++) {
       const u = (k + 0.5 + (r() - 0.5) * 0.7) / o.edgeSeeds, mid = 1 - Math.abs(u - 0.5) * 2;
       const px = ex + ew * u + Math.cos(nrm) * 0.4, py = ey + eh * u + Math.sin(nrm) * 0.4;
-      grow(px, py, nrm + (r() - 0.5) * 1.1, o.len * (0.45 + r() * 0.55), 0, 0.06 + r() * 0.2 + mid * 0.12);
+      grow(px, py, nrm + (r() - 0.5) * 1.1, o.len * (0.45 + r() * 0.55), 0, 0.06 + r() * 0.2 + mid * 0.12, (r() - 0.5) * 0.06);
     }
   }
   let mx = 0; for (const s of segs) mx = Math.max(mx, s[5]);
@@ -139,12 +139,12 @@ function genFrost(L, panes, seed, o) {
   for (const b of batches) b.sort((p, q) => p[4] - q[4]);
   return batches;
 }
-function drawFrost(ctx, batches, P, widths, color, glowColor, glowMul) {
+function drawFrost(ctx, batches, P, widths, color, glowColor, glowMul, glowDepth = 1) {
   if (P <= 0) return;
   ctx.lineCap = 'round';
   for (let pass = glowColor ? 0 : 1; pass < 2; pass++) {
     for (let d = 0; d < 3; d++) {
-      if (pass === 0 && d === 2) continue;
+      if (pass === 0 && d > glowDepth) continue;
       const B = batches[d]; if (!B.length) continue;
       ctx.beginPath();
       for (let i = 0; i < B.length; i++) {
@@ -238,34 +238,60 @@ function build(L) {
     add('floor', [[x0, -12 - r() * 20], [spot + (r() - 0.5) * 10, 0], [spot + (r() - 0.5) * 10, 9], [spot + (r() - 0.5) * 50, 34 + r() * 30]], 2.2 + r() * 1.0, r(), 0.85 + r() * 0.5);
   }
   for (let i = 0; i < 34; i++) {
-    const onSupply = r() < 0.6, py = onSupply ? 50 : 62, x0 = -82 + r() * 160, toWall = r() < 0.45;
+    const onSupply = r() < 0.6, x0 = -82 + r() * 160, toWall = r() < 0.45, py = onSupply && x0 > -10 ? 50 : 62;
     if (toWall) { const side = x0 < 0 ? -1 : 1, yy = py + (r() - 0.5) * 16; add('pipe', [[x0, py], [side * HI, yy], [side * HW, yy + 1], [side * (HW + 30 + r() * 45), yy + 6 + r() * 30]], 2.4 + r() * 1.1, r(), 0.85 + r() * 0.5); }
     else { const xx = x0 + (r() - 0.5) * 30; add('pipe', [[x0, py + 3], [xx, 75], [xx, 84], [xx + (r() - 0.5) * 50, 112 + r() * 30]], 2.0 + r() * 1.0, r(), 0.85 + r() * 0.5); }
   }
   // headline mask + hoarfrost crystals
   const mask = L.offscreen(HM.w, HM.h), m = mask.getContext('2d');
-  m.font = `${HL.size}px UB800`; m.fillStyle = '#fff'; m.strokeStyle = '#fff'; m.lineJoin = 'round'; m.lineWidth = 7;
+  m.font = `${HL.size}px UB800`; m.fillStyle = '#fff'; m.strokeStyle = '#fff'; m.lineJoin = 'round'; m.lineWidth = 11;
   for (const [s, y] of [[HL.l1, HL.y1], [HL.l2, HL.y2]]) { m.strokeText(s, HL.x - HM.ox, y - HM.oy); m.fillText(s, HL.x - HM.ox, y - HM.oy); }
   const maskF = L.offscreen(HM.w, HM.h), mf = maskF.getContext('2d'); mf.font = m.font; mf.fillStyle = '#fff';
   for (const [s2, y] of [[HL.l1, HL.y1], [HL.l2, HL.y2]]) mf.fillText(s2, HL.x - HM.ox, y - HM.oy);
   g.hlMask = mask; g.hlMaskF = maskF; g.hlTmp = L.offscreen(HM.w, HM.h); g.hlTmp2 = L.offscreen(HM.w, HM.h);
   const data = m.getImageData(0, 0, HM.w, HM.h).data, isIn = (x, y) => x >= 0 && y >= 0 && x < HM.w && y < HM.h && data[(Math.floor(y) * HM.w + Math.floor(x)) * 4 + 3] > 128;
-  const hs = []; let tries = 0;
-  while (hs.length < 300 && tries++ < 20000) { const x = r() * HM.w, y = r() * HM.h; if (isIn(x, y)) hs.push([x, y]); }
-  const hseg = [[], [], []];
-  for (const [sx, sy] of hs) {
-    const b0 = (1 - sy / HM.h) * 0.72 + r() * 0.12;
-    let x = sx, y = sy, ang = -Math.PI / 2 + (r() - 0.5) * 2.4; const n = 3 + Math.floor(r() * 5);
+  // rime: needles seeded on the glyph edges, growing outward (they bristle a few px past the edge), plus a fine,
+  // faint crystal texture inside the letters. Birth time follows height so the frost creeps up from the bottom.
+  const dF = mf.getImageData(0, 0, HM.w, HM.h).data;
+  const A = (x, y) => { x = Math.round(x); y = Math.round(y); return x < 0 || y < 0 || x >= HM.w || y >= HM.h ? 0 : dF[(y * HM.w + x) * 4 + 3]; };
+  const hseg = [[], [], []], hin = [[], [], []];
+  let tries = 0, ne = 0;
+  while (ne < 900 && tries++ < 300000) {
+    const sx = r() * HM.w, sy = r() * HM.h; if (A(sx, sy) < 140) continue;
+    const gx = A(sx + 3, sy) - A(sx - 3, sy), gy = A(sx, sy + 3) - A(sx, sy - 3), gl = Math.hypot(gx, gy);
+    if (gl < 70) continue;
+    ne++;
+    const ox = -gx / gl, oy = -gy / gl, b0 = (1 - sy / HM.h) * 0.72 + r() * 0.12;
+    let ang = Math.atan2(oy, ox) + (r() - 0.5) * 1.1, x = sx - ox * 1.2, y = sy - oy * 1.2;
+    // longer on top edges (rime builds up on upward faces), short stubble on the undersides
+    const n = 2 + Math.floor(r() * 3), st = (1.6 + r() * 0.7) * (0.72 - 0.34 * oy);
     for (let i = 0; i < n; i++) {
-      ang += (r() - 0.5) * 0.4; const nx = x + Math.cos(ang) * 3.2, ny = y + Math.sin(ang) * 3.2;
-      const b = b0 + i * 0.012; hseg[0].push([x, y, nx, ny, b, b + 0.012, 0]);
-      for (const sd of [-1, 1]) if (r() < 0.7) { const a2 = ang + sd * (1.0 + r() * 0.2), l2 = 2 + r() * 3; hseg[1].push([nx, ny, nx + Math.cos(a2) * l2, ny + Math.sin(a2) * l2, b + 0.01, b + 0.03, 1]); }
+      ang += (r() - 0.5) * 0.35; const nx = x + Math.cos(ang) * st, ny = y + Math.sin(ang) * st, b = b0 + i * 0.01;
+      hseg[0].push([x, y, nx, ny, b, b + 0.01, 0]);
+      if (i > 0 && r() < 0.6) { const a2 = ang + (r() < 0.5 ? -1 : 1) * (0.8 + r() * 0.3), l2 = 1.2 + r() * 1.6; hseg[1].push([nx, ny, nx + Math.cos(a2) * l2, ny + Math.sin(a2) * l2, b + 0.008, b + 0.02, 1]); }
+      x = nx; y = ny;
+    }
+  }
+  let ni = 0; tries = 0;
+  while (ni < 260 && tries++ < 60000) {
+    const sx = r() * HM.w, sy = r() * HM.h; if (A(sx, sy) < 220) continue; ni++;
+    const b0 = (1 - sy / HM.h) * 0.72 + 0.04 + r() * 0.12;
+    let ang = r() * 6.283, x = sx, y = sy;
+    for (let i = 0; i < 3; i++) {
+      ang += (r() - 0.5) * 0.6; const nx = x + Math.cos(ang) * 2.2, ny = y + Math.sin(ang) * 2.2, b = b0 + i * 0.01;
+      hin[0].push([x, y, nx, ny, b, b + 0.01, 0]);
+      if (r() < 0.5) { const a2 = ang + (r() < 0.5 ? -1 : 1); hin[1].push([nx, ny, nx + Math.cos(a2) * 1.6, ny + Math.sin(a2) * 1.6, b + 0.008, b + 0.02, 1]); }
       x = nx; y = ny;
     }
   }
   for (const b of hseg) b.sort((p, q) => p[4] - q[4]);
-  g.hlFrost = hseg;
+  for (const b of hin) b.sort((p, q) => p[4] - q[4]);
+  g.hlFrost = hseg; g.hlFrostIn = hin;
   g.hlGlints = []; for (let i = 0; i < 7; i++) { let p; do { p = [r() * HM.w, r() * HM.h]; } while (!isIn(p[0], p[1])); g.hlGlints.push([p[0], p[1], r() * 6.28, 0.35 + r() * 0.4]); }
+  // soft smoke puff sprite
+  g.puff = L.offscreen(64, 64);
+  { const x = g.puff.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(205,220,236,1)'); gr.addColorStop(0.45, 'rgba(205,220,236,0.55)'); gr.addColorStop(1, 'rgba(205,220,236,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); }
   // spark glow sprites along the cooling path (hot amber → plum → ice blue), avoids per-frame gradients
   g.sparkSpr = [];
   for (let i = 0; i < 32; i++) {
@@ -324,8 +350,12 @@ function drawWindowGeneric(ctx, L, wx, wy, ww, wh, lit, pal, sc) {
 // generic / hero house. Local origin = bottom centre of the front face.
 function drawHouse(ctx, L, h, pal, sc, t, hero, frostP) {
   const hw = h.w / 2, wh = h.wallH, rise = h.rise, dx = h.depth * 0.5, dy = -h.depth * 0.3, e = 14 * h.w / 240;
-  const px1 = 1 / sc;
   ctx.lineJoin = 'round';
+  if (!pal.thermal) {
+    const ls = h.w * 0.42, sg = ctx.createLinearGradient(hw, 0, hw + dx + ls, 0);
+    sg.addColorStop(0, `rgba(12,30,62,${0.3 * pal.glowAmt})`); sg.addColorStop(1, 'rgba(12,30,62,0)');
+    poly(ctx, [[hw, 3], [hw + dx, dy + 1], [hw + dx + ls, dy + 1], [hw + ls * 0.7, 3]]); ctx.fillStyle = sg; ctx.fill();
+  }
   let A, ER, EL;
   if (h.type === 'front') {
     const m = rise / hw;
@@ -402,7 +432,8 @@ function chimney(ctx, L, h, pal, A, ER, dx, dy, t, sc, hero) {
   if ((h.smoke || hero) && !pal.thermal) { // soft smoke wisps rising and drifting right
     for (let i = 0; i < 7; i++) {
       const ph = mod(t * 0.22 + i / 7, 1), x = P[0] + 4 * k + ph * 70 * k + Math.sin(t * 0.9 + i * 1.7) * 6 * k, y = P[1] - chh - ph * 120 * k;
-      ctx.fillStyle = `rgba(200,215,232,${0.14 * Math.sin(Math.PI * ph)})`; ctx.beginPath(); ctx.arc(x, y, (6 + ph * 18) * k, 0, 7); ctx.fill();
+      const rr = (6 + ph * 18) * k * 1.9, ga = ctx.globalAlpha;
+      ctx.globalAlpha = ga * 0.26 * Math.sin(Math.PI * ph); ctx.drawImage(G.puff, x - rr, y - rr, rr * 2, rr * 2); ctx.globalAlpha = ga;
     }
   }
 }
@@ -478,14 +509,14 @@ function heroWindow(ctx, L, t, sc, frostP, pal) {
       const r0 = Math.max(0.05, 1.25 - frostP * 0.75);
       const fg = ctx.createRadialGradient(0, 0, r0 * 0.55, 0, 0, 1.5);
       const fc = thermal ? '143,211,255' : '236,248,255';
-      fg.addColorStop(0, `rgba(${fc},0)`); fg.addColorStop(0.45, `rgba(${fc},${0.18 * frostP})`); fg.addColorStop(1, `rgba(${fc},${(thermal ? 0.35 : 0.72) * frostP})`);
+      fg.addColorStop(0, `rgba(${fc},0)`); fg.addColorStop(0.45, `rgba(${fc},${0.22 * frostP})`); fg.addColorStop(1, `rgba(${fc},${(thermal ? 0.35 : 0.8) * frostP})`);
       ctx.fillStyle = fg; ctx.fillRect(-1, -1, 2, 2);
       ctx.restore();
     }
     ctx.save(); ctx.beginPath(); for (const pn of G.panes) ctx.rect(pn.x, pn.y, pn.w, pn.h); ctx.clip();
     const pxw = Math.max(0.55 / sc, 0);
     if (thermal) drawFrost(ctx, G.frost, frostP, [0.3, 0.2, 0.14].map(v => Math.max(v, pxw)), 'rgba(143,211,255,0.55)', null, 1);
-    else drawFrost(ctx, G.frost, frostP, [0.3, 0.19, 0.13].map(v => Math.max(v, pxw)), 'rgba(248,253,255,0.9)', 'rgba(180,225,255,0.16)', 3.6);
+    else drawFrost(ctx, G.frost, frostP, [0.17, 0.1, 0.07].map(v => Math.max(v, pxw)), 'rgba(248,253,255,0.86)', 'rgba(190,230,255,0.16)', 6, 0);
     ctx.restore();
   }
   // inner shadow of the frame on the glass
@@ -551,13 +582,16 @@ function heroFence(ctx, L, sc) {
 }
 
 // ---------------------------------------------------------------- world layers
-function drawSky(ctx, L, t, cam, thermal) {
+function drawSky(ctx, L, t, cam, thermal, K) {
   const g = ctx.createLinearGradient(0, 0, 0, H);
   if (!thermal) { g.addColorStop(0, '#030A17'); g.addColorStop(0.38, '#0A2140'); g.addColorStop(0.56, '#17406A'); g.addColorStop(1, '#0E2A47'); }
   else { g.addColorStop(0, '#02060F'); g.addColorStop(0.5, '#071631'); g.addColorStop(1, '#0A1B3A'); }
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   if (thermal) return;
-  const mx = 300 - (cam.x + 175) * 0.06, my = 170;
+  // wide shot: upper left; medium shot: open sky between the pine and the hero roof (not tangent to the
+  // neighbour's roof). The move happens during the window close-up, while the moon is behind the wall.
+  const mv = L.ease.inOutSine(L.prog(t, K.pushEnd + 0.4, K.pull - K.pushEnd - 0.6));
+  const mx = L.lerp(300 - (cam.x + 175) * 0.06, 792, mv), my = L.lerp(170, 150, mv);
   L.glow(ctx, mx, my, 520, ICE, 0.10); L.glow(ctx, mx, my, 160, '#DDF5FF', 0.22);
   ctx.fillStyle = '#EAF5FF'; ctx.beginPath(); ctx.arc(mx, my, 30, 0, 7); ctx.fill();
   ctx.fillStyle = 'rgba(150,180,215,0.12)'; ctx.beginPath(); ctx.arc(mx - 8, my - 6, 7, 0, 7); ctx.arc(mx + 10, my + 8, 5, 0, 7); ctx.arc(mx + 4, my - 12, 3.5, 0, 7); ctx.fill();
@@ -785,8 +819,8 @@ function drawCutaway(ctx, L, t, sc, K, amp) {
     ctx.strokeStyle = th(v(0.94)); ctx.lineWidth = r * 2; ctx.stroke();
     ctx.strokeStyle = th(v(1), 0.8); ctx.lineWidth = r * 0.7; ctx.stroke();
   };
-  pipe([[82, 50], [-82, 50], [-82, -17], [rx, -17]], 3.0);
-  pipe([[rx + rw, -14], [-12, -14], [-12, 62], [82, 62]], 2.6);
+  pipe([[82, 62], [-82, 62], [-82, -17], [rx, -17]], 3.0);
+  pipe([[rx + rw, -14], [-12, -14], [-12, 50], [82, 50]], 2.6);
   // heat shimmer above the bare pipes
   for (let i = 0; i < 6; i++) {
     const ph = mod(t * 0.5 + i / 6, 1), bx = -70 + i * 27;
@@ -831,6 +865,21 @@ function drawSparks(ctx, L, t, P, amp) {
 }
 
 // ---------------------------------------------------------------- overlays: headline + thermometer + viewfinder
+// word-by-word masked rise (like L.revealText, but the mask ends just under the descenders and words start
+// fully below it, so no sliver of the next word shows along the baseline while it waits)
+function riseWords(ctx, L, str, x, y, p, size, color, stagger) {
+  const words = str.split(' '), n = words.length, span = 1 / (1 + stagger * (n - 1)), sp = L.measure(ctx, ' ', 'display', size);
+  let cx = x;
+  words.forEach((w, i) => {
+    const k = n > 1 ? i / (n - 1) : 0, wp = L.ease.outCubic(clamp((p - k * (1 - span)) / span)), ww = L.measure(ctx, w, 'display', size);
+    if (wp > 0) {
+      ctx.save(); ctx.beginPath(); ctx.rect(cx - 10, y - size * 1.05, ww + 20, size * 1.29); ctx.clip();
+      L.text(ctx, w, cx, y + (1 - wp) * size * 1.2, { role: 'display', size, color, alpha: wp });
+      ctx.restore();
+    }
+    cx += ww + sp;
+  });
+}
 function drawHeadline(ctx, L, t, K) {
   const { ep, ease } = L;
   const p1 = ep(t, K.title, 1.0, 'linear'), p2 = ep(t, K.title + 0.35, 0.9, 'linear');
@@ -839,8 +888,8 @@ function drawHeadline(ctx, L, t, K) {
   const bp = ease.outCubic(L.prog(t, K.title - 0.1, 0.7));
   ctx.fillStyle = L.rgba(L.C.brandHi, bp); L.roundRect(ctx, HL.x, HL.y1 - HL.size - 38, 64 * bp, 5, 2.5); ctx.fill();
   const sh = { color: 'rgba(0,6,20,0.55)', blur: 30, y: 6 };
-  L.revealText(ctx, HL.l1, HL.x, HL.y1, p1, { role: 'display', size: HL.size, color: '#F6FAFF', stagger: 0.2, maxWidth: 1400 });
-  L.revealText(ctx, HL.l2, HL.x, HL.y2, p2, { role: 'display', size: HL.size, color: '#F6FAFF', stagger: 0.2, maxWidth: 1400 });
+  riseWords(ctx, L, HL.l1, HL.x, HL.y1, p1, HL.size, '#F6FAFF', 0.2);
+  riseWords(ctx, L, HL.l2, HL.x, HL.y2, p2, HL.size, '#F6FAFF', 0.2);
   // hoarfrost creeping up the letters
   const gp = ease.inOutSine(L.prog(t, K.title + 1.0, 3.2));
   if (gp <= 0) return;
@@ -855,7 +904,8 @@ function drawHeadline(ctx, L, t, K) {
   // crystals + glints: may bristle slightly past the glyph edges (dilated mask)
   const x = G.hlTmp.getContext('2d');
   x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, HM.w, HM.h);
-  drawFrost(x, G.hlFrost, gp * 1.05, [1.5, 1.0, 1.0], 'rgba(255,255,255,0.92)', null, 1);
+  drawFrost(x, G.hlFrostIn, gp * 1.05, [0.9, 0.7, 0.7], 'rgba(255,255,255,0.42)', null, 1);
+  drawFrost(x, G.hlFrost, gp * 1.05, [1.15, 0.85, 0.85], 'rgba(248,252,255,0.86)', null, 1);
   // sparkle glints on frosted letters
   for (const [gx, gy, ph, a] of G.hlGlints) {
     const k = clamp((gp - (1 - gy / HM.h) * 0.8) * 4) * a * (0.5 + 0.5 * Math.sin(t * 1.6 + ph));
@@ -904,7 +954,7 @@ function drawViewfinder(ctx, L, t, P, q) {
 
 // ---------------------------------------------------------------- full views
 function drawNight(ctx, L, t, cam, sh, K, frostP) {
-  drawSky(ctx, L, t, cam, false);
+  drawSky(ctx, L, t, cam, false, K);
   drawHills(ctx, L, cam, sh, false);
   rowLayer(ctx, L, t, cam, sh, DEPTH.far, G.far, G.pinesFar, 0.5, false, ['#6C8DB4', '#4E6E97'], 3, { amp: 14, depthPx: 140 });
   snowLayer(ctx, L, t, cam, 'far', false, K);
@@ -931,7 +981,7 @@ function drawNight(ctx, L, t, cam, sh, K, frostP) {
   snowLayer(ctx, L, t, cam, 'near', false, K);
 }
 function drawThermal(ctx, L, t, cam, sh, K, amp) {
-  drawSky(ctx, L, t, cam, true);
+  drawSky(ctx, L, t, cam, true, K);
   drawHills(ctx, L, cam, sh, true);
   rowLayer(ctx, L, t, cam, sh, DEPTH.far, G.far, G.pinesFar, 0, true, [th(0.07), th(0.05)], 3, { amp: 14, depthPx: 140 });
   snowLayer(ctx, L, t, cam, 'far', true, K);
@@ -956,23 +1006,24 @@ module.exports = {
     const K = {
       push: T0 - 0.45, pushEnd: T1 - 0.17, pull: T1 + 2.18, pullEnd: T1 + 3.68,
       wind0: T1 + 2.38, gustA: T1 + 2.1, gustB: T2 - 0.1,
-      frost: T1 - 0.45, scan: T2 - 0.8, title: T2 - 0.25,
-      thermo: T2 + 0.9, thermoDrop: T2 + 1.9, thermoDropEnd: T2 + 5.9,
+      frost: T1 - 0.65, scan: T2 - 0.8, title: T2 - 0.25,
+      thermo: T2 + 0.9, thermoDrop: T2 + 2.6, thermoDropEnd: T2 + 6.0,
       dim: T2 + 5.45,
     };
     const cam = camera(L, t, K);
     const sh = { x: L.noise1(t * 0.23, 3) * 5, y: L.noise1(t * 0.19, 7) * 3.5 };
-    const frostP = ease.outQuad(prog(t, K.frost, 3.9));
+    const frostP = ease.outCubic(prog(t, K.frost, 4.2));   // clearly growing by the cue «Мороз малює візерунки…»
     const q = ease.inOutCubic(prog(t, K.scan, 0.8));
     const scanX = L.lerp(-140, W + 140, q);
-    // heat-loss amounts, staged to the words «стіни» / «підлогу» / «незахищені труби»
+    // heat-loss amounts, staged to the words of cue 2 (measured in the VO: «тікає» +2.74 s, «стіни» ≈ +3.58 s,
+    // «підлогу» +4.34 s, «незахищені» ≈ +4.93 s). Hot spots start growing 0.25–0.4 s ahead, sparks ≈ 0.25 s ahead.
     const amp = {
-      wallStart: T2 + 2.2, floorStart: T2 + 3.55, pipeStart: T2 + 4.4,
+      wallStart: T2 + 3.15, floorStart: T2 + 4.1, pipeStart: T2 + 4.7,
       warm: 1 - 0.3 * ease.inOutSine(prog(t, K.dim, 1.6)),
     };
-    amp.wall = 0.25 + 0.75 * ease.outCubic(prog(t, amp.wallStart - 0.3, 1.0));
-    amp.floor = 0.15 + 0.85 * ease.outCubic(prog(t, amp.floorStart - 0.3, 1.0));
-    amp.pipe = 0.3 + 0.7 * ease.outCubic(prog(t, amp.pipeStart - 0.3, 1.0));
+    amp.wall = 0.25 + 0.75 * ease.outCubic(prog(t, amp.wallStart - 0.4, 1.0));
+    amp.floor = 0.15 + 0.85 * ease.outCubic(prog(t, amp.floorStart - 0.25, 1.0));
+    amp.pipe = 0.3 + 0.7 * ease.outCubic(prog(t, amp.pipeStart - 0.25, 1.0));
 
     let Pt = null;
     if (q < 1) drawNight(ctx, L, t, cam, sh, K, frostP);

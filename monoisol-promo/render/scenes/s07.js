@@ -24,8 +24,8 @@ const LM = 120;
 const HEAD_A = { y: 186, size: 72 };
 const MAIN = { cx: 960, cy: 466, w: 640, h: 427, rot: 0 };
 const FAN = [
-  { cx: 652, cy: 486, w: 468, h: 312, rot: -0.12 },
-  { cx: 1268, cy: 486, w: 468, h: 312, rot: 0.12 },
+  { cx: 618, cy: 486, w: 468, h: 312, rot: -0.12 },   // QA: spread a little wider so more of each in-situ photo shows
+  { cx: 1302, cy: 486, w: 468, h: 312, rot: 0.12 },
 ];
 const BADGE = { y: 796, xs: [510, 810, 1110, 1410], r: 52 };
 const PX = 780;                                   // beat B: x of the foil line (edge of the photo panel)
@@ -69,6 +69,23 @@ function prep(L) {
     const f = i / 8;
     S.crack.push([x0 - f * 74 + (i && i < 8 ? (cr() - 0.5) * 18 : 0), y0 + f * 104]);
   }
+  // damper-diagram wall: masonry hatch + edge, top fades out with real transparency
+  // (QA: the old fade painted a fixed ivory colour over the wall, which did not match the moving background glows)
+  {
+    const ww = DG.wallW, wh = DG.baseBot - DG.top;
+    const wc = L.offscreen(ww, wh), w2 = wc.getContext('2d');
+    const wg = w2.createLinearGradient(0, 0, ww, 0);
+    wg.addColorStop(0, '#D8D0C2'); wg.addColorStop(1, '#E8E1D5');
+    w2.fillStyle = wg; w2.fillRect(0, 0, ww, wh);
+    w2.strokeStyle = 'rgba(120,96,60,0.22)'; w2.lineWidth = 1.5;
+    for (let y = -100; y < wh; y += 18) { w2.beginPath(); w2.moveTo(0, y + ww); w2.lineTo(ww, y); w2.stroke(); }
+    w2.fillStyle = 'rgba(20,35,58,0.25)'; w2.fillRect(ww - 2, 0, 2, wh);
+    w2.globalCompositeOperation = 'destination-out';
+    const tg = w2.createLinearGradient(0, 0, 0, 90);
+    tg.addColorStop(0, 'rgba(0,0,0,1)'); tg.addColorStop(1, 'rgba(0,0,0,0)');
+    w2.fillStyle = tg; w2.fillRect(0, 0, ww, 90);
+    S.wallImg = wc;
+  }
   return S;
 }
 
@@ -101,7 +118,7 @@ function ivoryBg(ctx, L, t) {
 // ---------- framed photo card (centre-based), optional source crop + metallic glint ----------
 function card(ctx, L, name, c, o = {}) {
   const { alpha = 1, dx = 0, dy = 0, scale = 1, rot = c.rot || 0, k = 0, zoom = [1.03, 1.12], focus = [0.5, 0.5, 0.5, 0.5],
-    src = null, glint = null, bw = 9, r = 20, shadowA = 0.30, dim = 0 } = o;
+    src = null, glint = null, bw = 9, r = 20, shadowA = 0.30, dim = 0, flip = false } = o;
   if (alpha <= 0.002) return;
   const im = L.img(name);
   const kk = L.ease.inOutSine(L.clamp(k));
@@ -116,7 +133,8 @@ function card(ctx, L, name, c, o = {}) {
     const [sx, sy, sw, sh] = src || [0, 0, im.width, im.height];
     const s = Math.max(w / sw, h / sh) * z, vw = w / s, vh = h / s;
     const vx = sx + (sw - vw) * L.clamp(fx), vy = sy + (sh - vh) * L.clamp(fy);
-    ctx.drawImage(im, vx, vy, vw, vh, 0, 0, w, h);
+    if (flip) { ctx.save(); ctx.translate(w, 0); ctx.scale(-1, 1); ctx.drawImage(im, vx, vy, vw, vh, 0, 0, w, h); ctx.restore(); }
+    else ctx.drawImage(im, vx, vy, vw, vh, 0, 0, w, h);
     if (glint !== null && glint > -0.2 && glint < 1.2) {
       ctx.save();
       ctx.translate(w / 2, h / 2); ctx.rotate(0.42);
@@ -256,19 +274,22 @@ function photoPanel(ctx, L, t, wR) {
     ctx.beginPath(); ctx.rect(0, 0, wR, H); ctx.clip();
     const z = 1.06 + 0.04 * L.ease.inOutSine(L.clamp((t - 8) / 6));
     L.drawCover(ctx, bl, 0, 0, PX, H, z, 0.82 - 0.06 * L.clamp((t - 8) / 5), 0.55);
+    // QA: the old grade (brown screen + strong orange soft-light) turned the silver foil into rusty iron.
+    // Keep the foil silver and only warm it gently.
     ctx.globalCompositeOperation = 'screen';
-    ctx.fillStyle = 'rgba(120,96,80,0.22)'; ctx.fillRect(0, 0, PX, H);
+    ctx.fillStyle = 'rgba(70,62,56,0.20)'; ctx.fillRect(0, 0, PX, H);
     ctx.globalCompositeOperation = 'soft-light';
     const g = ctx.createLinearGradient(0, 0, PX, H);
-    g.addColorStop(0, 'rgba(255,176,104,0.42)'); g.addColorStop(1, 'rgba(255,140,70,0.38)');
+    g.addColorStop(0, 'rgba(255,200,150,0.22)'); g.addColorStop(1, 'rgba(255,170,110,0.20)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, PX, H);
     ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(255,238,218,0.10)'; ctx.fillRect(0, 0, PX, H);
     // warm light from the radiator side
     const rg = ctx.createLinearGradient(PX - 360, 0, PX, 0);
-    rg.addColorStop(0, 'rgba(255,150,70,0)'); rg.addColorStop(1, 'rgba(255,150,70,0.20)');
+    rg.addColorStop(0, 'rgba(255,160,90,0)'); rg.addColorStop(1, 'rgba(255,160,90,0.14)');
     ctx.fillStyle = rg; ctx.fillRect(0, 0, PX, H);
     const vg = ctx.createLinearGradient(0, 0, 0, H);
-    vg.addColorStop(0, 'rgba(20,10,4,0.25)'); vg.addColorStop(0.5, 'rgba(20,10,4,0)'); vg.addColorStop(1, 'rgba(20,10,4,0.3)');
+    vg.addColorStop(0, 'rgba(30,20,12,0.20)'); vg.addColorStop(0.5, 'rgba(30,20,12,0)'); vg.addColorStop(1, 'rgba(30,20,12,0.24)');
     ctx.fillStyle = vg; ctx.fillRect(0, 0, PX, H);
   });
 }
@@ -316,9 +337,11 @@ function radiator(ctx, L, t, a, heat, pulse) {
     ctx.fillStyle = '#C9C1B3';
     ctx.fillRect(x + 26, y + h - 4, 10, FLOOR_Y - y - h + 4); ctx.fillRect(x + w - 36, y + h - 4, 10, FLOOR_Y - y - h + 4);
     // contact shadow
-    const cg = ctx.createRadialGradient(x + w / 2, FLOOR_Y, 10, x + w / 2, FLOOR_Y, w * 0.7);
-    cg.addColorStop(0, 'rgba(80,55,30,0.20)'); cg.addColorStop(1, 'rgba(80,55,30,0)');
-    ctx.fillStyle = cg; ctx.fillRect(x - w * 0.3, FLOOR_Y - 30, w * 1.6, 50);
+    // (QA: was a radial gradient clipped by a 50 px rect → visible hard-edged band; now a true soft ellipse)
+    ctx.save(); ctx.translate(x + w / 2, FLOOR_Y); ctx.scale(1, 0.09);
+    const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, w * 0.72);
+    cg.addColorStop(0, 'rgba(80,55,30,0.26)'); cg.addColorStop(0.6, 'rgba(80,55,30,0.10)'); cg.addColorStop(1, 'rgba(80,55,30,0)');
+    ctx.fillStyle = cg; ctx.fillRect(-w * 0.75, -w * 0.75, w * 1.5, w * 1.5); ctx.restore();
     // header tubes
     const hg = ctx.createLinearGradient(0, 0, 0, 26);
     for (const hy of [y + 20, y + h - 46]) {
@@ -406,19 +429,8 @@ function damperDiagram(ctx, L, t, T, a) {
     ctx.strokeStyle = 'rgba(20,35,58,0.20)'; ctx.lineWidth = 1.5;
     for (let x = tx - 60; x < R; x += 16) { ctx.beginPath(); ctx.moveTo(x, DG.baseBot); ctx.lineTo(x + 56, DG.baseTop); ctx.stroke(); }
     ctx.restore();
-    // wall (masonry hatch)
-    const wg = ctx.createLinearGradient(wx, 0, wx + ww, 0);
-    wg.addColorStop(0, '#D8D0C2'); wg.addColorStop(1, '#E8E1D5');
-    ctx.fillStyle = wg; ctx.fillRect(wx, DG.top, ww, DG.baseBot - DG.top);
-    ctx.save(); ctx.beginPath(); ctx.rect(wx, DG.top, ww, DG.baseBot - DG.top); ctx.clip();
-    ctx.strokeStyle = 'rgba(120,96,60,0.22)'; ctx.lineWidth = 1.5;
-    for (let y = DG.top - 100; y < DG.baseBot; y += 18) { ctx.beginPath(); ctx.moveTo(wx, y + ww); ctx.lineTo(wx + ww, y); ctx.stroke(); }
-    ctx.restore();
-    ctx.fillStyle = 'rgba(20,35,58,0.25)'; ctx.fillRect(wx + ww - 2, DG.top, 2, DG.baseBot - DG.top);
-    // wall top fades out (it continues upwards)
-    const tg = ctx.createLinearGradient(0, DG.top - 2, 0, DG.top + 70);
-    tg.addColorStop(0, 'rgba(247,242,233,1)'); tg.addColorStop(1, 'rgba(247,242,233,0)');
-    ctx.fillStyle = tg; ctx.fillRect(wx - 2, DG.top - 2, ww + 4, 72);
+    // wall (masonry hatch), pre-rendered with a true alpha fade at the top (it continues upwards)
+    ctx.drawImage(s.wallImg, wx, DG.top);
     // insulation sheet with foil top
     const ix = tx + DG.tapeW;
     ctx.save(); ctx.beginPath(); ctx.rect(ix, DG.insTop, R - ix, DG.baseTop - DG.insTop);
@@ -530,9 +542,9 @@ function timing(env) {
     card: c0 - 0.55, head: c0 - 0.22, fan: c0 + 0.5,
     words: [2.95, 4.22, 5.46, 6.94].map(x => c0 + x - 0.22),     // word onsets in line19.wav, shown 0.22 s early
     outA: c1 - 0.66,
-    panel: c1 - 0.34, label: c1 - 0.26, rad: c1 - 0.1, rays: c1 + 0.3, back: c1 + 1.05, src: c1 + 3.45,
-    outB: c1 + 3.97,                                            // ≈12.60 (cue 1 ends 12.98)
-    headC: c2 - 0.24, cardC: c2 - 0.36, dg: c2 - 0.2, pour: c2 + 0.6, push: c2 + 1.55, crack: c2 + 1.8, ok: c2 + 2.55,
+    panel: c1 - 0.5, label: c1 - 0.26, rad: c1 - 0.1, rays: c1 + 0.3, back: c1 + 1.05, src: c1 + 3.45,
+    outB: c1 + 4.02,                                            // ≈12.65 (cue 1 ends 12.98)
+    headC: c2 - 0.24, cardC: c2 - 0.38, dg: c2 - 0.2, pour: c2 + 0.6, push: c2 + 1.55, crack: c2 + 1.8, ok: c2 + 2.55,
     pillC: c2 + 1.5, mini: c2 + 2.17, win: c2 + 3.07,
   };
 }
@@ -546,14 +558,18 @@ function beatA(ctx, L, t, T) {
       alpha: L.clamp(fanIn * 2.2),
       dx: (1 - fanIn) * (MAIN.cx - c.cx) * 0.92, dy: (1 - fanIn) * (MAIN.cy - c.cy),
       rot: c.rot * fanIn, scale: L.lerp(0.86, 1, fanIn),
-      k: L.clamp((t - T.fan) / 7.5), zoom: [1.04, 1.13], focus: i ? [0.45, 0.5, 0.6, 0.45] : [0.6, 0.5, 0.45, 0.5],
+      k: L.clamp((t - T.fan) / 7.5), zoom: [1.04, 1.13], focus: i ? [0.15, 0.55, 0.3, 0.5] : [0.6, 0.5, 0.45, 0.5],
       shadowA: 0.22, dim: 0.06,
+      // QA: the duct card only showed its right half (bare white wall) beside the main card; mirrored, the
+      // foil-wrapped duct sits in the visible outer half (no text in the photo, so mirroring is safe)
+      flip: i === 1,
     });
   });
   card(ctx, L, 'foil_roll_sample', MAIN, {
     alpha: L.clamp(cardIn * 1.6),
     dy: (1 - cardIn) * 60, scale: L.lerp(0.94, 1, cardIn),
-    k: L.clamp((t - T.card) / 8.6), zoom: [1.03, 1.15], focus: [0.42, 0.55, 0.5, 0.42],
+    // QA: zoom in past the cut-off MONOISOL banner fragments at the photo's left/right edges (x<100, x>718)
+    k: L.clamp((t - T.card) / 8.6), zoom: [1.30, 1.40], focus: [0.55, 0.55, 0.6, 0.42],
     glint: ((t - 1.0) % 3.2 + 3.2) % 3.2 / 1.6 - 0.1,
   });
   L.revealText(ctx, 'Фольговане полотно', W / 2, HEAD_A.y, L.ep(t, T.head, 1.1, 'linear'), {
@@ -587,14 +603,16 @@ module.exports = {
     }
 
     // ======================= BEAT B — reflection =======================
-    const panelIn = L.ep(t, T.panel, 0.75, 'inOutCubic');
-    const panelOut = L.ep(t, T.outB - 0.05, 0.5, 'inOutCubic');
+    // QA: panel starts earlier (8.13) so it wipes over the receding beat-A group — no near-empty frames at 8.4–8.6
+    const panelIn = L.ep(t, T.panel, 0.8, 'inOutSine');
+    const panelOut = L.ep(t, T.outB - 0.02, 0.4, 'inOutCubic');
     const panelW = PX * panelIn * (1 - panelOut);
     if (panelW > 0.5) {
       photoPanel(ctx, L, t, panelW);
       foilBar(ctx, L, panelW, t, 1, []);
     }
-    const bOut = L.ep(t, T.outB, 0.45, 'inOutSine');
+    // QA: beat B clears by ≈12.91, before the beat-C card arrives (12.92) — no rays/radiator ghosting over it
+    const bOut = L.ep(t, T.outB - 0.06, 0.32, 'inOutSine');
     if (t > T.panel - 0.1 && bOut < 0.999) {
       const radIn = L.ep(t, T.rad, 0.8, 'outCubic');
       const pulse = Math.max(L.envelope(t, T.src, T.src + 0.9, 0.25, 0.6), 0);
@@ -611,7 +629,7 @@ module.exports = {
       });
       // rays
       const hits = [];
-      const fx = PX + 9;
+      const fx = Math.min(PX, panelW) + 9;            // rays keep hitting the foil while the panel retracts
       RAYS.forEach((r, i) => {
         const P0 = [RAD.x - 18, r.y0], P1 = [fx, r.yh], P2 = [RAD.x - 18, r.y1];
         const l1 = Math.hypot(P1[0] - P0[0], P1[1] - P0[1]), l2 = l1;
@@ -644,8 +662,8 @@ module.exports = {
       if (panelW > PX - 2) for (const [hy, ha] of hits) if (ha > 0.01) { L.glow(ctx, PX + 6, hy, 50, '#FFFFFF', 0.7 * ha); L.glow(ctx, PX + 10, hy, 80, HEAT2, 0.3 * ha); }
       // label
       const lp = L.ep(t, T.label, 1.1, 'linear');
-      const lo = L.ep(t, T.outB - 0.05, 0.4, 'linear');
-      const ap = L.ep(t, T.label, 0.7, 'inOutCubic') * (1 - L.ep(t, T.outB - 0.05, 0.35, 'inOutCubic'));
+      const lo = L.ep(t, T.outB - 0.06, 0.32, 'linear');
+      const ap = L.ep(t, T.label, 0.7, 'inOutCubic') * (1 - L.ep(t, T.outB - 0.06, 0.3, 'inOutCubic'));
       if (ap > 0.002) L.save(ctx, () => { ctx.fillStyle = C.brand; L.roundRect(ctx, PX + 120, 188, 64 * ap, 6, 3); ctx.fill(); });
       L.revealText(ctx, 'Відбиває теплове випромінювання', PX + 120, 272, lp, {
         role: 'display', size: 58, color: INK, maxWidth: 760, lineHeight: 1.2, stagger: 0.3,
