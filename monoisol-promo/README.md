@@ -4,7 +4,8 @@
 моушн-графіка з реальними фото та логотипом з monoisol.com → оригінальна музика → мікс → MP4.
 
 ## Результат
-- `out/monoisol-promo-3min.mp4` — 1920×1080, 30 fps, H.264 + AAC, 3:00.000, гучність −14 LUFS
+- `out/monoisol-promo-3min.mp4` — 1920×1080, 30 fps, H.264 (High, tune animation) + AAC 192k, 3:00.000,
+  −14.1 LUFS / true peak −1.0 dBFS, м'які субтитри (mov_text, ukr), ~58 МБ
 - `out/monoisol-promo-3min-subtitles.mp4` — та сама версія з вшитими субтитрами (для соцмереж)
 - `out/monoisol-promo-3min.uk.srt` — субтитри українською
 - `script/script_final.json` — фінальний сценарій (текст, TTS-текст із наголосами, розкадровка)
