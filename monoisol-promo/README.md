@@ -23,18 +23,24 @@
 pip install sherpa-onnx onnxruntime soundfile scipy pyloudnorm potracer fonttools
 (cd render && npm install)
 # моделі (GitHub releases k2-fsa/sherpa-onnx): vits-piper-uk_UA-ukrainian_tts-medium, sherpa-onnx-whisper-turbo -> tts/models/
-python3 tts/make_voice.py script/script_final.json build/voice --speaker mykyta --length 0.95 --n 3 --asr
-python3 tts/build_timeline.py script/script_final.json build/voice/lines.json render/timeline.json out/monoisol-promo-3min.uk.srt
+python3 tts/make_voice.py script/script_final.json build/voice --speaker mykyta --length 0.90 --n 4 --asr
+python3 tts/build_timeline.py script/script_final.json build/voice/lines.json render/timeline.json script/subtitles.uk.srt --gap 0.24 --lead 0.4 --tail 0.4
+#   (render/timeline.json in the repo additionally sets cornerLogo, shimmers and per-scene transitions)
 python3 music/make_music.py build/music --timeline render/timeline.json
 python3 music/mix.py render/timeline.json build/voice build/music build/mix.wav
-(cd render && node render.js parallel ../build/video.mp4 4)
-ffmpeg -i build/video.mp4 -i build/mix.wav -c:v copy -c:a aac -b:a 256k out/monoisol-promo-3min.mp4
+./make_video.sh            # render (4 jobs) + delivery encodes + checks
 ```
 
 ## Голос
-Модель `uk_UA-ukrainian_tts-medium` (Piper/VITS, датасет CC0), диктор «Микита». Наголоси задаються вручну
-знаком U+0301 після наголошеної голосної — модель на них реагує. Кожна репліка генерується кілька разів, і
-обирається варіант, який Whisper розпізнає найточніше.
+Модель `uk_UA-ukrainian_tts-medium` (Piper/VITS, датасет CC0), диктор «Микита», темп 0.90. Наголоси задаються
+вручну знаком U+0301 після наголошеної голосної — модель на них реагує. Кожна репліка генерується кілька разів,
+і обирається варіант, який Whisper (turbo) розпізнає найточніше: середня схожість 0.99. Назва бренду в TTS-тексті
+пишеться «Моно ізо́л» — так Whisper впізнає «Моноізол» у 12/12 спроб (проти 7/12 для злитного написання).
+
+## Перевірка
+- `node render/render.js check 2` — рендер кожного 2-го кадру всього ролика без винятків
+- `node render/render.js boundaries out.png` — кадри на всіх переходах між сценами
+- `node render/render.js sheet out.png 36` — контактний аркуш усього ролика
 
 ## Джерела
 Факти, фото продукції та логотип — з офіційного сайту monoisol.com. Музика і звукові ефекти синтезовані

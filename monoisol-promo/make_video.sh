@@ -6,19 +6,23 @@ cd "$(dirname "$0")"
 JOBS=${JOBS:-4}
 mkdir -p build out
 
-echo "== render video ($JOBS jobs)"
-(cd render && STRICT=1 node render.js parallel ../build/video.mp4 "$JOBS")
+if [ "${SKIP_RENDER:-0}" != 1 ]; then
+  echo "== render video ($JOBS jobs)"
+  (cd render && STRICT=1 node render.js parallel ../build/video.mp4 "$JOBS")
+fi
+# delivery encode settings (intermediate build/video.mp4 is CRF 16)
+X264="-c:v libx264 -preset slow -tune animation -crf ${CRF_OUT:-20} -pix_fmt yuv420p -profile:v high -level 4.1 -g 60 -bf 3"
 
 echo "== mux"
 ffmpeg -y -loglevel error -i build/video.mp4 -i build/mix.wav -i script/subtitles.uk.srt \
-  -map 0:v -map 1:a -map 2:s -c:v copy -c:a aac -b:a 256k -ar 48000 -c:s mov_text \
+  -map 0:v -map 1:a -map 2:s $X264 -c:a aac -b:a 192k -ar 48000 -c:s mov_text \
   -metadata title="MONOISOL — Тепло, яке залишається вдома" -metadata:s:a:0 language=ukr -metadata:s:s:0 language=ukr \
   -movflags +faststart -t 180 out/monoisol-promo-3min.mp4
 
 echo "== subtitled social version"
 ffmpeg -y -loglevel error -i build/video.mp4 -i build/mix.wav \
-  -vf "subtitles=script/subtitles.uk.srt:fontsdir=render/fonts:force_style='FontName=Manrope,FontSize=15,Bold=1,PrimaryColour=&H00FFFFFF,BackColour=&H96071629,BorderStyle=4,Outline=0,Shadow=0,MarginV=16,MarginL=60,MarginR=60'" \
-  -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p -c:a aac -b:a 256k -ar 48000 -movflags +faststart -t 180 \
+  -vf "subtitles=script/subtitles.uk.srt:fontsdir=render/fonts:force_style='FontName=Manrope,FontSize=10.5,Bold=1,PrimaryColour=&H00FFFFFF,BackColour=&H96071629,BorderStyle=4,Outline=0,Shadow=0,MarginV=9,MarginL=40,MarginR=40'" \
+  $X264 -c:a aac -b:a 192k -ar 48000 -movflags +faststart -t 180 \
   out/monoisol-promo-3min-subtitles.mp4
 cp script/subtitles.uk.srt out/monoisol-promo-3min.uk.srt
 

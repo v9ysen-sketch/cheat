@@ -85,7 +85,7 @@ mix = np.stack([voice, voice], 1) + m + sfx
 # ---------- master: loudness + limiter ----------
 il = meter.integrated_loudness(mix)
 mix *= 10 ** ((args.lufs - il) / 20)
-ceiling = 10 ** (-1.2 / 20)
+ceiling = 10 ** (-1.6 / 20)
 from scipy.ndimage import minimum_filter1d, uniform_filter1d
 # lookahead-style limiter: per-sample required gain, held by a centred min-filter, then smoothed
 need = np.minimum(1.0, ceiling / np.maximum(np.abs(mix).max(1), 1e-9))
