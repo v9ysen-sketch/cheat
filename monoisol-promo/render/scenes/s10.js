@@ -278,7 +278,7 @@ function drawHouse(ctx, L, h, t, idx) {
     ctx.fillStyle = '#EEF4FB'; L.roundRect(ctx, cb[0] - 17, cb[1] - 60, 34, 11, 5); ctx.fill();
     // smoke
     for (let k = 0; k < 5; k++) {
-      const ph = ((t * 0.28 + k / 5 + idx * 0.13) % 1);
+      const ph = (((t * 0.28 + k / 5 + idx * 0.13) % 1) + 1) % 1;
       const sx = cb[0] + Math.sin(ph * 5 + idx) * 10 + ph * 46, sy = cb[1] - 66 - ph * 130;
       ctx.fillStyle = `rgba(190,205,225,${(0.16 * Math.sin(Math.PI * ph)).toFixed(3)})`;
       ctx.beginPath(); ctx.arc(sx, sy, 10 + ph * 26, 0, TAU); ctx.fill();
@@ -412,7 +412,7 @@ function embersIn(ctx, L, R, t, amount) {
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   for (let i = 0; i < 46; i++) {
     const u = r(), v0 = r(), sp = 0.025 + r() * 0.05, ph = r() * TAU, sz = 6 + r() * 14;
-    const v = 1 - ((v0 + t * sp) % 1);
+    const v = 1 - ((((v0 + t * sp) % 1) + 1) % 1);
     const x = R.x + (u + 0.02 * Math.sin(t * 0.8 + ph)) * R.w, y = R.y + v * R.h;
     const a = amount * (0.35 + 0.45 * (0.5 + 0.5 * Math.sin(t * 2.2 + ph))) * Math.sin(Math.PI * v);
     if (a <= 0.01) continue;

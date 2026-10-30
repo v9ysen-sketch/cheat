@@ -211,7 +211,7 @@ function iconDrop(ctx, L, k, t) {
   ctx.save(); ctx.lineWidth *= 0.8; ctx.globalAlpha *= 0.75;
   ctx.beginPath(); ctx.arc(0, 14, 21, Math.PI * 0.62, Math.PI * 0.98); ctx.stroke(); ctx.restore();
   // little bead sliding off the surface (water repelled)
-  const ph = ((t * 0.55) % 1);
+  const ph = (((t * 0.55) % 1) + 1) % 1;
   if (k > 0.99) { ctx.save(); ctx.globalAlpha *= Math.sin(Math.PI * ph) * 0.8; ctx.beginPath(); ctx.arc(46, 22 + ph * 26, 5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
 }
 function iconSound(ctx, L, k, t) {

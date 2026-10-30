@@ -173,6 +173,11 @@ async function main() {
     const frames = [];
     scenes.slice(1).forEach(sc => { for (const dt of [-0.3, 0, 0.3]) frames.push([`${sc.id - 1}→${sc.id} ${sc.transition} ${(sc.start + dt).toFixed(2)}s`, ctx => drawFrame(ctx, sc.start + dt)]); });
     contact(frames, a[0], 6, 400);
+  } else if (mode === 'check') { // render every Nth frame of the whole timeline and report exceptions
+    const step = +(a[0] || 3), errs = []; let n = 0;
+    for (let f = 0; f < Math.round(DURATION * FPS); f += step) { try { drawFrame(x, f / FPS); n++; } catch (e) { errs.push(`${(f / FPS).toFixed(2)}s: ${String(e.message).split('\n')[0]}`); } }
+    console.log(`checked ${n + errs.length} frames, ${errs.length} errors`); errs.slice(0, 30).forEach(e => console.log('  ' + e));
+    if (errs.length) process.exitCode = 1;
   } else if (mode === 'perf') {
     const k = sceneIdx(a[0]), s = scenes[k], n = +(a[1] || 30); drawScene(x, k, s.start + 0.01);
     const t0 = Date.now(); for (let j = 0; j < n; j++) { drawScene(x, k, s.start + (s.dur * j) / n); c.data(); } // data() forces rasterisation

@@ -6,6 +6,16 @@ const { createCanvas, GlobalFonts, Path2D } = require('@napi-rs/canvas');
 
 const W = 1920, H = 1080, FPS = 30;
 
+// Robustness: scenes evaluate easing/phase maths for t slightly outside [0, d] during transitions; never let a
+// negative radius (Skia throws IndexSizeError) kill a render.
+{
+  const P = Object.getPrototypeOf(createCanvas(1, 1).getContext('2d'));
+  const arc = P.arc, ellipse = P.ellipse, radial = P.createRadialGradient;
+  P.arc = function (x, y, r, a0, a1, ccw) { return arc.call(this, x, y, r > 0 ? r : 0, a0, a1, ccw); };
+  P.ellipse = function (x, y, rx, ry, rot, a0, a1, ccw) { return ellipse.call(this, x, y, rx > 0 ? rx : 0, ry > 0 ? ry : 0, rot, a0, a1, ccw); };
+  P.createRadialGradient = function (x0, y0, r0, x1, y1, r1) { return radial.call(this, x0, y0, r0 > 0 ? r0 : 0, x1, y1, r1 > 0 ? r1 : 0.0001); };
+}
+
 // ---------- fonts ----------
 const FD = path.join(__dirname, 'fonts');
 for (const w of [400, 600, 800]) {

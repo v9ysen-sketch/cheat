@@ -93,7 +93,7 @@ function background(ctx, L, t, lk) {
       ctx.strokeStyle = L.rgba(C.brandHi, 0.055 + 0.02 * (i % 2)); ctx.lineWidth = 1.2;
       ctx.beginPath(); ctx.moveTo(x0, H + 20); ctx.lineTo(x0 + sl, -20); ctx.stroke();
       if (i % 2 === 0) { // light pulse moving up the line
-        const q = ((t * 0.09 + i * 0.37) % 1), px = x0 + sl * q, py = H + 20 - (H + 40) * q;
+        const q = (((t * 0.09 + i * 0.37) % 1) + 1) % 1, px = x0 + sl * q, py = H + 20 - (H + 40) * q;
         const pg = ctx.createLinearGradient(px - sl * 0.12, py + (H + 40) * 0.12, px, py);
         pg.addColorStop(0, L.rgba(C.brandHi, 0)); pg.addColorStop(1, L.rgba(C.brandHi, 0.28));
         ctx.strokeStyle = pg; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(px - sl * 0.12, py + (H + 40) * 0.12); ctx.lineTo(px, py); ctx.stroke();
@@ -344,7 +344,7 @@ function featureIcon(ctx, L, kind, x, y, t, p) {
       ctx.strokeStyle = '#E6ECF3'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
       const nx = 0.41, ny = -0.91; // surface normal (up)
       for (let i = 0; i < 2; i++) {
-        const s = ((t * 0.62 + i * 0.5) % 1);
+        const s = (((t * 0.62 + i * 0.5) % 1) + 1) % 1;
         let dx, dy, a = 1;
         if (s < 0.62) { const f = L.ease.inQuad(s / 0.62); dx = L.lerp(x0 + 6, x1, f) + nx * 9; dy = L.lerp(y0 + 2.7, y1, f) + ny * 9; if (s < 0.15) a = s / 0.15; }
         else { const f = (s - 0.62) / 0.38; dx = x1 + nx * 9 + f * 4; dy = y1 + ny * 9 + f * f * 34; a = 1 - f * f; }
