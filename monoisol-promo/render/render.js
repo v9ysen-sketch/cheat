@@ -19,10 +19,21 @@ const TL_PATH = process.env.TIMELINE || path.join(__dirname, 'timeline.json');
 const timeline = JSON.parse(fs.readFileSync(TL_PATH, 'utf8'));
 const TR = timeline.transition ?? 0.8; // transition window (s), centred on scene boundaries
 
-const scenes = timeline.scenes.map(s => {
-  const mod = require(path.join(__dirname, 'scenes', s.file));
-  return { ...s, mod };
-});
+// scene modules are loaded lazily and isolated: a broken scene renders an error card instead of killing the render
+const scenes = timeline.scenes.map(s => ({ ...s, mod: null }));
+function sceneMod(i) {
+  const s = scenes[i];
+  if (!s.mod) {
+    const f = path.join(__dirname, 'scenes', s.file);
+    try { s.mod = require(f); }
+    catch (e) {
+      const msg = String(e && e.message || e).split('\n')[0];
+      if (process.env.STRICT) throw e;
+      s.mod = { draw(ctx, t) { ctx.fillStyle = '#300'; ctx.fillRect(0, 0, W, H); L.text(ctx, `scene ${s.id}: ${fs.existsSync(f) ? 'error' : 'missing'}`, 100, 200, { role: 'display', size: 60 }); L.text(ctx, msg.slice(0, 120), 100, 300, { size: 30 }); } };
+    }
+  }
+  return s.mod;
+}
 const DURATION = timeline.duration;
 
 const bufA = L.offscreen(), bufB = L.offscreen();
@@ -34,7 +45,7 @@ function drawScene(ctx, i, T) {
   ctx.save();
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  try { s.mod.draw(ctx, t, s.dur, L, { cues: s.cues || [], scene: s, T, timeline }); }
+  try { sceneMod(i).draw(ctx, t, s.dur, L, { cues: s.cues || [], scene: s, T, timeline }); }
   finally { ctx.restore(); }
 }
 
