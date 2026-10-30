@@ -171,7 +171,7 @@ async function main() {
     contact(frames, a[0], 6, 400);
   } else if (mode === 'perf') {
     const k = sceneIdx(a[0]), s = scenes[k], n = +(a[1] || 30); drawScene(x, k, s.start + 0.01);
-    const t0 = Date.now(); for (let j = 0; j < n; j++) drawScene(x, k, s.start + (s.dur * j) / n);
+    const t0 = Date.now(); for (let j = 0; j < n; j++) { drawScene(x, k, s.start + (s.dur * j) / n); c.data(); } // data() forces rasterisation
     console.log(`scene ${s.id}: ${((Date.now() - t0) / n).toFixed(1)} ms/frame over ${n} frames`);
   } else if (mode === 'times') { // strip of specific local times: times <id> <out.png> t1,t2,...
     const k = sceneIdx(a[0]), ts = a[2].split(',').map(Number);
