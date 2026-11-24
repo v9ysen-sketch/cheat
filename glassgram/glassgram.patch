@@ -1,0 +1,1546 @@
+diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
+index 4450811..82d239e 100644
+--- a/TMessagesProj/build.gradle
++++ b/TMessagesProj/build.gradle
+@@ -148,6 +148,14 @@ android {
+         minSdkVersion 23
+         targetSdkVersion 36
+ 
++        if (project.findProperty("GLASSGRAM_ABIS")) {
++            ndk { abiFilters(*(project.findProperty("GLASSGRAM_ABIS").toString().split(","))) }
++        }
++        // GlassGram: your own keys from https://my.telegram.org (never commit them).
++        // Pass as env vars GLASSGRAM_API_ID / GLASSGRAM_API_HASH or -P gradle properties.
++        buildConfigField "int", "GLASSGRAM_API_ID", (System.getenv("GLASSGRAM_API_ID") ?: (project.findProperty("GLASSGRAM_API_ID") ?: "0")).toString()
++        buildConfigField "String", "GLASSGRAM_API_HASH", "\"" + (System.getenv("GLASSGRAM_API_HASH") ?: (project.findProperty("GLASSGRAM_API_HASH") ?: "")) + "\""
++
+         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
+ 
+         multiDexEnabled true
+diff --git a/TMessagesProj/google-services.json b/TMessagesProj/google-services.json
+index 640e841..33c692f 100644
+--- a/TMessagesProj/google-services.json
++++ b/TMessagesProj/google-services.json
+@@ -1,98 +1,29 @@
+ {
+   "project_info": {
+-    "project_number": "760348033671",
+-    "firebase_url": "https://tmessages2.firebaseio.com",
+-    "project_id": "tmessages2",
+-    "storage_bucket": "tmessages2.appspot.com"
++    "project_number": "000000000000",
++    "project_id": "glassgram-placeholder",
++    "storage_bucket": "glassgram-placeholder.appspot.com"
+   },
+   "client": [
+     {
+       "client_info": {
+-        "mobilesdk_app_id": "1:760348033671:android:f6afd7b67eae3860",
++        "mobilesdk_app_id": "1:000000000000:android:0000000000000001",
+         "android_client_info": {
+           "package_name": "org.telegram.messenger"
+         }
+       },
+-      "oauth_client": [
+-        {
+-          "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-          "client_type": 3
+-        }
+-      ],
+-      "api_key": [
+-        {
+-          "current_key": "AIzaSyA-t0jLPjUt2FxrA8VPK2EiYHcYcboIR6k"
+-        }
+-      ],
+-      "services": {
+-        "appinvite_service": {
+-          "other_platform_oauth_client": [
+-            {
+-              "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-              "client_type": 3
+-            }
+-          ]
+-        }
+-      }
+-    },
+-    {
+-      "client_info": {
+-        "mobilesdk_app_id": "1:760348033671:android:dc022572c167a16c",
+-        "android_client_info": {
+-          "package_name": "org.telegram.messenger.beta"
+-        }
+-      },
+-      "oauth_client": [
+-        {
+-          "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-          "client_type": 3
+-        }
+-      ],
+-      "api_key": [
+-        {
+-          "current_key": "AIzaSyA-t0jLPjUt2FxrA8VPK2EiYHcYcboIR6k"
+-        }
+-      ],
+-      "services": {
+-        "appinvite_service": {
+-          "other_platform_oauth_client": [
+-            {
+-              "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-              "client_type": 3
+-            }
+-          ]
+-        }
+-      }
+-    },
+-    {
+-      "client_info": {
+-        "mobilesdk_app_id": "1:760348033671:android:7396e651423888c3f66e22",
+-        "android_client_info": {
+-          "package_name": "org.telegram.messenger.web"
+-        }
+-      },
+-      "oauth_client": [
+-        {
+-          "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-          "client_type": 3
+-        }
+-      ],
++      "oauth_client": [],
+       "api_key": [
+         {
+-          "current_key": "AIzaSyA-t0jLPjUt2FxrA8VPK2EiYHcYcboIR6k"
++          "current_key": "AIzaSyPLACEHOLDER-GlassGram-000000000000"
+         }
+       ],
+       "services": {
+         "appinvite_service": {
+-          "other_platform_oauth_client": [
+-            {
+-              "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-              "client_type": 3
+-            }
+-          ]
++          "other_platform_oauth_client": []
+         }
+       }
+     }
+   ],
+   "configuration_version": "1"
+-}
+\ No newline at end of file
++}
+diff --git a/TMessagesProj/src/main/assets/darkblue.attheme b/TMessagesProj/src/main/assets/darkblue.attheme
+index 6e6a0f4..27dc3bb 100644
+--- a/TMessagesProj/src/main/assets/darkblue.attheme
++++ b/TMessagesProj/src/main/assets/darkblue.attheme
+@@ -4,174 +4,174 @@ profile_title=-1
+ avatar_actionBarIconBlue=-1
+ actionBarWhiteSelector=285212671
+ actionBarDefaultSearch=-1
+-actionBarDefaultArchivedSelector=-12698049
++actionBarDefaultArchivedSelector=-15259314
+ actionBarDefaultArchivedIcon=-1
+ actionBarDefaultArchivedTitle=-1
+ actionBarDefaultArchivedSearch=-1
+ chat_unreadMessagesStartText=-620756993
+ chat_inFileBackgroundSelected=-12757128
+-windowBackgroundChecked=-11632213
+-radioBackgroundChecked=-10177041
+-dialogTextBlue=-10177041
+-dialog_inlineProgressBackground=-15393241
+-chat_inSentClockSelected=-7490861
+-windowBackgroundWhiteBlueIcon=-528890628
+-chat_goDownButtonCounterBackground=-11425042
+-actionBarActionModeDefault=-14273984
+-actionBarActionModeDefaultTop=-14536643
++windowBackgroundChecked=-12614726
++radioBackgroundChecked=-10833415
++dialogTextBlue=-10833415
++dialog_inlineProgressBackground=-16051163
++chat_inSentClockSelected=-8080164
++windowBackgroundWhiteBlueIcon=-529088001
++chat_goDownButtonCounterBackground=-12146439
++actionBarActionModeDefault=-15589057
++actionBarActionModeDefaultTop=-15655109
+ actionBarActionModeReaction=318767103
+ actionBarActionModeReactionText=-1
+-actionBarActionModeReactionDot=-13287865
++actionBarActionModeReactionDot=-15324851
+ statisticChartHintLine=452984831
+-chats_menuPhone=-1816080163
+-chat_outViews=-7357217
+-chat_outViaBotNameText=-7551233
++chats_menuPhone=-1816473117
++chat_outViews=-7947032
++chat_outViaBotNameText=-7549953
+ chat_botKeyboardButtonText=-1
+-profile_actionPressedBackground=-11756844
++profile_actionPressedBackground=-12609311
+ key_chat_messagePanelVoiceLock=-1
+ chat_secretChatStatusText=-8812137
+ switchTrack=-10652540
+ gift_ribbon=-12492673
+ gift_ribbon_soldout=-8500415
+ chat_attachAudioBackground=-626837
+-location_sendLocationBackground=-9919529
+-actionBarDefaultSubmenuBackground=-14141368
+-switchTrackBlueThumb=-14866637
++location_sendLocationBackground=-10639646
++actionBarDefaultSubmenuBackground=-15456955
++switchTrackBlueThumb=-15853006
+ avatar_nameInMessageViolet=-7565846
+ emptyListPlaceholder=-8549479
+ chat_inAudioSelectedProgress=-1
+ chats_nameMessage=-1446156
+ chat_messagePanelShadow=1124073472
+ chat_inMediaIcon=-1
+-actionBarDefaultArchived=-13748149
++actionBarDefaultArchived=-15325109
+ chat_messagePanelCancelInlineBot=1692528895
+ voipgroup_topPanelGray=-10521727
+-dialogSearchBackground=-14010037
+-chat_outAudioSeekbarFill=-7944965
+-chat_botKeyboardButtonBackgroundPressed=-12956574
++dialogSearchBackground=-15391159
++chat_outAudioSeekbarFill=-8206337
++chat_botKeyboardButtonBackgroundPressed=-14929055
+ player_time=-8549479
+ chat_outFileProgressSelected=-1
+ chat_outTimeSelectedText=-4268038
+ chat_inFileProgressSelected=-1
+ chat_inAudioPerfomerText=-8812393
+-statisticChartBackZoomColor=-12145938
++statisticChartBackZoomColor=-12933894
+ player_button=-1
+ key_sheet_other=1140850687
+-chat_inContactNameText=-8796932
++chat_inContactNameText=-8994305
+ chats_menuPhoneCats=-8613724
+-chat_outPreviewLine=-6631937
++chat_outPreviewLine=-6630657
+ chat_messagePanelHint=1859907583
+-windowBackgroundGray=-15393241
+-chat_inViaBotNameText=-8796932
+-chat_outVoiceSeekbar=-429551165
++windowBackgroundGray=-16051163
++chat_inViaBotNameText=-8994305
++chat_outVoiceSeekbar=-430400816
+ player_actionBarTitle=-1
+-dialogGrayLine=-15790062
++dialogGrayLine=-16381164
+ chats_nameMessage_threeLines=-1446156
+ chat_inFileProgress=-1
+ dialogIcon=-7627862
+ chat_emojiPanelEmptyText=-8549479
+ chat_emojiPanelBackspace=-9996665
+ chat_replyPanelClose=1859974399
+-chat_inContactPhoneSelectedText=-7490861
++chat_inContactPhoneSelectedText=-8080164
+ dialogSearchText=-1
+ actionBarTabUnactiveText=-7628894
+ chat_outAudioTitleText=-1
+ statisticChartActivePickerChart=-665688455
+-chat_emojiPanelBackground=-14866637
+-chats_unreadCounter=-10177041
++chat_emojiPanelBackground=-15853006
++chats_unreadCounter=-12604929
+ groupcreate_hintText=-8549479
+-chat_inReplyMediaMessageSelectedText=-7490861
++chat_inReplyMediaMessageSelectedText=-8080164
+ dialogCheckboxSquareUnchecked=-11245959
+ chat_inMediaIconSelected=-1
+-chat_inBubble=-14471621
++chat_inBubble=-15521715
+ chat_emojiPanelStickerPackSelector=181267199
+ chat_unreadMessagesStartArrowIcon=-10851462
+ windowBackgroundWhiteBlackText=-1
+-avatar_backgroundActionBarBlue=-14602949
+-dialogTextLink=-10177041
++avatar_backgroundActionBarBlue=-15655367
++dialogTextLink=-10833415
+ chat_outReactionButtonText=-1
+ chat_recordTime=-1
+-chat_status=-9192457
+-windowBackgroundWhiteBlueHeader=-8796932
+-files_folderIconBackground=-10637333
+-passport_authorizeBackgroundSelected=-11627561
++chat_status=-9716481
++windowBackgroundWhiteBlueHeader=-8994305
++files_folderIconBackground=-11358986
++passport_authorizeBackgroundSelected=-12477468
+ chat_outReactionButtonBackground=-1
+-switchTrackBlueChecked=-8333825
++switchTrackBlueChecked=-8337665
+ dialogShadowLine=335544320
+-profile_status=-9192457
++profile_status=-9716481
+ divider=-1795162112
+-chat_topPanelLine=-10576428
++chat_topPanelLine=-11362080
+ chat_inReplyMessageText=-1
+ dialogInputField=-8549479
+-windowBackgroundWhiteInputFieldActivated=-9522449
+-chat_attachGalleryBackground=-11692299
++windowBackgroundWhiteInputFieldActivated=-10176775
++chat_attachGalleryBackground=-12342529
+ chat_outInstantSelected=-4268038
+-actionBarDefaultSubmenuSeparator=-14733761
+-chat_outSentCheck=-7878657
++actionBarDefaultSubmenuSeparator=-15655110
++chat_outSentCheck=-7878145
+ key_graySectionText=-8549479
+ picker_disabledButton=-11047552
+-groupcreate_spanBackground=-13878194
+-dialogButton=-10177041
++groupcreate_spanBackground=-15325108
++dialogButton=-10833415
+ contextProgressInner1=1686212251
+ actionBarDefaultSubtitle=2111566591
+ chat_inContactPhoneText=-8812393
+-chat_inlineResultIcon=-8796932
++chat_inlineResultIcon=-8994305
+ chat_outBubbleGradientSelectedOverlay=352321535
+ chats_draft=-637778102
+-dialogLineProgress=-10576428
+-chat_outPreviewInstantText=-6631937
+-chat_inMenuSelected=-1517440301
++dialogLineProgress=-11362080
++chat_outPreviewInstantText=-6630657
++chat_inMenuSelected=-1518029604
+ avatar_backgroundOrange=-869276
+ avatar_background2Orange=-1734333
+ avatar_actionBarSelectorGreen=-12758164
+ chat_outLocationIcon=-1
+-chat_inLoaderSelected=-10445358
+-location_liveLocationProgress=-9919529
++chat_inLoaderSelected=-11231010
++location_liveLocationProgress=-10639646
+ text_RedBold=-1152913
+ chat_inBubbleShadow=838860800
+ chat_outAudioProgress=-1
+ stickers_menu=-10719105
+-player_progress=-10177041
+-chat_inReplyLine=-8796932
+-chat_inQuote=-8796932
+-chat_inAudioPerfomerSelectedText=-7490861
+-dialogBackground=-14602949
++player_progress=-10833415
++chat_inReplyLine=-8994305
++chat_inQuote=-8994305
++chat_inAudioPerfomerSelectedText=-8080164
++dialogBackground=-15655367
+ bot_loadingIcon=520093695
+ gift_ribbon=-12492673
+ gift_ribbon_soldout=-8500415
+-dialogLineProgressBackground=-13548718
+-chat_inReplyNameText=-8796932
++dialogLineProgressBackground=-15193263
++chat_inReplyNameText=-8994305
+ chat_outAudioPerfomerSelectedText=-4268038
+ actionBarActionModeDefaultIcon=-1
+ text_RedRegular=-1152913
+ chat_outAudioSelectedProgress=-1
+ chat_messageTextOut=-328966
+-chat_inInstant=-8796932
+-groupcreate_cursor=-10177041
+-returnToCallBackground=-10639897
++chat_inInstant=-8994305
++groupcreate_cursor=-10833415
++returnToCallBackground=-11359502
+ checkboxSquareUnchecked=-11245959
+ dialogCheckboxSquareDisabled=-12299422
+-chat_fieldOverlayText=-10177041
+-chat_messagePanelSend=-14509328
+-passport_authorizeBackground=-12352582
++chat_fieldOverlayText=-10833415
++chat_messagePanelSend=-15428098
++passport_authorizeBackground=-13334839
+ chat_inSentClock=-10653824
+ chats_menuTopShadow=789516
+ avatar_nameInMessageRed=-1537928
+-chat_botSwitchToInlineText=-8796932
++chat_botSwitchToInlineText=-8994305
+ chats_nameMessageArchived=-8549479
+ avatar_nameInMessageOrange=-1528998
+ chats_pinnedIcon=-10982016
+-chat_attachActiveTab=-9781249
++chat_attachActiveTab=-9782017
+ chat_replyPanelLine=1578572317
+ chat_outSentCheckSelected=-4268038
+ dialogSearchHint=-8419182
+-chat_inVenueInfoSelectedText=-7490861
+-dialogTextBlue2=-10177041
+-switchTrackBlueThumbChecked=-11632213
+-dialogTextBlue4=-10177041
++chat_inVenueInfoSelectedText=-8080164
++dialogTextBlue2=-10833415
++switchTrackBlueThumbChecked=-12614726
++dialogTextBlue4=-10833415
+ chat_attachUnactiveTab=-9596506
+ windowBackgroundWhiteGreenText=-10371737
+-actionBarTabActiveText=-9781249
++actionBarTabActiveText=-9782017
+ chat_emojiPanelIcon=-9996665
+ chat_topPanelMessage=1859974399
+ statisticChartSignatureAlpha=-1946157057
+@@ -181,58 +181,58 @@ chats_pinnedOverlay=150994943
+ windowBackgroundWhiteInputField=-12035217
+ avatar_backgroundRed=-1545110
+ avatar_background2Red=-2013369
+-chat_emojiPanelBadgeBackground=-11291403
+-chat_inForwardedNameText=-8796932
+-chats_actionBackground=-10509346
++chat_emojiPanelBadgeBackground=-11948545
++chat_inForwardedNameText=-8994305
++chats_actionBackground=-13796353
+ avatar_nameInMessageGreen=-8531855
+ chat_outContactNameText=-1
+-chat_inSiteNameText=-8796932
++chat_inSiteNameText=-8994305
+ chat_linkSelectBackground=1516415459
+-windowBackgroundWhiteBlueText=-10177041
++windowBackgroundWhiteBlueText=-10833415
+ avatar_nameInMessageCyan=-11285306
+-chat_inLocationBackground=-13417903
++chat_inLocationBackground=-15193262
+ radioBackground=-1635939431
+ profile_tabText=2027746559
+-contextProgressOuter1=-9914632
++contextProgressOuter1=-10372865
+ dialogTextGray3=-8549479
+ dialogTextGray2=-8549479
+ dialogTextGray4=-8549479
+-chat_searchPanelIcons=-8796932
+-windowBackgroundWhiteLinkText=-10572831
++chat_searchPanelIcons=-8994305
++windowBackgroundWhiteLinkText=-11294740
+ chat_inAudioSeekbarSelected=-9203285
+-chat_outVenueInfoText=-7357217
+-chat_outContactPhoneText=-7357217
+-chat_inAudioTitleText=-8796932
+-chat_messageLinkIn=-8796932
+-chats_menuBackground=-14998481
++chat_outVenueInfoText=-7947032
++chat_outContactPhoneText=-7947032
++chat_inAudioTitleText=-8994305
++chat_messageLinkIn=-8994305
++chats_menuBackground=-15919058
+ windowBackgroundCheckText=-1
+-chat_serviceBackground=-2110438831
++chat_serviceBackground=-2112345005
+ chats_secretIcon=-9316522
+-chat_inFileBackground=-13681590
+-chat_inBubbleSelected=-13546911
++chat_inFileBackground=-15325109
++chat_inBubbleSelected=-15060901
+ chat_mediaMenu=-1
+ chat_outViewsSelected=-4268038
+-chat_outInstant=-7551233
++chat_outInstant=-7549953
+ chat_emojiPanelShadowLine=838860800
+ profile_tabSelector=350681087
+ actionBarDefaultSearchPlaceholder=2027746559
+ actionBarActionModeDefaultSelector=433780735
+-chat_outForwardedNameText=-7551233
+-dialogRoundCheckBox=-15033089
++chat_outForwardedNameText=-7549953
++dialogRoundCheckBox=-15034113
+ chat_emojiPanelTrendingTitle=-1
+-actionBarTabLine=-10179073
+-chat_stickersHintPanel=-13484721
++actionBarTabLine=-10176001
++chat_stickersHintPanel=-15259056
+ chat_outSiteNameText=-1
+-windowBackgroundWhite=-14866637
+-chat_compact_backgroundGradient=0
+-chat_compact_glassOutline=0
+-chat_compact_glassShadow=0
+-chat_compact_glassHairline=0
++windowBackgroundWhite=-15853006
++chat_compact_backgroundGradient=340771831
++chat_compact_glassOutline=866175231
++chat_compact_glassShadow=1073743892
++chat_compact_glassHairline=536870911
+ chat_compact_topicSeparatorText=-1
+-chat_compact_inputGlassOutline=0
+-chat_compact_buttonGlassOutline=0
+-chat_compact_fadeEdge=-14866637
+-chat_compact_fadeMiddle=-1558370509
++chat_compact_inputGlassOutline=866175231
++chat_compact_buttonGlassOutline=866175231
++chat_compact_fadeEdge=-15853006
++chat_compact_fadeMiddle=-1559356878
+ chat_compact_actionBackground=452984831
+ chat_compact_actionText=-1
+ chat_compact_actionIcon=-1
+@@ -255,127 +255,127 @@ chat_compact_inWaveformBackground=1308622847
+ chat_compact_inTranscribeButton=-1
+ chat_compact_outAccent=-1
+ chat_compact_outAccentFill=-1
+-chat_compact_outAccentIcon=-15065823
++chat_compact_outAccentIcon=-16051419
+ chat_compact_outSecondaryText=-2130706433
+ chat_compact_outAccentLight=536870911
+ chat_compact_outAccentBorder=872415231
+ chat_compact_reactionBackground=452984831
+ chat_compact_reactionText=-1
+ chat_compact_reactionBackgroundSelected=-1
+-chat_compact_reactionTextSelected=-15065823
++chat_compact_reactionTextSelected=-16051419
+ chat_inVoiceSeekbarSelected=-9203285
+ dialogTextGray=-8549479
+-chat_messageLinkOut=-6631937
+-avatar_backgroundArchived=-13087910
+-picker_badge=-11097097
++chat_messageLinkOut=-6630657
++avatar_backgroundArchived=-15060901
++picker_badge=-11620353
+ chat_outFileInfoSelectedText=-4268038
+ chats_tabletSelectedOverlay=268435455
+ chat_outAudioDurationSelectedText=-4268038
+-undo_background=-231982259
+-premiumGradientBackground3=-15525343
+-premiumGradientBackground4=-15328990
+-premiumGradientBackground1=-14604747
+-premiumGradientBackground2=-15394271
+-premiumStarGradient1=-15436801
++undo_background=-233428917
++premiumGradientBackground3=-16183008
++premiumGradientBackground4=-16117213
++premiumGradientBackground1=-15786955
++premiumGradientBackground2=-16117215
++premiumStarGradient1=-15428097
+ premiumStarGradient2=-4167942
+ dialogTextHint=-8549479
+-statisticChartLine_blue=-11362305
++statisticChartLine_blue=-11357697
+ statisticChartLine_indigo=-7906078
+ statisticChartLine_red=-832444
+-statisticChartLine_lightblue=-12814100
++statisticChartLine_lightblue=-13656327
+ statisticChartLine_lightgreen=-7352519
+ statisticChartLine_golden=-2184161
+ statisticChartLine_green=-12729793
+ statisticChartLine_orange=-881607
+-color_blue=-11362305
++color_blue=-11357697
+ color_purple=-7906078
+ color_red=-832444
+-color_lightblue=-12814100
++color_lightblue=-13656327
+ color_lightgreen=-7352519
+ color_yellow=-2184161
+ color_green=-12729793
+ color_orange=-881607
+-chat_topPanelTitle=-9719066
++chat_topPanelTitle=-10374928
+ chat_inAudioCacheSeekbar=-11443856
+ chat_outContactIcon=-1
+ chat_inFileInfoText=-8812137
+ avatar_subtitleInProfileBlue=-7628894
+-chat_inPreviewLine=-8796932
+-profile_creatorIcon=-10177041
+-profile_actionBackground=-10376479
+-chats_sentCheck=-10177041
+-statisticChartInactivePickerChart=-936297140
+-chats_unreadCounterMuted=-12692893
+-chat_outVoiceSeekbarFill=-7944965
+-chat_outReplyLine=-6631937
++chat_inPreviewLine=-8994305
++profile_creatorIcon=-10833415
++profile_actionBackground=-11097620
++chats_sentCheck=-10833415
++statisticChartInactivePickerChart=-938006194
++chats_unreadCounterMuted=-14863004
++chat_outVoiceSeekbarFill=-8206337
++chat_outReplyLine=-6630657
+ chat_messagePanelIcons=1860235519
+ chat_inReplyMediaMessageText=-8812393
+ inappPlayerTitle=1859974399
+-chat_emojiPanelIconSelected=-10177041
+-progressCircle=-10177027
+-chat_inContactBackground=-10445358
+-chat_botKeyboardButtonBackground=-14076347
++chat_emojiPanelIconSelected=-10833415
++progressCircle=-10307329
++chat_inContactBackground=-11231010
++chat_botKeyboardButtonBackground=-15457212
+ chats_menuItemIcon=-8483430
+ chat_outVenueInfoSelectedText=-4268038
+ wallpaperFileOffset=-1
+ chat_outBubbleShadow=838860800
+-checkboxSquareBackground=-10177051
++checkboxSquareBackground=-10900240
+ chat_mediaSentClock=-1291845633
+ files_folderIcon=-1
+ switchTrackBlue=-10984850
+ chat_topPanelClose=1859974399
+-chats_verifiedBackground=-10177041
+-chat_inTimeSelectedText=-7490861
+-chat_outFileBackgroundSelected=-11368002
+-chat_outVoiceSeekbarSelected=-9263908
++chats_verifiedBackground=-10833415
++chat_inTimeSelectedText=-8080164
++chat_outFileBackgroundSelected=-12283956
++chat_outVoiceSeekbarSelected=-9982489
+ windowBackgroundWhiteGrayIcon=-8549479
+ profile_verifiedCheck=-1
+ listSelectorSDK21=350681087
+-key_chat_messagePanelVoiceLockBackground=-13548712
++key_chat_messagePanelVoiceLockBackground=-15127211
+ chat_outFileNameText=-1
+-picker_enabledButton=-9781249
+-inappPlayerBackground=-14602949
++picker_enabledButton=-9782017
++inappPlayerBackground=-15655367
+ avatar_nameInMessagePink=-1543014
+ windowBackgroundWhiteGrayText=-8549479
+ statisticChartSignature=-1214008894
+ actionBarDefaultSubmenuItemIcon=-1
+ chat_attachPollBackground=-2183099
+-avatar_nameInMessageBlue=-10703382
++avatar_nameInMessageBlue=-11424779
+ dialogTextBlack=-592138
+-actionBarDefault=-14406343
+-location_placeLocationBackground=-9919529
++actionBarDefault=-15655366
++location_placeLocationBackground=-10639646
+ profile_actionIcon=-1
+-windowBackgroundUnchecked=-14866637
++windowBackgroundUnchecked=-15853006
+ actionBarDefaultSelector=516942079
+-chats_menuTopShadow=-1542185690
+-chat_outAudioPerfomerText=-7357217
+-sharedMedia_startStopLoadIcon=-10177041
+-chat_serviceBackgroundSelected=-1773700178
+-inappPlayerPlayPause=-10177041
++chats_menuTopShadow=-1542843612
++chat_outAudioPerfomerText=-7947032
++sharedMedia_startStopLoadIcon=-10833415
++chat_serviceBackgroundSelected=-1774681667
++inappPlayerPlayPause=-10833415
+ chat_inVenueInfoText=-8812137
+ checkboxSquareDisabled=1682199394
+-chat_replyPanelIcons=-14509328
+-fastScrollInactive=-12760487
++chat_replyPanelIcons=-15428098
++fastScrollInactive=-14995107
+ chat_outSentClockSelected=-4268038
+-featuredStickers_addedIcon=-10177041
++featuredStickers_addedIcon=-10833415
+ chat_goDownButtonCounter=-1
+ switchTrackBlueSelectorChecked=848091135
+-chat_outFileBackground=-12095334
++chat_outFileBackground=-13011288
+ chats_name=-1446156
+ premiumStartSmallStarsColor=1904435967
+ switchTrackBlueSelector=431611386
+-chat_outBubbleSelected=-11829841
+-avatar_backgroundInProfileBlue=-11232035
++chat_outBubbleSelected=-12811074
++avatar_backgroundInProfileBlue=-12017175
+ chat_inFileNameText=-1
+ inappPlayerPerformer=-1
+-chat_inInstantSelected=-5648402
+-chat_outFileInfoText=-7357217
++chat_inInstantSelected=-6041356
++chat_outFileInfoText=-7947032
+ chat_inLocationIcon=-1
+ chat_outContactPhoneSelectedText=-4268038
+-chat_unreadMessagesStartBackground=-14339006
+-chat_inLoaderPhoto=-14404542
+-chat_inFileInfoSelectedText=-7490861
+-chat_wallpaper=-15393241
++chat_unreadMessagesStartBackground=-15523264
++chat_inLoaderPhoto=-15589057
++chat_inFileInfoSelectedText=-8080164
++chat_wallpaper=-16445921
+ chat_outMenuSelected=-541138950
+ chat_muteIcon=1019012607
+ chat_selectedBackground=710909411
+@@ -383,24 +383,24 @@ chat_inAudioDurationText=-8746857
+ chat_secretTimeText=-3679765
+ groupcreate_sectionText=-1711276033
+ actionBarDefaultSubmenuItem=-1
+-chats_actionMessage=-10178583
+-chat_addContact=-8796932
++chats_actionMessage=-10899724
++chat_addContact=-8994305
+ avatar_actionBarSelectorBlue=518452735
+-switchTrackChecked=-10378281
++switchTrackChecked=-11164701
+ windowBackgroundWhiteHintText=-8549479
+-chat_inLoader=-10445358
+-chat_adminSelectedText=-7490861
++chat_inLoader=-11231010
++chat_adminSelectedText=-8080164
+ groupcreate_spanText=-657931
+-player_actionBarSelector=-13483693
++player_actionBarSelector=-15193262
+ key_player_progressCachedBackground=-11245182
+-chat_outTimeText=-7357217
+-chat_outBubble=-12689014
++chat_outTimeText=-7947032
++chat_outBubble=-13800449
+ statisticChartChevronColor=-9012091
+ chats_menuItemText=-184549377
+ chats_message=-8549479
+-chat_outReplyNameText=-6631937
+-chats_menuTopBackgroundCats=-14471105
+-chat_outReplyMediaMessageText=-7357217
++chat_outReplyNameText=-6630657
++chats_menuTopBackgroundCats=-15589315
++chat_outReplyMediaMessageText=-7947032
+ chat_textSelectBackground=1516415459
+ chat_messagePanelVoiceDelete=-1
+ chat_inAudioProgress=-1
+@@ -409,39 +409,39 @@ chats_date=-9207925
+ chat_messagePanelText=-1
+ actionBarTabSelector=926307434
+ key_sheet_scrollUp=637534207
+-player_buttonActive=-10177041
+-chat_outContactBackground=-9919529
+-sharedMedia_linkPlaceholder=-14207163
+-windowBackgroundWhiteBlueText7=-8796932
+-windowBackgroundWhiteBlueText3=-10177041
+-windowBackgroundWhiteBlueText2=-8796932
+-windowBackgroundWhiteBlueText5=-10177041
+-windowBackgroundWhiteBlueText4=-10177041
+-chat_inViewsSelected=-7490861
++player_buttonActive=-10833415
++chat_outContactBackground=-10639646
++sharedMedia_linkPlaceholder=-15523005
++windowBackgroundWhiteBlueText7=-8994305
++windowBackgroundWhiteBlueText3=-10833415
++windowBackgroundWhiteBlueText2=-8994305
++windowBackgroundWhiteBlueText5=-10833415
++windowBackgroundWhiteBlueText4=-10833415
++chat_inViewsSelected=-8080164
+ windowBackgroundWhiteLinkSelection=862238205
+-player_background=-14734794
++player_background=-15786955
+ inappPlayerClose=1859974399
+ chat_outMediaIcon=-1
+ chats_message_threeLines=-8549479
+ player_actionBarSubtitle=2027746559
+-chat_outAudioCacheSeekbar=-10120765
++chat_outAudioCacheSeekbar=-10970416
+ chat_attachContactBackground=-2183099
+ chats_sentClock=-11772054
+ chat_inAudioSeekbar=-11443856
+ dialogSearchIcon=-8945521
+-chat_inPreviewInstantText=-8796932
+-chats_archiveBackground=-11036980
+-dialog_liveLocationProgress=-9919529
++chat_inPreviewInstantText=-8994305
++chats_archiveBackground=-11888167
++dialog_liveLocationProgress=-10639646
+ chat_inViews=-8812137
+-chat_outLoaderSelected=-9919529
+-dialogButtonSelector=-13483690
+-chats_archivePinBackground=-13746613
++chat_outLoaderSelected=-10639646
++dialogButtonSelector=-15193004
++chats_archivePinBackground=-15325109
+ player_actionBarItems=-1
+ chat_sentError=-633010
+-player_progressBackground=-13023400
+-chat_inAudioDurationSelectedText=-7490861
++player_progressBackground=-15061158
++chat_inAudioDurationSelectedText=-8080164
+ windowBackgroundWhiteGrayText2=1878130175
+-chat_outAudioSeekbarSelected=-9461802
++chat_outAudioSeekbarSelected=-10180127
+ windowBackgroundWhiteGrayText8=-8549479
+ windowBackgroundWhiteGrayText5=-8549479
+ windowBackgroundWhiteGrayText6=-8549479
+@@ -450,37 +450,37 @@ windowBackgroundWhiteGrayText4=-931296359
+ chat_inTimeText=-645885536
+ dialogRadioBackground=-11245959
+ statisticChartRipple=748994002
+-chat_BlurAlpha=-1308622848
+-chat_BlurAlphaSlow=-872415232
++chat_BlurAlpha=-1946157056
++chat_BlurAlphaSlow=-1509949440
+ chat_outReplyMessageText=-1
+ chat_recordedVoiceDot=-1221292
+-chat_messagePanelBackground=-14602949
++chat_messagePanelBackground=-15655367
+ chat_inReactionButtonText=-1
+-chat_inVoiceSeekbarFill=-10177041
+-graySection=-15459033
+-chat_outAudioSeekbar=-429551165
++chat_inVoiceSeekbarFill=-10833415
++graySection=-16051419
++chat_outAudioSeekbar=-430400816
+ chats_muteIcon=-11640982
+ chat_inVoiceSeekbar=-10653824
+ chat_outFileProgress=-1
+-profile_verifiedBackground=-10177027
+-chat_outLoader=-9919529
++profile_verifiedBackground=-10307329
++chat_outLoader=-10639646
+ windowBackgroundWhiteGreenText2=-10366101
+-chat_replyPanelName=-8796932
++chat_replyPanelName=-8994305
+ chat_outMediaIconSelected=-1
+-windowBackgroundWhiteValueText=-528890628
+-chat_outAudioDurationText=-7357217
+-chat_outMenu=-9594162
+-chat_goDownButton=-14602949
++windowBackgroundWhiteValueText=-529088001
++chat_outAudioDurationText=-7947032
++chat_outMenu=-10378022
++chat_goDownButton=-15655367
+ statisticChartActiveLine=855638015
+ chats_secretName=-9316522
+-chat_inMenu=2039722445
+-chat_recordVoiceCancel=-9192978
++chat_inMenu=2039133398
++chat_recordVoiceCancel=-9783049
+ chat_outReplyMediaMessageSelectedText=-1
+ chat_messageTextIn=-328966
+ chats_attachMessage=-8548712
+-chat_topPanelBackground=-14602949
+-chat_outSentClock=-8213557
+-dialogBackgroundGray=-14932431
++chat_topPanelBackground=-15655367
++chat_outSentClock=-8934442
++dialogBackgroundGray=-15853264
+ chat_searchPanelText=-1
+ chat_inContactIcon=-1
+ code_comment=-2130706433
+@@ -494,7 +494,7 @@ code_operator=2147483647
+ code_number=-10887465
+ code_comment=2147483647
+ iv_background=-16777216
+-iv_backgroundGray=-14737633
++iv_backgroundGray=-16051162
+ iv_navigationBackground=-16777216
+ table_background=177390847
+ table_border=436207615
+@@ -505,21 +505,21 @@ share_linkText=-1207959553
+ share_linkBackground=352321535
+ glass_defaultIcon=-1593835521
+ glass_defaultText=-1593835521
+-glass_targetMainTabs=-14668226
+-glass_targetMainTopPanel=-14470847
++glass_targetMainTabs=-15655110
++glass_targetMainTopPanel=-15589058
+ chat_lockIcon=-1
+ stories_circle_closeFriends1=-3544264
+ stories_circle_closeFriends2=-16137881
+ stories_circle_dialog1=-11866795
+-stories_circle_dialog2=-11680769
++stories_circle_dialog2=-11685889
+ stories_circle1=-12984516
+-stories_circle2=-11682817
++stories_circle2=-11685889
+ chat_msgIvButtonDefaultIn=#ff2a3745
+ chat_msgIvButtonPrimaryIn=#ff229af0
+-chat_msgIvButtonPrimaryInPressed=-12412453
++chat_msgIvButtonPrimaryInPressed=-13264664
+ chat_msgIvButtonPrimaryInText=#ffffffff
+ chat_msgIvButtonPrimaryOut=#ff229af0
+-chat_msgIvButtonPrimaryOutPressed=-12412453
++chat_msgIvButtonPrimaryOutPressed=-13264664
+ chat_msgIvButtonPrimaryOutText=#ffffffff
+ chat_msgIvButtonDangerInText=#ffff6d6d
+ chat_msgIvButtonSuccessInText=#ff78ff7b
+@@ -527,3 +527,7 @@ chat_msgIvButtonDefaultInlineInText=#ff298acf
+ chat_msgIvButtonDefaultInlineIn=#19298acf
+ chat_msgIvButtonDefaultInlineInPressed=#28298acf
+ wallet_out_commentBorder=-11971487
++glass_tabSelected=-11549705
++glass_tabSelectedText=-8399617
++chats_actionPressedBackground=-14720039
++chat_outBubbleGradient=-12602113
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java b/TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+index ca82181..7de2b9d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+@@ -22,15 +22,15 @@ public class BuildVars {
+     public static boolean LOGS_ENABLED = BuildConfig.DEBUG_VERSION;
+     public static boolean DEBUG_PRIVATE_VERSION = BuildConfig.DEBUG_PRIVATE_VERSION;
+     public static boolean USE_CLOUD_STRINGS = true;
+-    public static boolean CHECK_UPDATES = true;
++    public static boolean CHECK_UPDATES = false; // GlassGram: no official update prompts
+     public static boolean NO_SCOPED_STORAGE = Build.VERSION.SDK_INT <= 29;
+     public static String BUILD_VERSION_STRING = BuildConfig.BUILD_VERSION_STRING;
+ 
+-    public static int APP_ID = 4;
+-    public static String APP_HASH = "014b35b6184100b085b0d0572f9b5103";
++    public static int APP_ID = BuildConfig.GLASSGRAM_API_ID; // GlassGram: own keys, see build.gradle
++    public static String APP_HASH = BuildConfig.GLASSGRAM_API_HASH;
+ 
+     // SafetyNet key for Google Identity SDK, set it to empty to disable
+-    public static String SAFETYNET_KEY = "AIzaSyDqt8P-7F7CPCseMkOiVRgb1LY8RN1bvH8";
++    public static String SAFETYNET_KEY = "";
+     public static String PLAYSTORE_APP_URL = "https://play.google.com/store/apps/details?id=org.telegram.messenger";
+     public static String HUAWEI_STORE_URL = "https://appgallery.huawei.com/app/C101184875";
+     public static String GOOGLE_AUTH_CLIENT_ID = "760348033671-81kmi3pi84p11ub8hp9a1funsv0rn2p9.apps.googleusercontent.com";
+@@ -38,13 +38,13 @@ public class BuildVars {
+     public static String HUAWEI_APP_ID = "101184875";
+ 
+     // You can use this flag to disable Google Play Billing (If you're making fork and want it to be in Google Play)
+-    public static boolean IS_BILLING_UNAVAILABLE = false;
++    public static boolean IS_BILLING_UNAVAILABLE = true;
+ 
+     // works only on official app ids, disable on your forks
+-    public static boolean SUPPORTS_PASSKEYS = true;
++    public static boolean SUPPORTS_PASSKEYS = false;
+     // the second main tab: News, or Contacts as before them
+ 
+-    public static boolean SUPPORTS_FPNV = true;
++    public static boolean SUPPORTS_FPNV = false;
+ 
+     static {
+         if (ApplicationLoader.applicationContext != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/GlassConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/GlassConfig.java
+new file mode 100644
+index 0000000..5a94a2c
+--- /dev/null
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/GlassConfig.java
+@@ -0,0 +1,30 @@
++package org.telegram.messenger;
++
++/**
++ * GlassGram visual mod switches.
++ */
++public final class GlassConfig {
++
++    private GlassConfig() {
++    }
++
++    /** Draw user / chat avatars as rounded squares instead of circles. */
++    public static final boolean SQUARE_AVATARS = true;
++
++    /**
++     * Corner radius of a square avatar, as a fraction of the circle radius it replaces
++     * (1.0 = circle, 0.0 = sharp square).
++     */
++    public static final float AVATAR_CORNER = 0.32f;
++
++    public static int avatarRadius(int circleRadius) {
++        return SQUARE_AVATARS ? Math.round(circleRadius * AVATAR_CORNER) : circleRadius;
++    }
++
++    public static float avatarRadius(float circleRadius) {
++        return SQUARE_AVATARS ? circleRadius * AVATAR_CORNER : circleRadius;
++    }
++
++    /** Liquid glass and blurred panels are switched on once, on the first launch of GlassGram. */
++    public static final boolean FORCE_GLASS_ON_FIRST_LAUNCH = true;
++}
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImageReceiver.java b/TMessagesProj/src/main/java/org/telegram/messenger/ImageReceiver.java
+index 0a60742..c4599e6 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ImageReceiver.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ImageReceiver.java
+@@ -324,6 +324,10 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
+     private boolean forceCrossfade;
+     private boolean useRoundRadius = true;
+     private final int[] roundRadius = new int[4];
++    // GlassGram: avatars are drawn as rounded squares, the radius asked by the caller is kept here
++    private boolean glassAvatar;
++    private final int[] glassRequestedRadius = new int[4];
++    private final int[] glassAvatarRadius = new int[4];
+     private int[] emptyRoundRadius;
+     private boolean isRoundRect = true;
+     private Object mark;
+@@ -428,6 +432,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
+         if (parentObject == null) {
+             parentObject = object;
+         }
++        setGlassAvatar(true);
+         setUseRoundForThumbDrawable(true);
+         BitmapDrawable strippedBitmap = null;
+         boolean hasStripped = false;
+@@ -570,6 +575,11 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
+     }
+ 
+     public void setImage(ImageLocation mediaLocation, String mediaFilter, ImageLocation imageLocation, String imageFilter, ImageLocation thumbLocation, String thumbFilter, Drawable thumb, long size, String ext, Object parentObject, int cacheType) {
++        // GlassGram: the same receiver can show an avatar and then a photo (e.g. a contact message cell)
++        setGlassAvatar(thumb instanceof AvatarDrawable
++                || imageLocation != null && imageLocation.photoPeer != null
++                || mediaLocation != null && mediaLocation.photoPeer != null
++                || thumbLocation != null && thumbLocation.photoPeer != null);
+         if (allowLoadingOnAttachedOnly && !attachedToWindow) {
+             if (setImageBackup == null) {
+                 setImageBackup = new SetImageBackup();
+@@ -2544,6 +2554,15 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
+     }
+ 
+     public void setRoundRadius(int[] value) {
++        if (value != glassAvatarRadius) {
++            System.arraycopy(value, 0, glassRequestedRadius, 0, Math.min(value.length, 4));
++        }
++        if (glassAvatar && value != glassAvatarRadius) {
++            for (int a = 0; a < 4; a++) {
++                glassAvatarRadius[a] = GlassConfig.avatarRadius(glassRequestedRadius[a]);
++            }
++            value = glassAvatarRadius;
++        }
+         boolean changed = false;
+         int firstValue = value[0];
+         isRoundRect = true;
+@@ -2572,6 +2591,19 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
+         }
+     }
+ 
++    /** GlassGram: marks this receiver as an avatar, so its round radius turns into a rounded square. */
++    public void setGlassAvatar(boolean value) {
++        if (!GlassConfig.SQUARE_AVATARS || glassAvatar == value) {
++            return;
++        }
++        glassAvatar = value;
++        setRoundRadius(glassRequestedRadius.clone());
++    }
++
++    public boolean isGlassAvatar() {
++        return glassAvatar;
++    }
++
+     public void setRoundRadiusEnabled(boolean enabled) {
+         if (useRoundRadius != enabled) {
+             useRoundRadius = enabled;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LiteMode.java b/TMessagesProj/src/main/java/org/telegram/messenger/LiteMode.java
+index 37619e6..c9b83c2 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/LiteMode.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/LiteMode.java
+@@ -336,6 +336,11 @@ public class LiteMode {
+ 
+         int prevValue = value;
+         value = preferences.getInt("lite_mode6", defaultValue);
++        if (GlassConfig.FORCE_GLASS_ON_FIRST_LAUNCH && !preferences.getBoolean("glassgram_glass_init", false)) {
++            // GlassGram: liquid glass and blurred panels on by default
++            value |= FLAG_LIQUID_GLASS | FLAG_CHAT_BLUR;
++            preferences.edit().putInt("lite_mode6", value).putBoolean("glassgram_glass_init", true).apply();
++        }
+         if (loaded) {
+             onFlagsUpdate(prevValue, value);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
+index 7fc7292..dadf6e0 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
+@@ -4010,13 +4010,13 @@ public class Theme {
+         themeInfo.previewOutColor = 0xff82a8e3;
+         themeInfo.sortIndex = 3;
+         themeInfo.setAccentColorOptions(
+-                new int[]    {                    0xFF927BD4,                    0xFF698AFB,                    0xFF23A7F0,                    0xFF7B71D1,                    0xFF69B955,                    0xFF2990EA,                    0xFF7082E9,                    0xFF66BAED,                    0xff3685fa,                    0xff46c8ed,                    0xff64AC5F,                    0xffeb7cb1,                    0xffee902a,                    0xffa281f0,                    0xffd34324,                    0xffeebd34,                    0xff7f8fab,                    0xff3581e3 },
+-                new int[]    {                    0xFF9D5C99,                    0xFF635545,                    0xFF31818B,                    0xFFAD6426,                    0xFF4A7034,                    0xFF335D82,                    0xFF36576F,                    0xFF597563,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000 },
+-                new int[]    {                    0xFF604DA8,                    0xFF685D4C,                    0xFF1B6080,                    0xFF99354E,                    0xFF275D3B,                    0xFF317A98,                    0xFF376E87,                    0xFF5E7370,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000 },
+-                new int[]    {                    0xFF271e2e,                    0xFF171a22,                    0xFF071e1f,                    0xFF100f13,                    0xFF0e1811,                    0xFF0b131c,                    0xFF1d2129,                    0xFF202c2a,                    0xff0e141a,                    0xff162325,                    0xff161d15,                    0xff24191e,                    0xff251b13,                    0xff1f1d29,                    0xff22160e,                    0xff272115,                    0xff171a1b,                    0xff0e141a },
+-                new int[]    {                    0xFF110e13,                    0xFF26262e,                    0xFF141d26,                    0xFF221a27,                    0xFF1f2818,                    0xFF192330,                    0xFF12161a,                    0xFF141a1e,                    0xff172431,                    0xff0e1718,                    0xff172719,                    0xff23171c,                    0xff201408,                    0xff14131c,                    0xff2d1d16,                    0xff1a160d,                    0xff212328,                    0xff172431 },
+-                new int[]    {                    0xFF2b1e2b,                    0xFF15151b,                    0xFF0c151a,                    0xFF0e0f13,                    0xFF0b170f,                    0xFF131822,                    0xFF17242d,                    0xFF16202b,                    0xff0f171e,                    0xff1e2e2e,                    0xff141e14,                    0xff2b1929,                    0xff2e1f15,                    0xff292331,                    0xff23140c,                    0xff292414,                    0xff181a1d,                    0xff0f171e },
+-                new int[]    {                    0xFF161227,                    0xFF1a1916,                    0xFF0d272c,                    0xFF271d29,                    0xFF171d19,                    0xFF172331,                    0xFF111521,                    0xFF051717,                    0xff141c2b,                    0xff121f1f,                    0xff1c261a,                    0xff1f141d,                    0xff1b130a,                    0xff17131b,                    0xff2d1924,                    0xff1e170e,                    0xff212228,                    0xff141c2b },
++                new int[]    {                    0xFF927BD4,                    0xFF698AFB,                    0xFF23A7F0,                    0xFF7B71D1,                    0xFF69B955,                    0xFF2990EA,                    0xFF7082E9,                    0xFF66BAED,                    0xFF4FA8FF,                    0xff46c8ed,                    0xff64AC5F,                    0xffeb7cb1,                    0xffee902a,                    0xffa281f0,                    0xffd34324,                    0xffeebd34,                    0xff7f8fab,                    0xff3581e3 },
++                new int[]    {                    0xFF9D5C99,                    0xFF635545,                    0xFF31818B,                    0xFFAD6426,                    0xFF4A7034,                    0xFF335D82,                    0xFF36576F,                    0xFF597563,                    0xFF2D6BFF,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000 },
++                new int[]    {                    0xFF604DA8,                    0xFF685D4C,                    0xFF1B6080,                    0xFF99354E,                    0xFF275D3B,                    0xFF317A98,                    0xFF376E87,                    0xFF5E7370,                    0xFF3FB4FF,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000 },
++                new int[]    {                    0xFF271e2e,                    0xFF171a22,                    0xFF071e1f,                    0xFF100f13,                    0xFF0e1811,                    0xFF0b131c,                    0xFF1d2129,                    0xFF202c2a,                    0xFF030B18,                    0xff162325,                    0xff161d15,                    0xff24191e,                    0xff251b13,                    0xff1f1d29,                    0xff22160e,                    0xff272115,                    0xff171a1b,                    0xff0e141a },
++                new int[]    {                    0xFF110e13,                    0xFF26262e,                    0xFF141d26,                    0xFF221a27,                    0xFF1f2818,                    0xFF192330,                    0xFF12161a,                    0xFF141a1e,                    0xFF0B2E66,                    0xff0e1718,                    0xff172719,                    0xff23171c,                    0xff201408,                    0xff14131c,                    0xff2d1d16,                    0xff1a160d,                    0xff212328,                    0xff172431 },
++                new int[]    {                    0xFF2b1e2b,                    0xFF15151b,                    0xFF0c151a,                    0xFF0e0f13,                    0xFF0b170f,                    0xFF131822,                    0xFF17242d,                    0xFF16202b,                    0xFF051433,                    0xff1e2e2e,                    0xff141e14,                    0xff2b1929,                    0xff2e1f15,                    0xff292331,                    0xff23140c,                    0xff292414,                    0xff181a1d,                    0xff0f171e },
++                new int[]    {                    0xFF161227,                    0xFF1a1916,                    0xFF0d272c,                    0xFF271d29,                    0xFF171d19,                    0xFF172331,                    0xFF111521,                    0xFF051717,                    0xFF1B56B0,                    0xff121f1f,                    0xff1c261a,                    0xff1f141d,                    0xff1b130a,                    0xff17131b,                    0xff2d1924,                    0xff1e170e,                    0xff212228,                    0xff141c2b },
+                 new int[]    {                            11,                            12,                            13,                            14,                            15,                            16,                            17,                            18,                             0,                             1,                             2,                             3,                             4,                             5,                             6,                             7,                             8,                             9 },
+                 new String[] { "O-wmAfBPSFADAAAA4zINVfD_bro", "RepJ5uE_SVABAAAAr4d0YhgB850", "dk_wwlghOFACAAAAfz9xrxi6euw", "9LW_RcoOSVACAAAAFTk3DTyXN-M", "PllZ-bf_SFAEAAAA8crRfwZiDNg", "-Xc-np9y2VMCAAAARKr0yNNPYW0", "kO4jyq55SFABAAAA0WEpcLfahXk", "CJNyxPMgSVAEAAAAvW9sMwc51cw", "fqv01SQemVIBAAAApND8LDRUhRU", "RepJ5uE_SVABAAAAr4d0YhgB850", "CJNyxPMgSVAEAAAAvW9sMwc51cw", "9LW_RcoOSVACAAAAFTk3DTyXN-M", "9GcNVISdSVADAAAAUcw5BYjELW4", "F5oWoCs7QFACAAAAgf2bD_mg8Bw", "9ShF73d1MFIIAAAAjWnm8_ZMe8Q", "3rX-PaKbSFACAAAAEiHNvcEm6X4", "dk_wwlghOFACAAAAfz9xrxi6euw", "fqv01SQemVIBAAAApND8LDRUhRU" },
+                 new int[]    {                           225,                            45,                           225,                           135,                            45,                           225,                            45,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0 },
+@@ -4363,7 +4363,10 @@ public class Theme {
+             throw new RuntimeException(e);
+         }
+         if (applyingTheme == null) {
+-            applyingTheme = defaultTheme;
++            // GlassGram: the blue liquid glass theme (recolored Dark Blue) is the default day and night
++            final ThemeInfo glassTheme = themesDict.get("Dark Blue");
++            applyingTheme = glassTheme != null ? glassTheme : defaultTheme;
++            currentDayTheme = applyingTheme;
+         } else {
+             currentDayTheme = applyingTheme;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AvatarDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AvatarDrawable.java
+index 5dd8e5f..98e41cb 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AvatarDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AvatarDrawable.java
+@@ -28,6 +28,7 @@ import android.text.TextUtils;
+ import androidx.core.graphics.ColorUtils;
+ 
+ import org.telegram.messenger.AndroidUtilities;
++import org.telegram.messenger.GlassConfig;
+ import org.telegram.messenger.ChatObject;
+ import org.telegram.messenger.Emoji;
+ import org.telegram.messenger.FileLog;
+@@ -647,9 +648,11 @@ public class AvatarDrawable extends Drawable {
+                 canvas.save();
+                 canvas.rotate(-45, size / 2.0f, size / 2.0f);
+             }
+-            if (roundRadius > 0) {
++            if (roundRadius > 0 || GlassConfig.SQUARE_AVATARS) {
++                // GlassGram: rounded square placeholder
++                final float r = GlassConfig.avatarRadius(roundRadius > 0 ? (float) roundRadius : size / 2.0f);
+                 AndroidUtilities.rectTmp.set(0, 0, size, size);
+-                canvas.drawRoundRect(AndroidUtilities.rectTmp, roundRadius, roundRadius, backgroundPaint);
++                canvas.drawRoundRect(AndroidUtilities.rectTmp, r, r, backgroundPaint);
+             } else {
+                 canvas.drawCircle(size / 2.0f, size / 2.0f, size / 2.0f, backgroundPaint);
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesUtilities.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesUtilities.java
+index 55a1192..1bce5ec 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesUtilities.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesUtilities.java
+@@ -32,6 +32,7 @@ import android.widget.TextView;
+ import androidx.core.graphics.ColorUtils;
+ import androidx.recyclerview.widget.RecyclerView;
+ 
++import org.telegram.messenger.GlassConfig;
+ import org.telegram.messenger.AndroidUtilities;
+ import org.telegram.messenger.ChatObject;
+ import org.telegram.messenger.DialogObject;
+@@ -131,7 +132,7 @@ public class StoriesUtilities {
+         int state;
+         int unreadState = 0;
+         boolean showProgress = storiesController.isLoading(dialogId);
+-        boolean isForum = ChatObject.isForum(UserConfig.selectedAccount, dialogId) && !params.isDialogStoriesCell;
++        boolean isForum = GlassConfig.SQUARE_AVATARS || ChatObject.isForum(UserConfig.selectedAccount, dialogId) && !params.isDialogStoriesCell;
+         if (params.drawHiddenStoriesAsSegments) {
+             hasStories = storiesController.hasHiddenStories();
+         }
+@@ -667,7 +668,8 @@ public class StoriesUtilities {
+         if (isForum) {
+             forumRect.set(rectTmp);
+             forumRect.inset(dp(0.5f), dp(0.5f));
+-            canvas.drawRoundRect(forumRect, dp(18), dp(18), paint);
++            final float forumR = GlassConfig.SQUARE_AVATARS ? GlassConfig.avatarRadius(forumRect.width() / 2f) : dp(18);
++            canvas.drawRoundRect(forumRect, forumR, forumR, paint);
+             return;
+         }
+         if (params.progressToArc == 0) {
+@@ -684,7 +686,7 @@ public class StoriesUtilities {
+ 
+     private static void drawSegment(Canvas canvas, RectF rectTmp, Paint paint, float startAngle, float endAngle, AvatarStoryParams params, boolean isForum) {
+         if (isForum) {
+-            float r = rectTmp.height() * 0.32f;
++            float r = GlassConfig.SQUARE_AVATARS ? GlassConfig.avatarRadius(rectTmp.height() / 2f) : rectTmp.height() * 0.32f;
+             float rotateAngle = (((int)(startAngle)) / 90) * 90 + 90;
+             float pathAngleStart = -199 + rotateAngle;
+             float percentFrom = (startAngle - pathAngleStart) / 360;
+diff --git a/TMessagesProj/src/main/res/drawable-v24/glassgram_icon_background.xml b/TMessagesProj/src/main/res/drawable-v24/glassgram_icon_background.xml
+new file mode 100644
+index 0000000..84b800c
+--- /dev/null
++++ b/TMessagesProj/src/main/res/drawable-v24/glassgram_icon_background.xml
+@@ -0,0 +1,19 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:aapt="http://schemas.android.com/aapt"
++    android:width="108dp" android:height="108dp"
++    android:viewportWidth="108" android:viewportHeight="108">
++    <path android:pathData="M0,0h108v108h-108z">
++        <aapt:attr name="android:fillColor">
++            <gradient android:type="linear"
++                android:startX="0" android:startY="0" android:endX="108" android:endY="108">
++                <item android:offset="0" android:color="#FF0B2E66" />
++                <item android:offset="0.55" android:color="#FF1B56B0" />
++                <item android:offset="1" android:color="#FF3FB4FF" />
++            </gradient>
++        </aapt:attr>
++    </path>
++    <!-- soft light blobs behind the glass -->
++    <path android:fillColor="#334FC3F7" android:pathData="M84,22m-26,0a26,26 0,1 1,52 0a26,26 0,1 1,-52 0" />
++    <path android:fillColor="#26030B18" android:pathData="M20,92m-30,0a30,30 0,1 1,60 0a30,30 0,1 1,-60 0" />
++</vector>
+diff --git a/TMessagesProj/src/main/res/drawable-v24/glassgram_icon_foreground.xml b/TMessagesProj/src/main/res/drawable-v24/glassgram_icon_foreground.xml
+new file mode 100644
+index 0000000..45256ce
+--- /dev/null
++++ b/TMessagesProj/src/main/res/drawable-v24/glassgram_icon_foreground.xml
+@@ -0,0 +1,24 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:aapt="http://schemas.android.com/aapt"
++    android:width="108dp" android:height="108dp"
++    android:viewportWidth="108" android:viewportHeight="108">
++    <!-- glass tile -->
++    <path android:pathData="M42,28h24a14,14 0,0 1,14 14v24a14,14 0,0 1,-14 14h-24a14,14 0,0 1,-14 -14v-24a14,14 0,0 1,14 -14z"
++        android:strokeColor="#99FFFFFF" android:strokeWidth="1.6">
++        <aapt:attr name="android:fillColor">
++            <gradient android:type="linear"
++                android:startX="28" android:startY="28" android:endX="80" android:endY="80">
++                <item android:offset="0" android:color="#55FFFFFF" />
++                <item android:offset="1" android:color="#1AFFFFFF" />
++            </gradient>
++        </aapt:attr>
++    </path>
++    <!-- specular highlight -->
++    <path android:fillColor="#40FFFFFF"
++        android:pathData="M42,29.5h24a12.5,12.5 0,0 1,12.5 12.5v1.5c-12,-5 -38,-5 -49,2v-3.5a12.5,12.5 0,0 1,12.5 -12.5z" />
++    <!-- G -->
++    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="5.5" android:strokeLineCap="round"
++        android:strokeLineJoin="round" android:fillColor="#00000000"
++        android:pathData="M63.2,44.6A13,13 0,1 0,67 54L55,54" />
++</vector>
+diff --git a/TMessagesProj/src/main/res/drawable/glassgram_icon_background.xml b/TMessagesProj/src/main/res/drawable/glassgram_icon_background.xml
+new file mode 100644
+index 0000000..46e02ca
+--- /dev/null
++++ b/TMessagesProj/src/main/res/drawable/glassgram_icon_background.xml
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="108dp" android:height="108dp"
++    android:viewportWidth="108" android:viewportHeight="108">
++    <path android:pathData="M0,0h108v108h-108z" android:fillColor="#FF1B56B0" />
++    <!-- soft light blobs behind the glass -->
++    <path android:fillColor="#334FC3F7" android:pathData="M84,22m-26,0a26,26 0,1 1,52 0a26,26 0,1 1,-52 0" />
++    <path android:fillColor="#26030B18" android:pathData="M20,92m-30,0a30,30 0,1 1,60 0a30,30 0,1 1,-60 0" />
++</vector>
+diff --git a/TMessagesProj/src/main/res/drawable/glassgram_icon_foreground.xml b/TMessagesProj/src/main/res/drawable/glassgram_icon_foreground.xml
+new file mode 100644
+index 0000000..590a29f
+--- /dev/null
++++ b/TMessagesProj/src/main/res/drawable/glassgram_icon_foreground.xml
+@@ -0,0 +1,15 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="108dp" android:height="108dp"
++    android:viewportWidth="108" android:viewportHeight="108">
++    <!-- glass tile -->
++    <path android:pathData="M42,28h24a14,14 0,0 1,14 14v24a14,14 0,0 1,-14 14h-24a14,14 0,0 1,-14 -14v-24a14,14 0,0 1,14 -14z"
++        android:strokeColor="#99FFFFFF" android:strokeWidth="1.6" android:fillColor="#33FFFFFF" />
++    <!-- specular highlight -->
++    <path android:fillColor="#40FFFFFF"
++        android:pathData="M42,29.5h24a12.5,12.5 0,0 1,12.5 12.5v1.5c-12,-5 -38,-5 -49,2v-3.5a12.5,12.5 0,0 1,12.5 -12.5z" />
++    <!-- G -->
++    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="5.5" android:strokeLineCap="round"
++        android:strokeLineJoin="round" android:fillColor="#00000000"
++        android:pathData="M63.2,44.6A13,13 0,1 0,67 54L55,54" />
++</vector>
+diff --git a/TMessagesProj/src/main/res/drawable/glassgram_icon_monochrome.xml b/TMessagesProj/src/main/res/drawable/glassgram_icon_monochrome.xml
+new file mode 100644
+index 0000000..07a977f
+--- /dev/null
++++ b/TMessagesProj/src/main/res/drawable/glassgram_icon_monochrome.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="108dp" android:height="108dp"
++    android:viewportWidth="108" android:viewportHeight="108">
++    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="5.5" android:strokeLineCap="round"
++        android:strokeLineJoin="round" android:fillColor="#00000000"
++        android:pathData="M63.2,44.6A13,13 0,1 0,67 54L55,54" />
++</vector>
+diff --git a/TMessagesProj/src/main/res/mipmap-anydpi-v26/ic_launcher.xml b/TMessagesProj/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+index 5a996b4..05d0a12 100644
+--- a/TMessagesProj/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
++++ b/TMessagesProj/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+-    <background android:drawable="@drawable/icon_background" />
+-    <foreground android:drawable="@mipmap/icon_foreground" />
+-    <monochrome android:drawable="@drawable/icon_plane" />
+-</adaptive-icon>
+\ No newline at end of file
++    <background android:drawable="@drawable/glassgram_icon_background" />
++    <foreground android:drawable="@drawable/glassgram_icon_foreground" />
++    <monochrome android:drawable="@drawable/glassgram_icon_monochrome" />
++</adaptive-icon>
+diff --git a/TMessagesProj/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml b/TMessagesProj/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+index 527bf8f..05d0a12 100644
+--- a/TMessagesProj/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
++++ b/TMessagesProj/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+-    <background android:drawable="@drawable/icon_background_round" />
+-    <foreground android:drawable="@mipmap/icon_foreground_round" />
+-    <monochrome android:drawable="@drawable/icon_plane" />
++    <background android:drawable="@drawable/glassgram_icon_background" />
++    <foreground android:drawable="@drawable/glassgram_icon_foreground" />
++    <monochrome android:drawable="@drawable/glassgram_icon_monochrome" />
+ </adaptive-icon>
+diff --git a/TMessagesProj/src/main/res/mipmap-anydpi/ic_launcher.xml b/TMessagesProj/src/main/res/mipmap-anydpi/ic_launcher.xml
+new file mode 100644
+index 0000000..42d6b44
+--- /dev/null
++++ b/TMessagesProj/src/main/res/mipmap-anydpi/ic_launcher.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
++    <item android:drawable="@drawable/glassgram_icon_background" />
++    <item android:drawable="@drawable/glassgram_icon_foreground" />
++</layer-list>
+diff --git a/TMessagesProj/src/main/res/mipmap-anydpi/ic_launcher_round.xml b/TMessagesProj/src/main/res/mipmap-anydpi/ic_launcher_round.xml
+new file mode 100644
+index 0000000..42d6b44
+--- /dev/null
++++ b/TMessagesProj/src/main/res/mipmap-anydpi/ic_launcher_round.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
++    <item android:drawable="@drawable/glassgram_icon_background" />
++    <item android:drawable="@drawable/glassgram_icon_foreground" />
++</layer-list>
+diff --git a/TMessagesProj/src/main/res/values-ar/strings.xml b/TMessagesProj/src/main/res/values-ar/strings.xml
+index 8b87004..52be9ff 100644
+--- a/TMessagesProj/src/main/res/values-ar/strings.xml
++++ b/TMessagesProj/src/main/res/values-ar/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">تيليجرام</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">(Beta) تيليجرام</string>
+     <string name="LanguageName">العربية</string>
+     <string name="English">الإنجليزية</string>
+diff --git a/TMessagesProj/src/main/res/values-de/strings.xml b/TMessagesProj/src/main/res/values-de/strings.xml
+index 9054784..4fc7ad4 100644
+--- a/TMessagesProj/src/main/res/values-de/strings.xml
++++ b/TMessagesProj/src/main/res/values-de/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">Telegram</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">Telegram Beta</string>
+     <string name="LanguageName">Deutsch</string>
+     <string name="English">Englisch</string>
+diff --git a/TMessagesProj/src/main/res/values-es/strings.xml b/TMessagesProj/src/main/res/values-es/strings.xml
+index 4779808..96e44d3 100644
+--- a/TMessagesProj/src/main/res/values-es/strings.xml
++++ b/TMessagesProj/src/main/res/values-es/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">Telegram</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">Telegram Beta</string>
+     <string name="LanguageName">Español</string>
+     <string name="English">Inglés</string>
+diff --git a/TMessagesProj/src/main/res/values-it/strings.xml b/TMessagesProj/src/main/res/values-it/strings.xml
+index 3e7688d..c2dc4fa 100644
+--- a/TMessagesProj/src/main/res/values-it/strings.xml
++++ b/TMessagesProj/src/main/res/values-it/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">Telegram</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">Telegram Beta</string>
+     <string name="LanguageName">Italiano</string>
+     <string name="English">Inglese</string>
+diff --git a/TMessagesProj/src/main/res/values-ko/strings.xml b/TMessagesProj/src/main/res/values-ko/strings.xml
+index 6f75e2e..069fba7 100644
+--- a/TMessagesProj/src/main/res/values-ko/strings.xml
++++ b/TMessagesProj/src/main/res/values-ko/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">텔레그램</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">텔레그램</string>
+     <string name="LanguageName">한국어</string>
+     <string name="English">영어</string>
+diff --git a/TMessagesProj/src/main/res/values-nl/strings.xml b/TMessagesProj/src/main/res/values-nl/strings.xml
+index f3df87e..4dc968a 100644
+--- a/TMessagesProj/src/main/res/values-nl/strings.xml
++++ b/TMessagesProj/src/main/res/values-nl/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">Telegram</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">Telegram-bèta</string>
+     <string name="LanguageName">Nederlands</string>
+     <string name="English">Engels</string>
+diff --git a/TMessagesProj/src/main/res/values-pt-rBR/strings.xml b/TMessagesProj/src/main/res/values-pt-rBR/strings.xml
+index 03d0ba3..715598d 100644
+--- a/TMessagesProj/src/main/res/values-pt-rBR/strings.xml
++++ b/TMessagesProj/src/main/res/values-pt-rBR/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">Telegram</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">Telegram Beta</string>
+     <string name="LanguageName">Português (Brasil)</string>
+     <string name="English">Inglês</string>
+diff --git a/TMessagesProj/src/main/res/values-ru/strings.xml b/TMessagesProj/src/main/res/values-ru/strings.xml
+index 24c5629..2b6eef2 100644
+--- a/TMessagesProj/src/main/res/values-ru/strings.xml
++++ b/TMessagesProj/src/main/res/values-ru/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">Telegram</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">Telegram Beta</string>
+     <string name="LanguageName">Русский</string>
+     <string name="English">Английский</string>
+diff --git a/TMessagesProj/src/main/res/values-uk/strings.xml b/TMessagesProj/src/main/res/values-uk/strings.xml
+index d468344..111b798 100644
+--- a/TMessagesProj/src/main/res/values-uk/strings.xml
++++ b/TMessagesProj/src/main/res/values-uk/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">Telegram</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">Telegram Beta</string>
+     <string name="LanguageName">Українська</string>
+     <string name="English">Англійська</string>
+diff --git a/TMessagesProj/src/main/res/values/strings.xml b/TMessagesProj/src/main/res/values/strings.xml
+index e4f8cf6..f35ae3f 100644
+--- a/TMessagesProj/src/main/res/values/strings.xml
++++ b/TMessagesProj/src/main/res/values/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <string name="AppName">Telegram</string>
++    <string name="AppName">GlassGram</string>
+     <string name="AppNameBeta">Telegram Beta</string>
+     <string name="LanguageName">English</string>
+     <string name="English">English</string>
+diff --git a/TMessagesProj_App/build.gradle b/TMessagesProj_App/build.gradle
+index daff205..c988ec6 100644
+--- a/TMessagesProj_App/build.gradle
++++ b/TMessagesProj_App/build.gradle
+@@ -131,7 +131,8 @@ android {
+         }
+         afat {
+             ndk {
+-                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
++                // GlassGram: -PGLASSGRAM_ABIS=arm64-v8a builds a single-ABI apk (much faster)
++                abiFilters(*((project.findProperty("GLASSGRAM_ABIS") ?: "armeabi-v7a,arm64-v8a,x86,x86_64").toString().split(",")))
+             }
+             sourceSets.debug {
+                 manifest.srcFile '../TMessagesProj/config/debug/AndroidManifest_SDK23.xml'
+diff --git a/TMessagesProj_App/google-services.json b/TMessagesProj_App/google-services.json
+index 640e841..5a1a5a7 100644
+--- a/TMessagesProj_App/google-services.json
++++ b/TMessagesProj_App/google-services.json
+@@ -1,98 +1,48 @@
+ {
+   "project_info": {
+-    "project_number": "760348033671",
+-    "firebase_url": "https://tmessages2.firebaseio.com",
+-    "project_id": "tmessages2",
+-    "storage_bucket": "tmessages2.appspot.com"
++    "project_number": "000000000000",
++    "project_id": "glassgram-placeholder",
++    "storage_bucket": "glassgram-placeholder.appspot.com"
+   },
+   "client": [
+     {
+       "client_info": {
+-        "mobilesdk_app_id": "1:760348033671:android:f6afd7b67eae3860",
++        "mobilesdk_app_id": "1:000000000000:android:0000000000000001",
+         "android_client_info": {
+-          "package_name": "org.telegram.messenger"
++          "package_name": "com.glassgram.messenger"
+         }
+       },
+-      "oauth_client": [
+-        {
+-          "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-          "client_type": 3
+-        }
+-      ],
++      "oauth_client": [],
+       "api_key": [
+         {
+-          "current_key": "AIzaSyA-t0jLPjUt2FxrA8VPK2EiYHcYcboIR6k"
++          "current_key": "AIzaSyPLACEHOLDER-GlassGram-000000000000"
+         }
+       ],
+       "services": {
+         "appinvite_service": {
+-          "other_platform_oauth_client": [
+-            {
+-              "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-              "client_type": 3
+-            }
+-          ]
++          "other_platform_oauth_client": []
+         }
+       }
+     },
+     {
+       "client_info": {
+-        "mobilesdk_app_id": "1:760348033671:android:dc022572c167a16c",
++        "mobilesdk_app_id": "1:000000000000:android:0000000000000002",
+         "android_client_info": {
+-          "package_name": "org.telegram.messenger.beta"
++          "package_name": "com.glassgram.messenger.beta"
+         }
+       },
+-      "oauth_client": [
+-        {
+-          "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-          "client_type": 3
+-        }
+-      ],
+-      "api_key": [
+-        {
+-          "current_key": "AIzaSyA-t0jLPjUt2FxrA8VPK2EiYHcYcboIR6k"
+-        }
+-      ],
+-      "services": {
+-        "appinvite_service": {
+-          "other_platform_oauth_client": [
+-            {
+-              "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-              "client_type": 3
+-            }
+-          ]
+-        }
+-      }
+-    },
+-    {
+-      "client_info": {
+-        "mobilesdk_app_id": "1:760348033671:android:7396e651423888c3f66e22",
+-        "android_client_info": {
+-          "package_name": "org.telegram.messenger.web"
+-        }
+-      },
+-      "oauth_client": [
+-        {
+-          "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-          "client_type": 3
+-        }
+-      ],
++      "oauth_client": [],
+       "api_key": [
+         {
+-          "current_key": "AIzaSyA-t0jLPjUt2FxrA8VPK2EiYHcYcboIR6k"
++          "current_key": "AIzaSyPLACEHOLDER-GlassGram-000000000000"
+         }
+       ],
+       "services": {
+         "appinvite_service": {
+-          "other_platform_oauth_client": [
+-            {
+-              "client_id": "760348033671-2hh8ebmuflsnjoc0kldkfells9rhtfni.apps.googleusercontent.com",
+-              "client_type": 3
+-            }
+-          ]
++          "other_platform_oauth_client": []
+         }
+       }
+     }
+   ],
+   "configuration_version": "1"
+-}
+\ No newline at end of file
++}
+diff --git a/gradle.properties b/gradle.properties
+index 17bb1dc..cc56892 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -15,7 +15,7 @@
+ #Sat Mar 12 05:53:50 MSK 2016
+ APP_VERSION_CODE=7303
+ APP_VERSION_NAME=13.2.2
+-APP_PACKAGE=org.telegram.messenger
++APP_PACKAGE=com.glassgram.messenger
+ IS_PRIVATE=false
+ RELEASE_KEY_PASSWORD=android
+ RELEASE_KEY_ALIAS=androidkey

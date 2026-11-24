@@ -1,0 +1,75 @@
+name: Build GlassGram
+
+# Builds the GlassGram apk (Telegram for Android + glassgram/glassgram.patch).
+# Needs two repository secrets (Settings -> Secrets and variables -> Actions):
+#   GLASSGRAM_API_ID, GLASSGRAM_API_HASH  - your own keys from https://my.telegram.org
+# The apk is attached to the run as the "GlassGram" artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      abis:
+        description: "ABIs to build (comma separated)"
+        default: "arm64-v8a,armeabi-v7a"
+        required: true
+  push:
+    paths:
+      - "glassgram/**"
+      - ".github/workflows/glassgram.yml"
+
+concurrency:
+  group: glassgram-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets
+        env:
+          API_ID: ${{ secrets.GLASSGRAM_API_ID }}
+          API_HASH: ${{ secrets.GLASSGRAM_API_HASH }}
+        run: |
+          if [ -z "$API_ID" ] || [ -z "$API_HASH" ]; then
+            echo "::error::Add GLASSGRAM_API_ID and GLASSGRAM_API_HASH repository secrets (keys from my.telegram.org)"
+            exit 1
+          fi
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/android/sdk/ndk /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Android SDK packages
+        run: |
+          SM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SM" --licenses > /dev/null || true
+          "$SM" "build-tools;36.0.0" "platforms;android-36" "ndk;27.2.12479018" "cmake;3.22.1" > /dev/null
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('glassgram/UPSTREAM_COMMIT') }}
+
+      - name: Build
+        env:
+          GLASSGRAM_API_ID: ${{ secrets.GLASSGRAM_API_ID }}
+          GLASSGRAM_API_HASH: ${{ secrets.GLASSGRAM_API_HASH }}
+          GLASSGRAM_ABIS: ${{ github.event.inputs.abis || 'arm64-v8a,armeabi-v7a' }}
+        run: bash glassgram/build.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GlassGram
+          path: glassgram-out/*.apk
+          if-no-files-found: error
