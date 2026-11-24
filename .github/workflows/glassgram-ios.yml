@@ -54,6 +54,12 @@ jobs:
           git -C "$SRC" submodule update --init --recursive --depth 1 --jobs 8
           git -C "$SRC" apply --whitespace=nowarn "$GITHUB_WORKSPACE/glassgram-ios/glassgram-ios.patch"
           echo "applied GlassGram patch"
+          # The fake codesigning profiles shipped with Telegram-iOS expired on 2026-10-30. They only exist so the
+          # build can produce an IPA (Sideloadly / AltStore re-sign it), so skip the expiration check of rules_apple.
+          PLISTTOOL="$SRC/build-system/bazel-rules/rules_apple/tools/plisttool/plisttool.py"
+          grep -q "if expire and expire < datetime.datetime.now():" "$PLISTTOOL"
+          sed -i '' 's/if expire and expire < datetime.datetime.now():/if False and expire and expire < datetime.datetime.now():/' "$PLISTTOOL"
+          grep -n "if False and expire" "$PLISTTOOL"
 
       - name: Write build configuration
         env:
