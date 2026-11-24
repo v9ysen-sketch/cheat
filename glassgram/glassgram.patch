@@ -931,14 +931,19 @@ index ca82181..7de2b9d 100644
          if (ApplicationLoader.applicationContext != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/GlassConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/GlassConfig.java
 new file mode 100644
-index 0000000..65d5bbf
+index 0000000..e9ee115
 --- /dev/null
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/GlassConfig.java
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,335 @@
 +package org.telegram.messenger;
 +
 +import android.content.Context;
 +import android.content.SharedPreferences;
++
++import org.telegram.tgnet.TLObject;
++import org.telegram.tgnet.TLRPC;
++import org.telegram.tgnet.tl.TL_account;
++import org.telegram.tgnet.tl.TL_stories;
 +
 +/**
 + * GlassGram mod settings. Stored in the "glassgram" shared preferences.
@@ -948,22 +953,35 @@ index 0000000..65d5bbf
 +    private GlassConfig() {
 +    }
 +
-+    public static final int AVATAR_CIRCLE = 0;
-+    public static final int AVATAR_SQUIRCLE = 1;
-+    public static final int AVATAR_SQUARE = 2;
++    /** Avatar corner radius, as a fraction of the circle radius it replaces (index = avatar shape). */
++    public static final float[] AVATAR_CORNERS = {0f, 0.15f, 0.32f, 0.6f, 1f};
++    public static final int AVATAR_SHAPE_DEFAULT = 2;
++    public static final int AVATAR_SHAPE_CIRCLE = 4;
 +
-+    /** Corner radius of an avatar, as a fraction of the circle radius it replaces. */
-+    private static final float[] AVATAR_CORNERS = {1f, 0.32f, 0.12f};
++    /** Liquid glass refraction (thickness / intensity multipliers). */
++    public static final float[] GLASS_REFRACTION = {0.4f, 0.7f, 1f, 1.4f, 1.9f};
++    /** Glass tint opacity multipliers. */
++    public static final float[] GLASS_TINT = {0.25f, 0.55f, 1f, 1.35f};
 +
 +    /** Liquid glass and blurred panels are switched on once, on the first launch of GlassGram. */
 +    public static final boolean FORCE_GLASS_ON_FIRST_LAUNCH = true;
 +
 +    private static volatile boolean loaded;
-+    private static int avatarShape = AVATAR_SQUIRCLE;
++    private static int avatarShape = AVATAR_SHAPE_DEFAULT;
 +    private static boolean saveDeleted = true;
 +    private static boolean markDeleted = true;
 +    private static boolean pluginsEnabled = true;
 +    private static int stylePreset = 0;
++    private static boolean forceGlass = true;
++    private static int glassRefraction = 2;
++    private static int glassTint = 2;
++    private static boolean hideStories;
++    private static boolean hidePremium;
++    private static boolean timeSeconds;
++    private static boolean ghostRead;
++    private static boolean ghostStories;
++    private static boolean ghostOnline;
++    private static boolean ghostTyping;
 +
 +    public static SharedPreferences prefs() {
 +        return ApplicationLoader.applicationContext.getSharedPreferences("glassgram", Context.MODE_PRIVATE);
@@ -978,13 +996,40 @@ index 0000000..65d5bbf
 +                return;
 +            }
 +            final SharedPreferences p = prefs();
-+            avatarShape = p.getInt("avatarShape", AVATAR_SQUIRCLE);
++            if (!p.contains("avatarShape2") && p.contains("avatarShape")) {
++                // first versions: 0 circle, 1 squircle, 2 square
++                final int old = p.getInt("avatarShape", 1);
++                p.edit().putInt("avatarShape2", old == 0 ? AVATAR_SHAPE_CIRCLE : old == 2 ? 1 : AVATAR_SHAPE_DEFAULT).apply();
++            }
++            avatarShape = clamp(p.getInt("avatarShape2", AVATAR_SHAPE_DEFAULT), AVATAR_CORNERS.length);
 +            saveDeleted = p.getBoolean("saveDeleted", true);
 +            markDeleted = p.getBoolean("markDeleted", true);
 +            pluginsEnabled = p.getBoolean("pluginsEnabled", true);
 +            stylePreset = p.getInt("stylePreset", 0);
++            forceGlass = p.getBoolean("forceGlass", true);
++            glassRefraction = clamp(p.getInt("glassRefraction", 2), GLASS_REFRACTION.length);
++            glassTint = clamp(p.getInt("glassTint", 2), GLASS_TINT.length);
++            hideStories = p.getBoolean("hideStories", false);
++            hidePremium = p.getBoolean("hidePremium", false);
++            timeSeconds = p.getBoolean("timeSeconds", false);
++            ghostRead = p.getBoolean("ghostRead", false);
++            ghostStories = p.getBoolean("ghostStories", false);
++            ghostOnline = p.getBoolean("ghostOnline", false);
++            ghostTyping = p.getBoolean("ghostTyping", false);
 +            loaded = true;
 +        }
++    }
++
++    private static int clamp(int v, int size) {
++        return Math.max(0, Math.min(size - 1, v));
++    }
++
++    private static void put(String key, boolean value) {
++        prefs().edit().putBoolean(key, value).apply();
++    }
++
++    private static void put(String key, int value) {
++        prefs().edit().putInt(key, value).apply();
 +    }
 +
 +    // --- avatars ---
@@ -996,12 +1041,12 @@ index 0000000..65d5bbf
 +
 +    public static void setAvatarShape(int shape) {
 +        load();
-+        avatarShape = Math.max(AVATAR_CIRCLE, Math.min(AVATAR_SQUARE, shape));
-+        prefs().edit().putInt("avatarShape", avatarShape).apply();
++        avatarShape = clamp(shape, AVATAR_CORNERS.length);
++        put("avatarShape2", avatarShape);
 +    }
 +
 +    public static boolean squareAvatars() {
-+        return getAvatarShape() != AVATAR_CIRCLE;
++        return getAvatarShape() != AVATAR_SHAPE_CIRCLE;
 +    }
 +
 +    public static float avatarCorner() {
@@ -1016,6 +1061,165 @@ index 0000000..65d5bbf
 +        return squareAvatars() ? circleRadius * avatarCorner() : circleRadius;
 +    }
 +
++    // --- glass ---
++
++    /** Glass regardless of the device performance class and of the power saver. */
++    public static boolean forceGlass() {
++        load();
++        return forceGlass;
++    }
++
++    public static void setForceGlass(boolean value) {
++        load();
++        forceGlass = value;
++        put("forceGlass", value);
++    }
++
++    public static int getGlassRefraction() {
++        load();
++        return glassRefraction;
++    }
++
++    public static void setGlassRefraction(int value) {
++        load();
++        glassRefraction = clamp(value, GLASS_REFRACTION.length);
++        put("glassRefraction", glassRefraction);
++    }
++
++    public static float glassRefractionMultiplier() {
++        return GLASS_REFRACTION[getGlassRefraction()];
++    }
++
++    public static int getGlassTint() {
++        load();
++        return glassTint;
++    }
++
++    public static void setGlassTint(int value) {
++        load();
++        glassTint = clamp(value, GLASS_TINT.length);
++        put("glassTint", glassTint);
++    }
++
++    /** Glass foreground (tint) color with the opacity chosen in the settings. */
++    public static int glassTintColor(int color) {
++        final float m = GLASS_TINT[getGlassTint()];
++        if (m == 1f) {
++            return color;
++        }
++        final int a = Math.max(0, Math.min(255, Math.round((color >>> 24) * m)));
++        return (a << 24) | (color & 0x00FFFFFF);
++    }
++
++    // --- interface ---
++
++    public static boolean hideStories() {
++        load();
++        return hideStories;
++    }
++
++    public static void setHideStories(boolean value) {
++        load();
++        hideStories = value;
++        put("hideStories", value);
++    }
++
++    public static boolean hidePremium() {
++        load();
++        return hidePremium;
++    }
++
++    public static void setHidePremium(boolean value) {
++        load();
++        hidePremium = value;
++        put("hidePremium", value);
++    }
++
++    public static boolean timeSeconds() {
++        load();
++        return timeSeconds;
++    }
++
++    public static void setTimeSeconds(boolean value) {
++        load();
++        timeSeconds = value;
++        put("timeSeconds", value);
++    }
++
++    // --- ghost mode ---
++
++    public static boolean ghostRead() {
++        load();
++        return ghostRead;
++    }
++
++    public static void setGhostRead(boolean value) {
++        load();
++        ghostRead = value;
++        put("ghostRead", value);
++    }
++
++    public static boolean ghostStories() {
++        load();
++        return ghostStories;
++    }
++
++    public static void setGhostStories(boolean value) {
++        load();
++        ghostStories = value;
++        put("ghostStories", value);
++    }
++
++    public static boolean ghostOnline() {
++        load();
++        return ghostOnline;
++    }
++
++    public static void setGhostOnline(boolean value) {
++        load();
++        ghostOnline = value;
++        put("ghostOnline", value);
++    }
++
++    public static boolean ghostTyping() {
++        load();
++        return ghostTyping;
++    }
++
++    public static void setGhostTyping(boolean value) {
++        load();
++        ghostTyping = value;
++        put("ghostTyping", value);
++    }
++
++    /**
++     * Ghost mode: drops read receipts / typing, sends "offline" instead of "online".
++     * @return the request to send, or null to drop it.
++     */
++    public static TLObject ghostFilter(TLObject request) {
++        if (request == null || !loaded && ApplicationLoader.applicationContext == null) {
++            return request;
++        }
++        load();
++        if (ghostRead && (request instanceof TLRPC.TL_messages_readHistory
++                || request instanceof TLRPC.TL_channels_readHistory
++                || request instanceof TLRPC.TL_messages_readMessageContents
++                || request instanceof TLRPC.TL_channels_readMessageContents
++                || request instanceof TLRPC.TL_messages_readDiscussion)) {
++            return null;
++        }
++        if (ghostStories && request instanceof TL_stories.TL_stories_readStories) {
++            return null;
++        }
++        if (ghostTyping && request instanceof TLRPC.TL_messages_setTyping) {
++            return null;
++        }
++        if (ghostOnline && request instanceof TL_account.updateStatus) {
++            ((TL_account.updateStatus) request).offline = true;
++        }
++        return request;
++    }
++
 +    // --- deleted messages ---
 +
 +    public static boolean saveDeletedMessages() {
@@ -1026,7 +1230,7 @@ index 0000000..65d5bbf
 +    public static void setSaveDeletedMessages(boolean value) {
 +        load();
 +        saveDeleted = value;
-+        prefs().edit().putBoolean("saveDeleted", value).apply();
++        put("saveDeleted", value);
 +    }
 +
 +    public static boolean markDeletedMessages() {
@@ -1037,7 +1241,7 @@ index 0000000..65d5bbf
 +    public static void setMarkDeletedMessages(boolean value) {
 +        load();
 +        markDeleted = value;
-+        prefs().edit().putBoolean("markDeleted", value).apply();
++        put("markDeleted", value);
 +    }
 +
 +    // --- plugins ---
@@ -1050,7 +1254,7 @@ index 0000000..65d5bbf
 +    public static void setPluginsEnabled(boolean value) {
 +        load();
 +        pluginsEnabled = value;
-+        prefs().edit().putBoolean("pluginsEnabled", value).apply();
++        put("pluginsEnabled", value);
 +    }
 +
 +    // --- style ---
@@ -1063,7 +1267,7 @@ index 0000000..65d5bbf
 +    public static void setStylePreset(int value) {
 +        load();
 +        stylePreset = value;
-+        prefs().edit().putInt("stylePreset", value).apply();
++        put("stylePreset", value);
 +    }
 +}
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/GlassDeletedStore.java b/TMessagesProj/src/main/java/org/telegram/messenger/GlassDeletedStore.java
@@ -1433,10 +1637,20 @@ index 0a60742..6fcc2b9 100644
          if (useRoundRadius != enabled) {
              useRoundRadius = enabled;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LiteMode.java b/TMessagesProj/src/main/java/org/telegram/messenger/LiteMode.java
-index 37619e6..c9b83c2 100644
+index 37619e6..fb33b32 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/LiteMode.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/LiteMode.java
-@@ -336,6 +336,11 @@ public class LiteMode {
+@@ -205,6 +205,9 @@ public class LiteMode {
+     }
+ 
+     public static boolean isEnabled(int flag) {
++        if ((flag == FLAG_LIQUID_GLASS || flag == FLAG_CHAT_BLUR) && GlassConfig.forceGlass()) {
++            return (getValue(true) & flag) > 0; // GlassGram: the power saver does not turn the glass off
++        }
+         if (flag == FLAG_CHAT_FORUM_TWOCOLUMN && AndroidUtilities.isTablet()) {
+             // always enabled for tablets
+             return true;
+@@ -336,6 +339,11 @@ public class LiteMode {
  
          int prevValue = value;
          value = preferences.getInt("lite_mode6", defaultValue);
@@ -1521,8 +1735,22 @@ index 55452d3..139dfd6 100644
          final SendMessageChatArguments sendMessageChatArguments = sendMessageParams.sendMessageChatArguments != null ?
                  sendMessageParams.sendMessageChatArguments : SendMessageChatArguments.EMPTY;
          String message = sendMessageParams.message;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
+index 85ab1d8..d454519 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
+@@ -1754,6 +1754,9 @@ public class SharedConfig {
+     }
+ 
+     public static boolean canBlurChat() {
++        if (Build.VERSION.SDK_INT >= 31 && GlassConfig.forceGlass()) {
++            return true; // GlassGram: glass on any device class (Android 12+)
++        }
+         return getDevicePerformanceClass() >= (Build.VERSION.SDK_INT >= 31 ? PERFORMANCE_CLASS_AVERAGE : PERFORMANCE_CLASS_HIGH) || BuildVars.DEBUG_PRIVATE_VERSION;
+     }
+ 
 diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
-index ab54ee3..bff30d6 100644
+index ab54ee3..4294236 100644
 --- a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
 +++ b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
 @@ -419,7 +419,12 @@ public class ConnectionsManager extends BaseController {
@@ -1532,7 +1760,7 @@ index ab54ee3..bff30d6 100644
 -    private void sendRequestInternal(TLObject object, RequestDelegate onComplete, RequestDelegateTimestamp onCompleteTimestamp, QuickAckDelegate onQuickAck, WriteToSocketDelegate onWriteToSocket, int flags, int datacenterId, int connectionType, boolean immediate, int requestToken) {
 +    private void sendRequestInternal(TLObject glassOriginalObject, RequestDelegate onComplete, RequestDelegateTimestamp onCompleteTimestamp, QuickAckDelegate onQuickAck, WriteToSocketDelegate onWriteToSocket, int flags, int datacenterId, int connectionType, boolean immediate, int requestToken) {
 +        // GlassGram: plugins can modify or cancel requests (pre_request_hook)
-+        final TLObject object = org.telegram.messenger.GlassPlugins.preRequest(currentAccount, glassOriginalObject);
++        final TLObject object = org.telegram.messenger.GlassPlugins.preRequest(currentAccount, org.telegram.messenger.GlassConfig.ghostFilter(glassOriginalObject));
 +        if (object == null) {
 +            return;
 +        }
@@ -1555,7 +1783,7 @@ index ab54ee3..bff30d6 100644
                      final TLRPC.TL_error finalError = error;
                      Utilities.stageQueue.postRunnable(() -> {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
-index 7fc7292..f95c14e 100644
+index 7fc7292..76c5068 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
 @@ -4010,17 +4010,17 @@ public class Theme {
@@ -1573,17 +1801,17 @@ index 7fc7292..f95c14e 100644
 -                new String[] { "O-wmAfBPSFADAAAA4zINVfD_bro", "RepJ5uE_SVABAAAAr4d0YhgB850", "dk_wwlghOFACAAAAfz9xrxi6euw", "9LW_RcoOSVACAAAAFTk3DTyXN-M", "PllZ-bf_SFAEAAAA8crRfwZiDNg", "-Xc-np9y2VMCAAAARKr0yNNPYW0", "kO4jyq55SFABAAAA0WEpcLfahXk", "CJNyxPMgSVAEAAAAvW9sMwc51cw", "fqv01SQemVIBAAAApND8LDRUhRU", "RepJ5uE_SVABAAAAr4d0YhgB850", "CJNyxPMgSVAEAAAAvW9sMwc51cw", "9LW_RcoOSVACAAAAFTk3DTyXN-M", "9GcNVISdSVADAAAAUcw5BYjELW4", "F5oWoCs7QFACAAAAgf2bD_mg8Bw", "9ShF73d1MFIIAAAAjWnm8_ZMe8Q", "3rX-PaKbSFACAAAAEiHNvcEm6X4", "dk_wwlghOFACAAAAfz9xrxi6euw", "fqv01SQemVIBAAAApND8LDRUhRU" },
 -                new int[]    {                           225,                            45,                           225,                           135,                            45,                           225,                            45,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0 },
 -                new int[]    {                            40,                            40,                            31,                            50,                            25,                            34,                            35,                            35,                            38,                            29,                            24,                            34,                            34,                            31,                            29,                            37,                            21,                            38 }
-+                new int[]    {                    0xFF927BD4,                    0xFF698AFB,                    0xFF23A7F0,                    0xFF7B71D1,                    0xFF69B955,                    0xFF2990EA,                    0xFF7082E9,                    0xFF66BAED,                    0xFF4FA8FF,                    0xff46c8ed,                    0xff64AC5F,                    0xffeb7cb1,                    0xffee902a,                    0xffa281f0,                    0xffd34324,                    0xffeebd34,                    0xff7f8fab,                    0xff3581e3, 0xFF5AD8FF, 0xFFA78BFF, 0xFF4FE3A8, 0xFFFF8FA3, 0xFFFFD36B, 0xFF4FA8FF },
-+                new int[]    {                    0xFF9D5C99,                    0xFF635545,                    0xFF31818B,                    0xFFAD6426,                    0xFF4A7034,                    0xFF335D82,                    0xFF36576F,                    0xFF597563,                    0xFF2D6BFF,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000, 0xFF1FA2D6, 0xFF6A4CFF, 0xFF149A6B, 0xFFE0457B, 0xFFB8862B, 0xFF1F4FCC },
-+                new int[]    {                    0xFF604DA8,                    0xFF685D4C,                    0xFF1B6080,                    0xFF99354E,                    0xFF275D3B,                    0xFF317A98,                    0xFF376E87,                    0xFF5E7370,                    0xFF3FB4FF,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000, 0xFF6FE3FF, 0xFFB27BFF, 0xFF38C98F, 0xFFFF9A62, 0xFFE6B54A, 0xFF2D6BFF },
-+                new int[]    {                    0xFF271e2e,                    0xFF171a22,                    0xFF071e1f,                    0xFF100f13,                    0xFF0e1811,                    0xFF0b131c,                    0xFF1d2129,                    0xFF202c2a,                    0xFF030B18,                    0xff162325,                    0xff161d15,                    0xff24191e,                    0xff251b13,                    0xff1f1d29,                    0xff22160e,                    0xff272115,                    0xff171a1b,                    0xff0e141a, 0xFF04141C, 0xFF0C0820, 0xFF03140E, 0xFF1A0712, 0xFF140F04, 0xFF000000 },
-+                new int[]    {                    0xFF110e13,                    0xFF26262e,                    0xFF141d26,                    0xFF221a27,                    0xFF1f2818,                    0xFF192330,                    0xFF12161a,                    0xFF141a1e,                    0xFF0B2E66,                    0xff0e1718,                    0xff172719,                    0xff23171c,                    0xff201408,                    0xff14131c,                    0xff2d1d16,                    0xff1a160d,                    0xff212328,                    0xff172431, 0xFF0B3A4F, 0xFF2A1A5E, 0xFF0B3D2C, 0xFF4A1530, 0xFF3D2E0B, 0xFF000000 },
-+                new int[]    {                    0xFF2b1e2b,                    0xFF15151b,                    0xFF0c151a,                    0xFF0e0f13,                    0xFF0b170f,                    0xFF131822,                    0xFF17242d,                    0xFF16202b,                    0xFF051433,                    0xff1e2e2e,                    0xff141e14,                    0xff2b1929,                    0xff2e1f15,                    0xff292331,                    0xff23140c,                    0xff292414,                    0xff181a1d,                    0xff0f171e, 0xFF062330, 0xFF140E36, 0xFF06251B, 0xFF2A0B1C, 0xFF241B06, 0xFF000000 },
-+                new int[]    {                    0xFF161227,                    0xFF1a1916,                    0xFF0d272c,                    0xFF271d29,                    0xFF171d19,                    0xFF172331,                    0xFF111521,                    0xFF051717,                    0xFF1B56B0,                    0xff121f1f,                    0xff1c261a,                    0xff1f141d,                    0xff1b130a,                    0xff17131b,                    0xff2d1924,                    0xff1e170e,                    0xff212228,                    0xff141c2b, 0xFF13607A, 0xFF4B2A9C, 0xFF146B4C, 0xFF7A2A3A, 0xFF6B5014, 0xFF0A1730 },
-+                new int[]    {                            11,                            12,                            13,                            14,                            15,                            16,                            17,                            18,                             0,                             1,                             2,                             3,                             4,                             5,                             6,                             7,                             8,                             9, 50, 51, 52, 53, 54, 55 },
-+                new String[] { "O-wmAfBPSFADAAAA4zINVfD_bro", "RepJ5uE_SVABAAAAr4d0YhgB850", "dk_wwlghOFACAAAAfz9xrxi6euw", "9LW_RcoOSVACAAAAFTk3DTyXN-M", "PllZ-bf_SFAEAAAA8crRfwZiDNg", "-Xc-np9y2VMCAAAARKr0yNNPYW0", "kO4jyq55SFABAAAA0WEpcLfahXk", "CJNyxPMgSVAEAAAAvW9sMwc51cw", "fqv01SQemVIBAAAApND8LDRUhRU", "RepJ5uE_SVABAAAAr4d0YhgB850", "CJNyxPMgSVAEAAAAvW9sMwc51cw", "9LW_RcoOSVACAAAAFTk3DTyXN-M", "9GcNVISdSVADAAAAUcw5BYjELW4", "F5oWoCs7QFACAAAAgf2bD_mg8Bw", "9ShF73d1MFIIAAAAjWnm8_ZMe8Q", "3rX-PaKbSFACAAAAEiHNvcEm6X4", "dk_wwlghOFACAAAAfz9xrxi6euw", "fqv01SQemVIBAAAApND8LDRUhRU", "", "", "", "", "", "" },
-+                new int[]    {                           225,                            45,                           225,                           135,                            45,                           225,                            45,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0, 45, 45, 45, 45, 45, 45 },
-+                new int[]    {                            40,                            40,                            31,                            50,                            25,                            34,                            35,                            35,                            38,                            29,                            24,                            34,                            34,                            31,                            29,                            37,                            21,                            38, 0, 0, 0, 0, 0, 0 }
++                new int[]    {                    0xFF927BD4,                    0xFF698AFB,                    0xFF23A7F0,                    0xFF7B71D1,                    0xFF69B955,                    0xFF2990EA,                    0xFF7082E9,                    0xFF66BAED,                    0xFF4FA8FF,                    0xff46c8ed,                    0xff64AC5F,                    0xffeb7cb1,                    0xffee902a,                    0xffa281f0,                    0xffd34324,                    0xffeebd34,                    0xff7f8fab,                    0xff3581e3, 0xFF5AD8FF, 0xFFA78BFF, 0xFF4FE3A8, 0xFFFF8FA3, 0xFFFFD36B, 0xFF4FA8FF, 0xFFFF7AC6, 0xFFFF6B6B, 0xFFFFA94D, 0xFF6EF5CF, 0xFFB8C7D6, 0xFFC6FF4D },
++                new int[]    {                    0xFF9D5C99,                    0xFF635545,                    0xFF31818B,                    0xFFAD6426,                    0xFF4A7034,                    0xFF335D82,                    0xFF36576F,                    0xFF597563,                    0xFF2D6BFF,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000, 0xFF1FA2D6, 0xFF6A4CFF, 0xFF149A6B, 0xFFE0457B, 0xFFB8862B, 0xFF1F4FCC, 0xFFD9408F, 0xFFC9302C, 0xFFE0701F, 0xFF1FB58E, 0xFF5C6B7A, 0xFF6FB300 },
++                new int[]    {                    0xFF604DA8,                    0xFF685D4C,                    0xFF1B6080,                    0xFF99354E,                    0xFF275D3B,                    0xFF317A98,                    0xFF376E87,                    0xFF5E7370,                    0xFF3FB4FF,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000, 0xFF6FE3FF, 0xFFB27BFF, 0xFF38C98F, 0xFFFF9A62, 0xFFE6B54A, 0xFF2D6BFF, 0xFFFF7FB8, 0xFFFF6A5C, 0xFFFFB15C, 0xFF5DE6C0, 0xFF8796A5, 0xFFA6E02E },
++                new int[]    {                    0xFF271e2e,                    0xFF171a22,                    0xFF071e1f,                    0xFF100f13,                    0xFF0e1811,                    0xFF0b131c,                    0xFF1d2129,                    0xFF202c2a,                    0xFF030B18,                    0xff162325,                    0xff161d15,                    0xff24191e,                    0xff251b13,                    0xff1f1d29,                    0xff22160e,                    0xff272115,                    0xff171a1b,                    0xff0e141a, 0xFF04141C, 0xFF0C0820, 0xFF03140E, 0xFF1A0712, 0xFF140F04, 0xFF000000, 0xFF1A0614, 0xFF1A0505, 0xFF1A0E03, 0xFF031612, 0xFF0A0D10, 0xFF0A1203 },
++                new int[]    {                    0xFF110e13,                    0xFF26262e,                    0xFF141d26,                    0xFF221a27,                    0xFF1f2818,                    0xFF192330,                    0xFF12161a,                    0xFF141a1e,                    0xFF0B2E66,                    0xff0e1718,                    0xff172719,                    0xff23171c,                    0xff201408,                    0xff14131c,                    0xff2d1d16,                    0xff1a160d,                    0xff212328,                    0xff172431, 0xFF0B3A4F, 0xFF2A1A5E, 0xFF0B3D2C, 0xFF4A1530, 0xFF3D2E0B, 0xFF000000, 0xFF4A1238, 0xFF4A0F12, 0xFF4A2A0B, 0xFF0B4236, 0xFF22282F, 0xFF22380B },
++                new int[]    {                    0xFF2b1e2b,                    0xFF15151b,                    0xFF0c151a,                    0xFF0e0f13,                    0xFF0b170f,                    0xFF131822,                    0xFF17242d,                    0xFF16202b,                    0xFF051433,                    0xff1e2e2e,                    0xff141e14,                    0xff2b1929,                    0xff2e1f15,                    0xff292331,                    0xff23140c,                    0xff292414,                    0xff181a1d,                    0xff0f171e, 0xFF062330, 0xFF140E36, 0xFF06251B, 0xFF2A0B1C, 0xFF241B06, 0xFF000000, 0xFF2A0A20, 0xFF2A0809, 0xFF2A1806, 0xFF06281F, 0xFF14181C, 0xFF142206 },
++                new int[]    {                    0xFF161227,                    0xFF1a1916,                    0xFF0d272c,                    0xFF271d29,                    0xFF171d19,                    0xFF172331,                    0xFF111521,                    0xFF051717,                    0xFF1B56B0,                    0xff121f1f,                    0xff1c261a,                    0xff1f141d,                    0xff1b130a,                    0xff17131b,                    0xff2d1924,                    0xff1e170e,                    0xff212228,                    0xff141c2b, 0xFF13607A, 0xFF4B2A9C, 0xFF146B4C, 0xFF7A2A3A, 0xFF6B5014, 0xFF0A1730, 0xFF7A1F5C, 0xFF7A1A1F, 0xFF7A4514, 0xFF13705A, 0xFF3A434D, 0xFF3B6114 },
++                new int[]    {                            11,                            12,                            13,                            14,                            15,                            16,                            17,                            18,                             0,                             1,                             2,                             3,                             4,                             5,                             6,                             7,                             8,                             9, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61 },
++                new String[] { "O-wmAfBPSFADAAAA4zINVfD_bro", "RepJ5uE_SVABAAAAr4d0YhgB850", "dk_wwlghOFACAAAAfz9xrxi6euw", "9LW_RcoOSVACAAAAFTk3DTyXN-M", "PllZ-bf_SFAEAAAA8crRfwZiDNg", "-Xc-np9y2VMCAAAARKr0yNNPYW0", "kO4jyq55SFABAAAA0WEpcLfahXk", "CJNyxPMgSVAEAAAAvW9sMwc51cw", "fqv01SQemVIBAAAApND8LDRUhRU", "RepJ5uE_SVABAAAAr4d0YhgB850", "CJNyxPMgSVAEAAAAvW9sMwc51cw", "9LW_RcoOSVACAAAAFTk3DTyXN-M", "9GcNVISdSVADAAAAUcw5BYjELW4", "F5oWoCs7QFACAAAAgf2bD_mg8Bw", "9ShF73d1MFIIAAAAjWnm8_ZMe8Q", "3rX-PaKbSFACAAAAEiHNvcEm6X4", "dk_wwlghOFACAAAAfz9xrxi6euw", "fqv01SQemVIBAAAApND8LDRUhRU", "", "", "", "", "", "", "", "", "", "", "", "" },
++                new int[]    {                           225,                            45,                           225,                           135,                            45,                           225,                            45,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45 },
++                new int[]    {                            40,                            40,                            31,                            50,                            25,                            34,                            35,                            35,                            38,                            29,                            24,                            34,                            34,                            31,                            29,                            37,                            21,                            38, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
                  );
          sortAccents(themeInfo);
          themes.add(themeInfo);
@@ -1600,7 +1828,7 @@ index 7fc7292..f95c14e 100644
              currentDayTheme = applyingTheme;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-index 5dc090f..8ef967c 100644
+index 5dc090f..936180e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 @@ -119,6 +119,8 @@ import org.telegram.messenger.DownloadController;
@@ -1612,7 +1840,48 @@ index 5dc090f..8ef967c 100644
  import org.telegram.messenger.FlagSecureReason;
  import org.telegram.messenger.ImageLoader;
  import org.telegram.messenger.ImageLocation;
-@@ -15698,6 +15700,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -15559,15 +15561,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+      * time it is (an album's), `editDate` the latest edit. Also a widget's estimate of the corner its time takes
+      * before a cell lays it out (RichWidgetBlock#estimateSafeArea).
+      */
++    // GlassGram: message time with seconds
++    private static org.telegram.messenger.time.FastDateFormat glassFormatterDay() {
++        return GlassConfig.timeSeconds() ? LocaleController.getInstance().getFormatterDayWithSeconds() : LocaleController.getInstance().getFormatterDay();
++    }
++
+     public static String timeString(MessageObject current, MessageObject message, boolean edited, int editDate) {
+         if (current.notime || current.isSponsored() || current.isQuickReply() || current.isWelcomeMessage()) {
+             return "";
+         } else if (current.scheduled && current.messageOwner.date == 0x7FFFFFFE) {
+             return "";
+         } else if (current.realDate != 0) {
+-            return LocaleController.formatSmallDateChat(current.realDate) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (current.realDate) * 1000);
++            return LocaleController.formatSmallDateChat(current.realDate) + ", " + glassFormatterDay().format((long) (current.realDate) * 1000);
+         } else if (current.isRepostPreview) {
+-            return LocaleController.formatSmallDateChat(message.messageOwner.date) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (message.messageOwner.date) * 1000);
++            return LocaleController.formatSmallDateChat(message.messageOwner.date) + ", " + glassFormatterDay().format((long) (message.messageOwner.date) * 1000);
+         } else if (edited) {
+             if (AppGlobalConfig.getInstance(current.currentAccount).messagePrimaryEditedDate.get()) {
+                 if (editDate == 0 && current.isEditing()) {
+@@ -15575,7 +15582,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+                 }
+                 return LocaleController.formatPmEditedDate(editDate);
+             }
+-            return getString(R.string.EditedMessage) + " " + LocaleController.getInstance().getFormatterDay().format((long) (message.messageOwner.date) * 1000);
++            return getString(R.string.EditedMessage) + " " + glassFormatterDay().format((long) (message.messageOwner.date) * 1000);
+         } else if (current.isSaved && current.messageOwner.fwd_from != null && (current.messageOwner.fwd_from.date != 0 || current.messageOwner.fwd_from.saved_date != 0)
+                 // A widget keeps its time alone in Saved Messages: the pill over its corner stays short.
+                 && !(MessageObject.getMedia(current.messageOwner) instanceof TLRPC.TL_messageMediaWidget)) {
+@@ -15585,7 +15592,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+             }
+             return LocaleController.formatSeenDate(date);
+         }
+-        return LocaleController.getInstance().getFormatterDay().format((long) (message.messageOwner.date) * 1000);
++        return glassFormatterDay().format((long) (message.messageOwner.date) * 1000);
+     }
+ 
+     void measureTime(MessageObject messageObject) {
+@@ -15698,6 +15705,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                  currentTimeString = TextUtils.concat(formatString(R.string.MessageScheduledRepeatSeconds, period), ", ", currentTimeString);
              }
          }
@@ -1678,6 +1947,48 @@ index 5dd8e5f..0871cfc 100644
              } else {
                  canvas.drawCircle(size / 2.0f, size / 2.0f, size / 2.0f, backgroundPaint);
              }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+index c2afb99..a770507 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+@@ -1280,10 +1280,10 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+                     body.width(), body.height(),
+                     body.left - b.left, body.top - b.top,
+                     boundProps.shaderRadii[0], boundProps.shaderRadii[2], boundProps.shaderRadii[4], boundProps.shaderRadii[6],
+-                    thickness,
+-                    boundProps.liquidIntensity,
++                    thickness * org.telegram.messenger.GlassConfig.glassRefractionMultiplier(),
++                    boundProps.liquidIntensity * org.telegram.messenger.GlassConfig.glassRefractionMultiplier(),
+                     boundProps.liquidIndex,
+-                    backgroundColor,
++                    org.telegram.messenger.GlassConfig.glassTintColor(backgroundColor),
+                     originX - sL, originY - sT,
+                     downsample
+                 );
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index e6478ee..37d031a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -110,6 +110,7 @@ import org.telegram.messenger.DialogObject;
+ import org.telegram.messenger.Emoji;
+ import org.telegram.messenger.FileLoader;
+ import org.telegram.messenger.FileLog;
++import org.telegram.messenger.GlassConfig;
+ import org.telegram.messenger.FilesMigrationService;
+ import org.telegram.messenger.ImageLoader;
+ import org.telegram.messenger.ImageLocation;
+@@ -12427,8 +12428,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         }
+         boolean onlySelfStories = !isArchive() && getStoriesController().hasOnlySelfStories();
+         boolean newVisibility;
+-        if (communityId != 0) {
+-            newVisibility = false;
++        if (communityId != 0 || GlassConfig.hideStories()) {
++            newVisibility = false; // GlassGram: "hide stories" removes the stories row
++            onlySelfStories = false;
+         } else if (isArchive()) {
+             newVisibility = !getStoriesController().getHiddenList().isEmpty();
+         } else {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/GlassPluginSettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/GlassPluginSettingsActivity.java
 new file mode 100644
 index 0000000..5a0f521
@@ -2212,16 +2523,18 @@ index 0000000..8dd113c
 +}
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/GlassSettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/GlassSettingsActivity.java
 new file mode 100644
-index 0000000..b4bdccd
+index 0000000..c05f5b4
 --- /dev/null
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/GlassSettingsActivity.java
-@@ -0,0 +1,222 @@
+@@ -0,0 +1,397 @@
 +package org.telegram.ui;
 +
++import static org.telegram.messenger.LocaleController.formatString;
 +import static org.telegram.messenger.LocaleController.getString;
 +
 +import android.content.Context;
 +import android.content.Intent;
++import android.os.Build;
 +import android.view.View;
 +
 +import org.telegram.messenger.AndroidUtilities;
@@ -2235,37 +2548,52 @@ index 0000000..b4bdccd
 +import org.telegram.ui.ActionBar.AlertDialog;
 +import org.telegram.ui.ActionBar.Theme;
 +import org.telegram.ui.Components.BulletinFactory;
++import org.telegram.ui.Components.RecyclerListView;
 +import org.telegram.ui.Components.UItem;
 +import org.telegram.ui.Components.UniversalAdapter;
 +import org.telegram.ui.Components.UniversalFragment;
-+import org.telegram.ui.Components.RecyclerListView;
 +import org.telegram.utils.glass.GlassEngine;
 +
 +import java.util.ArrayList;
 +
 +/**
-+ * GlassGram mod settings: liquid glass, styles, avatars, deleted messages, plugins.
++ * GlassGram mod settings: liquid glass, styles, appearance, interface, ghost mode, deleted messages, plugins.
 + */
 +public class GlassSettingsActivity extends UniversalFragment {
 +
-+    private static final int ID_LIQUID_GLASS = 1;
-+    private static final int ID_BLUR = 2;
++    private static final int ID_GLASS_STATUS = 1;
++    private static final int ID_FORCE_GLASS = 2;
++    private static final int ID_LIQUID_GLASS = 3;
++    private static final int ID_BLUR = 4;
++    private static final int ID_HIDE_STORIES = 10;
++    private static final int ID_HIDE_PREMIUM = 11;
++    private static final int ID_TIME_SECONDS = 12;
++    private static final int ID_GHOST_READ = 20;
++    private static final int ID_GHOST_STORIES = 21;
++    private static final int ID_GHOST_ONLINE = 22;
++    private static final int ID_GHOST_TYPING = 23;
++    private static final int ID_SAVE_DELETED = 30;
++    private static final int ID_MARK_DELETED = 31;
++    private static final int ID_CLEAR_DELETED = 32;
++    private static final int ID_PLUGINS = 40;
++    private static final int ID_RESTART = 41;
 +    private static final int ID_STYLE_BASE = 100;
-+    private static final int ID_AVATAR_BASE = 200;
-+    private static final int ID_SAVE_DELETED = 3;
-+    private static final int ID_MARK_DELETED = 4;
-+    private static final int ID_CLEAR_DELETED = 5;
-+    private static final int ID_PLUGINS = 6;
-+    private static final int ID_RESTART = 7;
 +
-+    /** Style presets: accents of the "Dark Blue" theme (see Theme.java, GlassGram accents). */
-+    public static final int[] STYLE_ACCENT_IDS = {0, 50, 51, 52, 53, 54, 55};
++    /** Style presets: theme key + accent id (GlassGram accents of "Dark Blue" are added in Theme.java). */
++    private static final String[] STYLE_THEMES = {
++        "Dark Blue", "Dark Blue", "Dark Blue", "Dark Blue", "Dark Blue", "Dark Blue", "Dark Blue",
++        "Dark Blue", "Dark Blue", "Dark Blue", "Dark Blue", "Dark Blue", "Dark Blue",
++        "Arctic Blue", "Blue"
++    };
++    private static final int[] STYLE_ACCENTS = {0, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 0, Theme.DEFALT_THEME_ACCENT_ID};
 +    private static final int[] STYLE_NAMES = {
 +        R.string.GlassStyleNavy, R.string.GlassStyleIce, R.string.GlassStyleViolet, R.string.GlassStyleEmerald,
-+        R.string.GlassStyleSunset, R.string.GlassStyleGold, R.string.GlassStyleAmoled
++        R.string.GlassStyleSunset, R.string.GlassStyleGold, R.string.GlassStyleAmoled, R.string.GlassStylePink,
++        R.string.GlassStyleRuby, R.string.GlassStyleOrange, R.string.GlassStyleMint, R.string.GlassStyleGraphite,
++        R.string.GlassStyleNeon, R.string.GlassStyleLight, R.string.GlassStyleWhite
 +    };
-+    private static final int[] AVATAR_NAMES = {R.string.GlassAvatarCircle, R.string.GlassAvatarSquircle, R.string.GlassAvatarSquare};
-+    private static final int[] BUBBLE_RADII = {4, 8, 12, 17};
++    private static final int[] BUBBLE_RADII = {4, 8, 12, 17, 22};
++    private static final int[] FONT_SIZES = {13, 14, 16, 18, 20, 22};
 +
 +    private boolean needRestart;
 +
@@ -2292,39 +2620,109 @@ index 0000000..b4bdccd
 +        return listView;
 +    }
 +
++    // --- liquid glass diagnostics ---
++
++    private static String performanceClassName() {
++        switch (SharedConfig.getDevicePerformanceClass()) {
++            case SharedConfig.PERFORMANCE_CLASS_HIGH:
++                return getString(R.string.GlassPerfHigh);
++            case SharedConfig.PERFORMANCE_CLASS_AVERAGE:
++                return getString(R.string.GlassPerfAverage);
++            default:
++                return getString(R.string.GlassPerfLow);
++        }
++    }
++
++    private static CharSequence glassStatus() {
++        if (Build.VERSION.SDK_INT < 31) {
++            return getString(R.string.GlassStatusNoBlur);
++        }
++        if (!SharedConfig.chatBlurEnabled()) {
++            return getString(R.string.GlassStatusOff);
++        }
++        if (Build.VERSION.SDK_INT < 33) {
++            return getString(R.string.GlassStatusBlurOnly);
++        }
++        if (!LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS)) {
++            return getString(R.string.GlassStatusBlurOnly);
++        }
++        return getString(R.string.GlassStatusOn);
++    }
++
++    private static String glassDiagnostics() {
++        return formatString(R.string.GlassDiagnostics,
++            Build.VERSION.RELEASE + " (API " + Build.VERSION.SDK_INT + ")",
++            performanceClassName(),
++            getString(LiteMode.isPowerSaverApplied() ? R.string.GlassPowerSaverOn : R.string.GlassPowerSaverOff));
++    }
++
 +    @Override
 +    protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
++        // glass
 +        items.add(UItem.asHeader(getString(R.string.GlassSectionGlass)));
++        items.add(UItem.asButton(ID_GLASS_STATUS, R.drawable.msg_info, getString(R.string.GlassStatus), glassStatus()));
++        items.add(UItem.asButtonCheck(ID_FORCE_GLASS, getString(R.string.GlassForce), getString(R.string.GlassForceInfo)).setChecked(GlassConfig.forceGlass()));
 +        items.add(UItem.asCheck(ID_LIQUID_GLASS, getString(R.string.GlassLiquidGlass)).setChecked(LiteMode.isEnabledSetting(LiteMode.FLAG_LIQUID_GLASS)));
 +        items.add(UItem.asCheck(ID_BLUR, getString(R.string.GlassBlur)).setChecked(LiteMode.isEnabledSetting(LiteMode.FLAG_CHAT_BLUR)));
++        items.add(UItem.asShadow(glassDiagnostics()));
++
++        items.add(UItem.asHeader(getString(R.string.GlassRefraction)));
++        items.add(UItem.asSlideView(new String[]{
++            getString(R.string.GlassLevel1), getString(R.string.GlassLevel2), getString(R.string.GlassLevel3),
++            getString(R.string.GlassLevel4), getString(R.string.GlassLevel5)
++        }, GlassConfig.getGlassRefraction(), v -> {
++            GlassConfig.setGlassRefraction(v);
++            invalidateGlass();
++        }));
++        items.add(UItem.asHeader(getString(R.string.GlassTint)));
++        items.add(UItem.asSlideView(new String[]{
++            getString(R.string.GlassTint1), getString(R.string.GlassTint2), getString(R.string.GlassTint3), getString(R.string.GlassTint4)
++        }, GlassConfig.getGlassTint(), v -> {
++            GlassConfig.setGlassTint(v);
++            invalidateGlass();
++        }));
 +        items.add(UItem.asShadow(getString(R.string.GlassLiquidGlassInfo)));
 +
++        // style
 +        items.add(UItem.asHeader(getString(R.string.GlassSectionStyle)));
 +        final int preset = currentStyleIndex();
-+        for (int i = 0; i < STYLE_ACCENT_IDS.length; i++) {
++        for (int i = 0; i < STYLE_ACCENTS.length; i++) {
 +            items.add(UItem.asRadio(ID_STYLE_BASE + i, getString(STYLE_NAMES[i])).setChecked(i == preset));
 +        }
 +        items.add(UItem.asShadow(getString(R.string.GlassStyleInfo)));
 +
++        // appearance
 +        items.add(UItem.asHeader(getString(R.string.GlassSectionAvatars)));
-+        final int shape = GlassConfig.getAvatarShape();
-+        for (int i = 0; i < AVATAR_NAMES.length; i++) {
-+            items.add(UItem.asRadio(ID_AVATAR_BASE + i, getString(AVATAR_NAMES[i])).setChecked(i == shape));
-+        }
++        items.add(UItem.asSlideView(new String[]{
++            getString(R.string.GlassAvatar0), getString(R.string.GlassAvatar1), getString(R.string.GlassAvatar2),
++            getString(R.string.GlassAvatar3), getString(R.string.GlassAvatar4)
++        }, GlassConfig.getAvatarShape(), v -> {
++            GlassConfig.setAvatarShape(v);
++            needRestart = true;
++            listView.adapter.update(true);
++        }));
++        items.add(UItem.asHeader(getString(R.string.GlassSectionBubbles)));
++        items.add(UItem.asSlideView(toStrings(BUBBLE_RADII), nearest(BUBBLE_RADII, SharedConfig.bubbleRadius), this::setBubbleRadius));
++        items.add(UItem.asHeader(getString(R.string.GlassFontSize)));
++        items.add(UItem.asSlideView(toStrings(FONT_SIZES), nearest(FONT_SIZES, SharedConfig.fontSize), this::setFontSize));
++        items.add(UItem.asShadow(getString(R.string.GlassAppearanceInfo)));
++
++        // interface
++        items.add(UItem.asHeader(getString(R.string.GlassSectionInterface)));
++        items.add(UItem.asCheck(ID_HIDE_STORIES, getString(R.string.GlassHideStories)).setChecked(GlassConfig.hideStories()));
++        items.add(UItem.asCheck(ID_HIDE_PREMIUM, getString(R.string.GlassHidePremium)).setChecked(GlassConfig.hidePremium()));
++        items.add(UItem.asCheck(ID_TIME_SECONDS, getString(R.string.GlassTimeSeconds)).setChecked(GlassConfig.timeSeconds()));
 +        items.add(UItem.asShadow(null));
 +
-+        items.add(UItem.asHeader(getString(R.string.GlassSectionBubbles)));
-+        final String[] radii = new String[BUBBLE_RADII.length];
-+        int chosen = 0;
-+        for (int i = 0; i < BUBBLE_RADII.length; i++) {
-+            radii[i] = String.valueOf(BUBBLE_RADII[i]);
-+            if (Math.abs(BUBBLE_RADII[i] - SharedConfig.bubbleRadius) < Math.abs(BUBBLE_RADII[chosen] - SharedConfig.bubbleRadius)) {
-+                chosen = i;
-+            }
-+        }
-+        items.add(UItem.asSlideView(radii, chosen, this::setBubbleRadius));
-+        items.add(UItem.asShadow(getString(R.string.GlassBubblesInfo)));
++        // ghost mode
++        items.add(UItem.asHeader(getString(R.string.GlassSectionGhost)));
++        items.add(UItem.asCheck(ID_GHOST_READ, getString(R.string.GlassGhostRead)).setChecked(GlassConfig.ghostRead()));
++        items.add(UItem.asCheck(ID_GHOST_STORIES, getString(R.string.GlassGhostStories)).setChecked(GlassConfig.ghostStories()));
++        items.add(UItem.asCheck(ID_GHOST_ONLINE, getString(R.string.GlassGhostOnline)).setChecked(GlassConfig.ghostOnline()));
++        items.add(UItem.asCheck(ID_GHOST_TYPING, getString(R.string.GlassGhostTyping)).setChecked(GlassConfig.ghostTyping()));
++        items.add(UItem.asShadow(getString(R.string.GlassGhostInfo)));
 +
++        // deleted messages
 +        items.add(UItem.asHeader(getString(R.string.GlassSectionMessages)));
 +        items.add(UItem.asCheck(ID_SAVE_DELETED, getString(R.string.GlassSaveDeleted)).setChecked(GlassConfig.saveDeletedMessages()));
 +        items.add(UItem.asCheck(ID_MARK_DELETED, getString(R.string.GlassMarkDeleted)).setChecked(GlassConfig.markDeletedMessages()).setEnabled(GlassConfig.saveDeletedMessages()));
@@ -2334,81 +2732,156 @@ index 0000000..b4bdccd
 +        }
 +        items.add(UItem.asShadow(getString(R.string.GlassSaveDeletedInfo)));
 +
++        // plugins
 +        items.add(UItem.asHeader(getString(R.string.GlassSectionPlugins)));
 +        items.add(UItem.asButton(ID_PLUGINS, R.drawable.msg_bots, getString(R.string.GlassPlugins)));
 +        items.add(UItem.asShadow(getString(R.string.GlassPluginsInfo)));
 +
 +        if (needRestart) {
 +            items.add(UItem.asButton(ID_RESTART, R.drawable.msg_retry, getString(R.string.GlassRestart)).accent());
-+            items.add(UItem.asShadow(null));
++            items.add(UItem.asShadow(getString(R.string.GlassRestartNeeded)));
 +        }
++    }
++
++    private static String[] toStrings(int[] values) {
++        final String[] r = new String[values.length];
++        for (int i = 0; i < values.length; i++) {
++            r[i] = String.valueOf(values[i]);
++        }
++        return r;
++    }
++
++    private static int nearest(int[] values, int value) {
++        int best = 0;
++        for (int i = 1; i < values.length; i++) {
++            if (Math.abs(values[i] - value) < Math.abs(values[best] - value)) {
++                best = i;
++            }
++        }
++        return best;
 +    }
 +
 +    private int currentStyleIndex() {
 +        final Theme.ThemeInfo current = Theme.getActiveTheme();
-+        if (current != null && "Dark Blue".equals(current.getKey())) {
-+            for (int i = 0; i < STYLE_ACCENT_IDS.length; i++) {
-+                if (STYLE_ACCENT_IDS[i] == current.currentAccentId) {
-+                    return i;
-+                }
-+            }
++        if (current == null) {
 +            return -1;
 +        }
++        for (int i = 0; i < STYLE_ACCENTS.length; i++) {
++            if (STYLE_THEMES[i].equals(current.getKey()) && STYLE_ACCENTS[i] == current.currentAccentId) {
++                return i;
++            }
++        }
 +        return -1;
++    }
++
++    private void invalidateGlass() {
++        GlassEngine.getCurrentGlassSettings();
++        if (fragmentView != null) {
++            fragmentView.invalidate();
++        }
++        needRestart = true;
++        listView.adapter.update(true);
 +    }
 +
 +    @Override
 +    protected void onClick(UItem item, View view, int position, float x, float y) {
 +        final int id = item.id;
-+        if (id == ID_LIQUID_GLASS || id == ID_BLUR) {
-+            final int flag = id == ID_LIQUID_GLASS ? LiteMode.FLAG_LIQUID_GLASS : LiteMode.FLAG_CHAT_BLUR;
-+            LiteMode.toggleFlag(flag, !LiteMode.isEnabledSetting(flag));
-+            GlassEngine.getCurrentGlassSettings();
-+            needRestart = true;
-+        } else if (id >= ID_STYLE_BASE && id < ID_STYLE_BASE + STYLE_ACCENT_IDS.length) {
-+            applyStyle(id - ID_STYLE_BASE, view);
-+        } else if (id >= ID_AVATAR_BASE && id < ID_AVATAR_BASE + AVATAR_NAMES.length) {
-+            GlassConfig.setAvatarShape(id - ID_AVATAR_BASE);
-+            needRestart = true;
-+        } else if (id == ID_SAVE_DELETED) {
-+            GlassConfig.setSaveDeletedMessages(!GlassConfig.saveDeletedMessages());
-+        } else if (id == ID_MARK_DELETED) {
-+            if (!GlassConfig.saveDeletedMessages()) {
++        switch (id) {
++            case ID_GLASS_STATUS:
++                new AlertDialog.Builder(getContext(), getResourceProvider())
++                    .setTitle(getString(R.string.GlassStatus))
++                    .setMessage(glassStatus() + "\n\n" + glassDiagnostics() + "\n\n" + getString(R.string.GlassStatusHelp))
++                    .setPositiveButton(getString(R.string.OK), null)
++                    .show();
 +                return;
++            case ID_FORCE_GLASS:
++                GlassConfig.setForceGlass(!GlassConfig.forceGlass());
++                needRestart = true;
++                break;
++            case ID_LIQUID_GLASS:
++            case ID_BLUR: {
++                final int flag = id == ID_LIQUID_GLASS ? LiteMode.FLAG_LIQUID_GLASS : LiteMode.FLAG_CHAT_BLUR;
++                LiteMode.toggleFlag(flag, !LiteMode.isEnabledSetting(flag));
++                GlassEngine.getCurrentGlassSettings();
++                needRestart = true;
++                break;
 +            }
-+            GlassConfig.setMarkDeletedMessages(!GlassConfig.markDeletedMessages());
-+        } else if (id == ID_CLEAR_DELETED) {
-+            new AlertDialog.Builder(getContext(), getResourceProvider())
-+                .setTitle(getString(R.string.GlassClearDeleted))
-+                .setMessage(getString(R.string.GlassClearDeletedInfo))
-+                .setPositiveButton(getString(R.string.OK), (d, w) -> {
-+                    GlassDeletedStore.clear();
-+                    listView.adapter.update(true);
-+                })
-+                .setNegativeButton(getString(R.string.Cancel), null)
-+                .makeRed(AlertDialog.BUTTON_POSITIVE)
-+                .show();
-+            return;
-+        } else if (id == ID_PLUGINS) {
-+            presentFragment(new GlassPluginsActivity());
-+            return;
-+        } else if (id == ID_RESTART) {
-+            restartApp();
-+            return;
++            case ID_HIDE_STORIES:
++                GlassConfig.setHideStories(!GlassConfig.hideStories());
++                needRestart = true;
++                break;
++            case ID_HIDE_PREMIUM:
++                GlassConfig.setHidePremium(!GlassConfig.hidePremium());
++                needRestart = true;
++                break;
++            case ID_TIME_SECONDS:
++                GlassConfig.setTimeSeconds(!GlassConfig.timeSeconds());
++                break;
++            case ID_GHOST_READ:
++                GlassConfig.setGhostRead(!GlassConfig.ghostRead());
++                break;
++            case ID_GHOST_STORIES:
++                GlassConfig.setGhostStories(!GlassConfig.ghostStories());
++                break;
++            case ID_GHOST_ONLINE:
++                GlassConfig.setGhostOnline(!GlassConfig.ghostOnline());
++                break;
++            case ID_GHOST_TYPING:
++                GlassConfig.setGhostTyping(!GlassConfig.ghostTyping());
++                break;
++            case ID_SAVE_DELETED:
++                GlassConfig.setSaveDeletedMessages(!GlassConfig.saveDeletedMessages());
++                break;
++            case ID_MARK_DELETED:
++                if (!GlassConfig.saveDeletedMessages()) {
++                    return;
++                }
++                GlassConfig.setMarkDeletedMessages(!GlassConfig.markDeletedMessages());
++                break;
++            case ID_CLEAR_DELETED:
++                new AlertDialog.Builder(getContext(), getResourceProvider())
++                    .setTitle(getString(R.string.GlassClearDeleted))
++                    .setMessage(getString(R.string.GlassClearDeletedInfo))
++                    .setPositiveButton(getString(R.string.OK), (d, w) -> {
++                        GlassDeletedStore.clear();
++                        listView.adapter.update(true);
++                    })
++                    .setNegativeButton(getString(R.string.Cancel), null)
++                    .makeRed(AlertDialog.BUTTON_POSITIVE)
++                    .show();
++                return;
++            case ID_PLUGINS:
++                presentFragment(new GlassPluginsActivity());
++                return;
++            case ID_RESTART:
++                restartApp();
++                return;
++            default:
++                if (id >= ID_STYLE_BASE && id < ID_STYLE_BASE + STYLE_ACCENTS.length) {
++                    applyStyle(id - ID_STYLE_BASE, view);
++                }
++                break;
 +        }
 +        listView.adapter.update(true);
 +    }
 +
 +    private void applyStyle(int index, View from) {
-+        final Theme.ThemeInfo theme = Theme.getTheme("Dark Blue");
++        final Theme.ThemeInfo theme = Theme.getTheme(STYLE_THEMES[index]);
 +        if (theme == null) {
 +            return;
 +        }
-+        final int accentId = STYLE_ACCENT_IDS[index];
++        final int accentId = STYLE_ACCENTS[index];
 +        GlassConfig.setStylePreset(index);
-+        theme.setCurrentAccentId(accentId);
-+        Theme.saveThemeAccents(theme, true, false, true, false);
++        if (theme.themeAccentsMap != null && theme.themeAccentsMap.get(accentId) != null) {
++            theme.setCurrentAccentId(accentId);
++            Theme.saveThemeAccents(theme, true, false, true, false);
++        }
 +        Theme.switchThemeWithReveal(theme, false, accentId, from);
++        AndroidUtilities.runOnUIThread(() -> {
++            if (listView != null) {
++                listView.adapter.update(true);
++            }
++        }, 400);
 +    }
 +
 +    private void setBubbleRadius(int index) {
@@ -2420,6 +2893,19 @@ index 0000000..b4bdccd
 +        MessagesController.getGlobalMainSettings().edit().putInt("bubbleRadius", radius).apply();
 +        Theme.reloadAllResources(getContext());
 +        BulletinFactory.of(this).createSimpleBulletin(R.raw.info, getString(R.string.GlassBubblesApplied)).show();
++    }
++
++    private void setFontSize(int index) {
++        final int size = FONT_SIZES[Math.max(0, Math.min(FONT_SIZES.length - 1, index))];
++        if (size == SharedConfig.fontSize) {
++            return;
++        }
++        SharedConfig.fontSize = size;
++        SharedConfig.fontSizeIsDefault = false;
++        MessagesController.getGlobalMainSettings().edit().putInt("fons_size", size).apply();
++        Theme.createCommonMessageResources();
++        needRestart = true;
++        listView.adapter.update(true);
 +    }
 +
 +    public static void restartApp() {
@@ -2439,10 +2925,18 @@ index 0000000..b4bdccd
 +    }
 +}
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
-index e2b917b..6adbe25 100644
+index e2b917b..0fb4fca 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
-@@ -795,6 +795,10 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -71,6 +71,7 @@ import org.telegram.messenger.ChatThemeController;
+ import org.telegram.messenger.Emoji;
+ import org.telegram.messenger.FileLoader;
+ import org.telegram.messenger.FileLog;
++import org.telegram.messenger.GlassConfig;
+ import org.telegram.messenger.ImageLoader;
+ import org.telegram.messenger.ImageLocation;
+ import org.telegram.messenger.LocaleController;
+@@ -795,6 +796,10 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
              items.add(UItem.asShadow(null));
          }
  
@@ -2453,7 +2947,20 @@ index e2b917b..6adbe25 100644
          items.add(SettingCell.Factory.of(1, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom, R.drawable.settings_account, getString(R.string.SettingsAccount), getString(R.string.SettingsAccountInfo)));
          items.add(SettingCell.Factory.of(2, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_chat, getString(R.string.SettingsChat), getString(R.string.SettingsChatInfo)));
          items.add(SettingCell.Factory.of(3, IconBackgroundColors.GREEN.top, IconBackgroundColors.GREEN.bottom, R.drawable.settings_privacy, getString(R.string.SettingsPrivacySecurity), getString(R.string.SettingsPrivacySecurityInfo)));
-@@ -917,6 +921,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -812,10 +817,10 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+             items.add(UItem.asShadow(null));
+         }
+ 
+-        if (!getMessagesController().premiumFeaturesBlocked()) {
++        if (!GlassConfig.hidePremium() && !getMessagesController().premiumFeaturesBlocked()) {
+             items.add(SettingCell.Factory.of(11, 0xFFB659FF, 0xFF617CFF, R.drawable.settings_premium, getString(R.string.TelegramPremium)));
+         }
+-        if (getMessagesController().starsPurchaseAvailable()) {
++        if (!GlassConfig.hidePremium() && getMessagesController().starsPurchaseAvailable()) {
+             StarsController c = StarsController.getInstance(currentAccount);
+             long balance = c.getBalance().amount;
+             items.add(SettingCell.Factory.of(12, 0xFFEFA612, 0xFFE77512, R.drawable.settings_stars, getString(R.string.TelegramStars), null, c.balanceAvailable() && balance > 0 ? StarsIntroActivity.formatStarsAmount(c.getBalance(), 0.85f, ' ') : ""));
+@@ -917,6 +922,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
              return;
          }
          switch (item.id) {
@@ -2783,7 +3290,7 @@ index d468344..111b798 100644
      <string name="LanguageName">Українська</string>
      <string name="English">Англійська</string>
 diff --git a/TMessagesProj/src/main/res/values/strings.xml b/TMessagesProj/src/main/res/values/strings.xml
-index e4f8cf6..eba5c91 100644
+index e4f8cf6..f1dbf3f 100644
 --- a/TMessagesProj/src/main/res/values/strings.xml
 +++ b/TMessagesProj/src/main/res/values/strings.xml
 @@ -1,6 +1,6 @@
@@ -2794,7 +3301,7 @@ index e4f8cf6..eba5c91 100644
      <string name="AppNameBeta">Telegram Beta</string>
      <string name="LanguageName">English</string>
      <string name="English">English</string>
-@@ -11679,4 +11679,56 @@
+@@ -11679,4 +11679,106 @@
      <string name="FpnvConsentSimSlot">SIM Slot</string>
      <string name="FpnvConsentSimSlotValue">SIM %1$d</string>
      <string name="FpnvConsentPhoneNumber">Phone Number</string>
@@ -2850,6 +3357,56 @@ index e4f8cf6..eba5c91 100644
 +    <string name="GlassPluginInstallFailed">Не удалось установить плагин</string>
 +    <string name="GlassPluginInstallConfirm">Установить плагин из файла %1$s? Плагин получит полный доступ к аккаунту.</string>
 +    <string name="GlassPluginInstallButton">Установить</string>
++    <string name="GlassStatus">Состояние стекла</string>
++    <string name="GlassStatusOn">Liquid Glass работает</string>
++    <string name="GlassStatusBlurOnly">Только размытие</string>
++    <string name="GlassStatusOff">Выключено</string>
++    <string name="GlassStatusNoBlur">Не поддерживается (нужен Android 12+)</string>
++    <string name="GlassStatusHelp">Liquid Glass (преломление, как в iOS) требует Android 13 и новее. Размытие панелей работает с Android 12. Эффект виден на нижней панели вкладок, шапке и кнопках чата, меню вложений и панели эмодзи. После изменения настроек перезапустите приложение.</string>
++    <string name="GlassDiagnostics">Android %1$s · класс устройства: %2$s · энергосбережение: %3$s</string>
++    <string name="GlassPerfHigh">высокий</string>
++    <string name="GlassPerfAverage">средний</string>
++    <string name="GlassPerfLow">низкий</string>
++    <string name="GlassPowerSaverOn">включено</string>
++    <string name="GlassPowerSaverOff">выключено</string>
++    <string name="GlassForce">Принудительное стекло</string>
++    <string name="GlassForceInfo">Включать стекло на любом устройстве и при энергосбережении</string>
++    <string name="GlassRefraction">Сила преломления</string>
++    <string name="GlassLevel1">Слабо</string>
++    <string name="GlassLevel2">Мягко</string>
++    <string name="GlassLevel3">Обычно</string>
++    <string name="GlassLevel4">Сильно</string>
++    <string name="GlassLevel5">Максимум</string>
++    <string name="GlassTint">Прозрачность стекла</string>
++    <string name="GlassTint1">Почти нет</string>
++    <string name="GlassTint2">Прозрачное</string>
++    <string name="GlassTint3">Обычное</string>
++    <string name="GlassTint4">Плотное</string>
++    <string name="GlassStylePink">Розовое стекло</string>
++    <string name="GlassStyleRuby">Рубин</string>
++    <string name="GlassStyleOrange">Апельсин</string>
++    <string name="GlassStyleMint">Мята</string>
++    <string name="GlassStyleGraphite">Графит</string>
++    <string name="GlassStyleNeon">Неон</string>
++    <string name="GlassStyleLight">Светлое стекло</string>
++    <string name="GlassStyleWhite">Белое (классика)</string>
++    <string name="GlassAvatar0">Квадрат</string>
++    <string name="GlassAvatar1">Почти</string>
++    <string name="GlassAvatar2">Скругл.</string>
++    <string name="GlassAvatar3">Мягкий</string>
++    <string name="GlassAvatar4">Круг</string>
++    <string name="GlassFontSize">Размер текста сообщений</string>
++    <string name="GlassAppearanceInfo">Форма аватарок и размер текста полностью применятся после перезапуска.</string>
++    <string name="GlassSectionInterface">Интерфейс</string>
++    <string name="GlassHideStories">Скрыть истории над чатами</string>
++    <string name="GlassHidePremium">Скрыть Premium и Звёзды в настройках</string>
++    <string name="GlassTimeSeconds">Время сообщений с секундами</string>
++    <string name="GlassSectionGhost">Режим призрака</string>
++    <string name="GlassGhostRead">Не отправлять «прочитано»</string>
++    <string name="GlassGhostStories">Смотреть истории незаметно</string>
++    <string name="GlassGhostOnline">Всегда «не в сети»</string>
++    <string name="GlassGhostTyping">Не показывать «печатает…»</string>
++    <string name="GlassGhostInfo">Собеседники не увидят, что вы прочитали сообщения или посмотрели истории. Счётчики непрочитанного могут вернуться после перезапуска.</string>
  </resources>
 diff --git a/TMessagesProj_App/build.gradle b/TMessagesProj_App/build.gradle
 index daff205..d2a1c15 100644
@@ -3130,10 +3687,10 @@ index 0000000..b31ec4b
 +}
 diff --git a/TMessagesProj_App/src/main/java/org/telegram/messenger/glass/GlassPythonEngine.java b/TMessagesProj_App/src/main/java/org/telegram/messenger/glass/GlassPythonEngine.java
 new file mode 100644
-index 0000000..8339df9
+index 0000000..e5b530c
 --- /dev/null
 +++ b/TMessagesProj_App/src/main/java/org/telegram/messenger/glass/GlassPythonEngine.java
-@@ -0,0 +1,255 @@
+@@ -0,0 +1,269 @@
 +package org.telegram.messenger.glass;
 +
 +import android.content.Context;
@@ -3232,6 +3789,20 @@ index 0000000..8339df9
 +            }
 +        }
 +        return false;
++    }
++
++    /**
++     * exteraGram style TL class name: TLRPC.TL_messages_sendMessage -> "TL_messages_sendMessage",
++     * TL_account.updateStatus -> "TL_account_updateStatus".
++     */
++    public static String tlName(Object o) {
++        final Class<?> c = o.getClass();
++        String name = c.getSimpleName();
++        final Class<?> outer = c.getEnclosingClass();
++        if (outer != null && !name.startsWith("TL_") && outer.getSimpleName().startsWith("TL_")) {
++            name = outer.getSimpleName() + "_" + name;
++        }
++        return name;
 +    }
 +
 +    // --- GlassPlugins.Engine ---
@@ -3333,7 +3904,7 @@ index 0000000..8339df9
 +
 +    @Override
 +    public TLObject preRequest(int account, TLObject request) {
-+        final String name = request.getClass().getSimpleName();
++        final String name = tlName(request);
 +        if (!matches(KIND_REQUEST, name)) {
 +            return request;
 +        }
@@ -3350,7 +3921,7 @@ index 0000000..8339df9
 +
 +    @Override
 +    public Object[] postRequest(int account, TLObject request, TLObject response, TLRPC.TL_error error) {
-+        final String name = request.getClass().getSimpleName();
++        final String name = tlName(request);
 +        if (!matches(KIND_REQUEST, name)) {
 +            return null;
 +        }
@@ -3369,7 +3940,7 @@ index 0000000..8339df9
 +
 +    @Override
 +    public boolean onUpdate(int account, TLRPC.Update update) {
-+        final String name = update.getClass().getSimpleName();
++        final String name = tlName(update);
 +        if (!matches(KIND_UPDATE, name)) {
 +            return false;
 +        }
@@ -3379,7 +3950,7 @@ index 0000000..8339df9
 +
 +    @Override
 +    public void onUpdates(int account, TLRPC.Updates updates) {
-+        final String name = updates.getClass().getSimpleName();
++        final String name = tlName(updates);
 +        if (matches(KIND_UPDATES, name)) {
 +            module().callAttr("on_updates", name, account, updates);
 +        }
