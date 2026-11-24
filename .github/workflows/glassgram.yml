@@ -10,7 +10,7 @@ on:
     inputs:
       abis:
         description: "ABIs to build (comma separated)"
-        default: "arm64-v8a,armeabi-v7a"
+        default: "arm64-v8a"
         required: true
   push:
     paths:
@@ -48,6 +48,10 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
       - name: Install Android SDK packages
         run: |
           SM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
@@ -65,8 +69,10 @@ jobs:
         env:
           GLASSGRAM_API_ID: ${{ secrets.GLASSGRAM_API_ID }}
           GLASSGRAM_API_HASH: ${{ secrets.GLASSGRAM_API_HASH }}
-          GLASSGRAM_ABIS: ${{ github.event.inputs.abis || 'arm64-v8a,armeabi-v7a' }}
-        run: bash glassgram/build.sh
+          GLASSGRAM_ABIS: ${{ github.event.inputs.abis || 'arm64-v8a' }}
+        run: |
+          export GLASSGRAM_BUILD_PYTHON="$(which python3)"
+          bash glassgram/build.sh
 
       - uses: actions/upload-artifact@v4
         with:

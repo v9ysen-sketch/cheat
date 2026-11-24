@@ -1,0 +1,53 @@
+"""Demo plugin for GlassGram (exteraGram plugin format)."""
+
+import time
+
+from base_plugin import BasePlugin, HookResult, HookStrategy
+from ui.settings import Header, Switch, Input, Divider
+from ui.bulletin import BulletinHelper
+
+__id__ = "glass_tools"
+__name__ = "Glass Tools"
+__description__ = "Команды .ping и .glass, замена текста и режим «не печатает»"
+__author__ = "GlassGram"
+__version__ = "1.0"
+__min_version__ = "11.9.0"
+
+
+class GlassToolsPlugin(BasePlugin):
+    def on_plugin_load(self):
+        self.add_on_send_message_hook()
+        self.add_hook("TL_messages_setTyping")
+
+    def create_settings(self):
+        return [
+            Header(text="Команды"),
+            Switch(key="commands", text="Команды .ping и .glass", default=True),
+            Input(key="suffix", text="Подпись к сообщениям", default="", subtext="Добавляется в конец каждого сообщения"),
+            Divider(text="Например: — отправлено из GlassGram"),
+            Header(text="Приватность"),
+            Switch(key="no_typing", text="Не показывать «печатает…»", default=False),
+        ]
+
+    def on_send_message_hook(self, account, params):
+        message = getattr(params, "message", None)
+        if not isinstance(message, str):
+            return HookResult()
+        if self.get_setting("commands", True):
+            if message.strip() == ".ping":
+                start = time.monotonic()
+                params.message = "🏓 pong, %.1f ms" % ((time.monotonic() - start) * 1000)
+                return HookResult(strategy=HookStrategy.MODIFY, params=params)
+            if message.strip() == ".glass":
+                params.message = "💎 GlassGram: liquid glass Telegram"
+                return HookResult(strategy=HookStrategy.MODIFY, params=params)
+        suffix = self.get_setting("suffix", "")
+        if suffix:
+            params.message = message + "\n" + suffix
+            return HookResult(strategy=HookStrategy.MODIFY, params=params)
+        return HookResult()
+
+    def pre_request_hook(self, request_name, account, request):
+        if request_name == "TL_messages_setTyping" and self.get_setting("no_typing", False):
+            return HookResult(strategy=HookStrategy.CANCEL)
+        return HookResult()

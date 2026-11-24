@@ -12,14 +12,70 @@
 | **Стекло** | Эффект Liquid Glass (Android 13+) и размытые панели в чатах включаются при первом запуске. Панели сделаны прозрачнее, у стекла голубая обводка. |
 | **Аватарки** | Квадратные со скруглёнными углами: в списке чатов, в чатах, в профилях и в кольцах историй. |
 | **Название и иконка** | GlassGram, своя иконка (стеклянная плитка с буквой «G»). Пакет `com.glassgram.messenger`, поэтому мод ставится рядом с обычным Telegram. |
-| **Прочее** | Отключены проверка обновлений Telegram, покупки через Google Play, passkeys и вход через Firebase. Всё это работает только в официальном приложении. |
+| **Удалённые сообщения** | Сообщения, которые удалил собеседник, остаются на устройстве с пометкой «удалено» рядом со временем. Функция включается в настройках мода. |
+| **Плагины** | Плагины exteraGram (`.plugin`, Python 3.13). Это собственная реализация их публичного API, подробности в разделе «Плагины». |
+| **Прочее** | Отключены проверка обновлений Telegram, покупки через Google Play, passkeys и вход через Firebase. Всё это работает только в официальном приложении. Минимальная версия Android 7.0, поддерживаются только 64-битные устройства (этого требует Python). |
 
-Настройки мода находятся в `TMessagesProj/src/main/java/org/telegram/messenger/GlassConfig.java`
-(внутри патча):
+## Настройки мода
 
-- `SQUARE_AVATARS`: квадратные аватарки (вкл/выкл);
-- `AVATAR_CORNER`: скругление углов (`1.0` даёт круг, `0.0` даёт острый квадрат, по умолчанию `0.32`);
-- `FORCE_GLASS_ON_FIRST_LAUNCH`: включать стекло при первом запуске.
+Пункт **Настройки → GlassGram** в самом верху списка:
+
+- **Жидкое стекло:** Liquid Glass и размытые панели (вкл/выкл).
+- **Стиль:** синее стекло, голубой лёд, фиолетовое, изумруд, закат, золото, AMOLED (чёрный).
+- **Форма аватарок:** круглые, скруглённый квадрат, квадратные.
+- **Скругление сообщений:** 4 / 8 / 12 / 17.
+- **Сообщения:** сохранять удалённые, помечать их, очистить пометки.
+- **Плагины:** список, установка, включение и выключение, настройки плагина, удаление.
+
+Значения по умолчанию задаются в `GlassConfig.java` (внутри патча).
+
+## Плагины
+
+Поддерживается подмножество API плагинов exteraGram по их
+[документации](https://plugins.exteragram.app/docs). Это своя реализация, а не код exteraGram:
+движок плагинов у exteraGram закрыт.
+
+**Работает:**
+
+- **Формат и загрузка.** Метаданные `__id__`, `__name__`, `__description__`, `__author__`,
+  `__version__`, `__min_version__`. Класс плагина наследует `BasePlugin`, при загрузке
+  вызывается `on_plugin_load`, при выключении `on_plugin_unload`.
+- **Хуки событий:**
+  - `add_hook` с колбэками `pre_request_hook`, `post_request_hook`, `on_update_hook`,
+    `on_updates_hook`;
+  - `add_on_send_message_hook` с колбэком `on_send_message_hook`;
+  - результаты через `HookResult` со стратегиями `DEFAULT`, `CANCEL`, `MODIFY`, `MODIFY_FINAL`.
+- **Хуки Java-методов в стиле Xposed** (через Pine): `hook_method`, `MethodHook`,
+  `MethodReplacement`, `hook_all_methods`, `hook_all_constructors`, `HookFilter`.
+- **Настройки плагина:** `create_settings` с элементами `Header`, `Switch`, `Selector`, `Input`,
+  `Text`, `Divider`; значения через `get_setting` и `set_setting`.
+- **Вспомогательные модули:**
+  - `client_utils`: `send_message`, `send_text`, `send_request`, `run_on_queue`, `get_*_controller`,
+    `get_last_fragment` и другие;
+  - `android_utils`, `hook_utils`, `file_utils`;
+  - `ui.bulletin` (`BulletinHelper`), `ui.alert` (`AlertDialogBuilder`);
+  - `markdown_utils` и `extera_utils.text_formatting` (HTML и Markdown).
+- **Доступ к Java** через `from java import jclass` (Chaquopy), а также `from org.telegram... import ...`.
+- **Предустановленные библиотеки:** `requests`, `beautifulsoup4`, `packaging`.
+
+**Не работает (пока):**
+
+- пункты меню плагинов (`add_menu_item`): плагин их регистрирует, но в интерфейсе они не появляются;
+- `Custom`-элементы настроек и вложенные экраны (`create_sub_fragment`);
+- условия MVEL в `HookFilter.Condition`: такой фильтр всегда пропускает вызов;
+- установка pip-зависимостей из `__requirements__`: если нужной библиотеки нет среди
+  предустановленных, плагин не загрузится и покажет ошибку;
+- плагины, которые обращаются к классам самого exteraGram (`com.exteragram...`).
+
+Перехват методов (Pine) проверен на Android до 14. На более новых версиях `hook_method`
+может не сработать, и тогда в списке у плагина будет ошибка.
+
+**Установка плагина:** нажми на `.plugin`-файл в любом чате или открой
+**Настройки → GlassGram → Плагины → Установить плагин**. Пример плагина лежит в
+`glassgram/plugins/glass_tools.plugin`: команды `.ping` и `.glass`, подпись к сообщениям
+и режим «не показывать „печатает…“».
+
+⚠️ Плагин получает полный доступ к аккаунту. Ставь только те плагины, которым доверяешь.
 
 ## Как получить APK
 
@@ -45,12 +101,12 @@
 
 ### 3. Сборка у себя
 
-Понадобятся JDK 17+, Android SDK (build-tools 36.0.0, platform 36, NDK 27.2.12479018, CMake 3.22.1),
-около 15 ГБ места на диске и 16 ГБ ОЗУ.
+Понадобятся JDK 17+, Python 3.13, Android SDK (build-tools 36.0.0, platform 36,
+NDK 27.2.12479018, CMake 3.22.1), около 15 ГБ места на диске и 16 ГБ ОЗУ.
 
 ```bash
 export ANDROID_HOME=~/Android/Sdk
-GLASSGRAM_API_ID=12345 GLASSGRAM_API_HASH=0123abcd... ./glassgram/build.sh
+GLASSGRAM_BUILD_PYTHON=$(which python3.13) GLASSGRAM_API_ID=12345 GLASSGRAM_API_HASH=0123abcd... ./glassgram/build.sh
 # APK будет в glassgram-out/GlassGram-13.2.2.apk
 ```
 

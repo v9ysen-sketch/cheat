@@ -4,13 +4,13 @@
 # Needs: JDK 17+, Android SDK with build-tools 36.0.0, platform 36, NDK 27.2.12479018, CMake 3.22.1
 #        (ANDROID_HOME must point at it), and your own API keys from https://my.telegram.org:
 #   GLASSGRAM_API_ID=12345 GLASSGRAM_API_HASH=abcdef... ./glassgram/build.sh
-# Optional: GLASSGRAM_ABIS (default arm64-v8a,armeabi-v7a), WORK (checkout dir, default ./.glassgram-build)
+# Optional: GLASSGRAM_ABIS (default arm64-v8a), WORK (checkout dir, default ./.glassgram-build)
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 UPSTREAM_COMMIT="$(cat "$HERE/UPSTREAM_COMMIT")"
 WORK="${WORK:-$HERE/../.glassgram-build}"
-ABIS="${GLASSGRAM_ABIS:-arm64-v8a,armeabi-v7a}"
+ABIS="${GLASSGRAM_ABIS:-arm64-v8a}"
 OUT="${OUT:-$HERE/../glassgram-out}"
 
 if [ -z "${GLASSGRAM_API_ID:-}" ] || [ -z "${GLASSGRAM_API_HASH:-}" ]; then
