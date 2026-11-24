@@ -376,6 +376,21 @@ index 1a55ea8c91..72f616bf1a 100644
                      
                      self.rawStorySubscriptions = rawStorySubscriptions
                      var items: [EngineStorySubscriptions.Item] = []
+diff --git a/submodules/Display/Source/WindowContent.swift b/submodules/Display/Source/WindowContent.swift
+index edbdcd5871..e7e5f1a03b 100644
+--- a/submodules/Display/Source/WindowContent.swift
++++ b/submodules/Display/Source/WindowContent.swift
+@@ -281,9 +281,7 @@ public final class WindowHostView {
+     /// Multi-display devices only: the fold while the system reports it active, in `eventView`
+     /// coordinates. Nil before iOS 27.1.
+     fileprivate var activeDivision: CGRect? {
+-        if #available(iOS 27.1, *) {
+-            return self.eventView.reservedRegions(kind: .division).first(where: \.isActive)?.frame
+-        }
++        // GlassGram: built with Xcode 26 (GitHub Actions), whose SDK has no reservedRegions (iOS 27.1)
+         return nil
+     }
+     
 diff --git a/submodules/GlassGram/BUILD b/submodules/GlassGram/BUILD
 new file mode 100644
 index 0000000000..8a050e4119

@@ -97,14 +97,20 @@ jobs:
           set -euo pipefail
           cd /Users/Shared/telegram-ios
           python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
-          python3 -u build-system/Make/Make.py \
+          # --continueOnError: report every compile error of the run, not just the first one
+          if ! python3 -u build-system/Make/Make.py \
             --bazelUserRoot="/private/var/tmp/_bazel_glassgram" \
             --cacheDir="$HOME/telegram-bazel-cache" \
             build \
+            --continueOnError \
             --configurationPath=glassgram-configuration.json \
             --codesigningInformationPath=build-system/fake-codesigning \
             --configuration=release_arm64 \
-            --buildNumber=100001
+            --buildNumber=100001 2>&1 | tee "$GITHUB_WORKSPACE/build.log"; then
+            echo "================ ERRORS ================"
+            grep -E "(error|ERROR):" "$GITHUB_WORKSPACE/build.log" | grep -v "^INFO" | sort -u | head -150
+            exit 1
+          fi
           mkdir -p "$GITHUB_WORKSPACE/out"
           cp bazel-bin/Telegram/Telegram.ipa "$GITHUB_WORKSPACE/out/GlassGram.ipa"
           ls -la "$GITHUB_WORKSPACE/out"
