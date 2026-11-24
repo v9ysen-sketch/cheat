@@ -343,6 +343,29 @@ index caf06427e9..0c1bba6f69 100644
                                  context.fillPath()
                              case .bubble:
                                  let rect = CGRect(origin: CGPoint(), size: displayDimensions).insetBy(dx: inset, dy: inset)
+diff --git a/submodules/BuildConfig/Sources/BuildConfig.m b/submodules/BuildConfig/Sources/BuildConfig.m
+index 3c5c3c7158..2b2a033a18 100644
+--- a/submodules/BuildConfig/Sources/BuildConfig.m
++++ b/submodules/BuildConfig/Sources/BuildConfig.m
+@@ -134,6 +134,18 @@ API_AVAILABLE(ios(10))
+     if (self != nil) {
+         _apiId = APP_CONFIG_API_ID;
+         _apiHash = @(APP_CONFIG_API_HASH);
++        // GlassGram: the API keys may also be set in the app's Info.plist (GlassGramApiId / GlassGramApiHash),
++        // so a built IPA can get its keys without rebuilding.
++        id glassApiId = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"GlassGramApiId"];
++        id glassApiHash = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"GlassGramApiHash"];
++        if ([glassApiId respondsToSelector:@selector(intValue)] && [glassApiHash isKindOfClass:[NSString class]]) {
++            int32_t glassApiIdValue = (int32_t)[glassApiId intValue];
++            NSString *glassApiHashValue = (NSString *)glassApiHash;
++            if (glassApiIdValue != 0 && glassApiHashValue.length == 32) {
++                _apiId = glassApiIdValue;
++                _apiHash = glassApiHashValue;
++            }
++        }
+         _appCenterId = @(APP_CONFIG_APP_CENTER_ID);
+         
+         _dataDict = [[NSMutableDictionary alloc] init];
 diff --git a/submodules/ChatListUI/BUILD b/submodules/ChatListUI/BUILD
 index f5df91283e..a23ccbae84 100644
 --- a/submodules/ChatListUI/BUILD
