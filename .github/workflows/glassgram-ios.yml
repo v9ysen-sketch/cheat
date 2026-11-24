@@ -1,0 +1,110 @@
+name: Build GlassGram iOS
+
+# Builds an unsigned GlassGram IPA (Telegram-iOS + glassgram-ios/glassgram-ios.patch) on a macOS runner.
+# Sign and install it with Sideloadly or AltStore using your Apple ID.
+# Uses the same repository secrets as the Android build: GLASSGRAM_API_ID, GLASSGRAM_API_HASH
+# (your own keys from https://my.telegram.org).
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "glassgram-ios/**"
+      - ".github/workflows/glassgram-ios.yml"
+
+concurrency:
+  group: glassgram-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          set -x
+          df -h /
+          for x in /Applications/Xcode_*.app; do
+            case "$x" in
+              */Xcode_26.6.app|*/Xcode_26.6.0.app) ;;
+              *) sudo rm -rf "$x" ;;
+            esac
+          done
+          sudo rm -rf ~/Library/Android /usr/local/share/dotnet ~/.dotnet ~/.ghcup || true
+          df -h /
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Fetch Telegram-iOS sources
+        run: |
+          set -euo pipefail
+          COMMIT="$(cat glassgram-ios/UPSTREAM_COMMIT)"
+          SRC=/Users/Shared/telegram-ios
+          sudo mkdir -p /Users/Shared && sudo chown "$(whoami)" /Users/Shared
+          git init -q "$SRC"
+          git -C "$SRC" remote add origin https://github.com/TelegramMessenger/Telegram-iOS.git
+          git -C "$SRC" fetch -q --depth 1 origin "$COMMIT"
+          git -C "$SRC" checkout -q FETCH_HEAD
+          git -C "$SRC" submodule update --init --recursive --depth 1 --jobs 8
+          git -C "$SRC" apply --whitespace=nowarn "$GITHUB_WORKSPACE/glassgram-ios/glassgram-ios.patch"
+          echo "applied GlassGram patch"
+
+      - name: Write build configuration
+        env:
+          API_ID: ${{ secrets.GLASSGRAM_API_ID }}
+          API_HASH: ${{ secrets.GLASSGRAM_API_HASH }}
+        run: |
+          set -euo pipefail
+          if [ -z "$API_ID" ] || [ -z "$API_HASH" ]; then
+            echo "::warning::GLASSGRAM_API_ID / GLASSGRAM_API_HASH secrets are not set: the app will build but cannot log in"
+            API_ID=0
+            API_HASH=00000000000000000000000000000000
+          fi
+          cd /Users/Shared/telegram-ios
+          python3 - "$API_ID" "$API_HASH" <<'EOF'
+          import json, sys
+          path = "build-system/appstore-configuration.json"
+          with open(path) as f:
+              config = json.load(f)
+          config["api_id"] = sys.argv[1]
+          config["api_hash"] = sys.argv[2]
+          # bundle_id / team_id stay as in the fake codesigning profiles; Sideloadly re-signs the app
+          with open("glassgram-configuration.json", "w") as f:
+              json.dump(config, f, indent=2)
+          EOF
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/telegram-bazel-cache
+          key: glassgram-ios-bazel-${{ hashFiles('glassgram-ios/UPSTREAM_COMMIT') }}-${{ github.run_id }}
+          restore-keys: |
+            glassgram-ios-bazel-${{ hashFiles('glassgram-ios/UPSTREAM_COMMIT') }}-
+
+      - name: Build IPA
+        run: |
+          set -euo pipefail
+          cd /Users/Shared/telegram-ios
+          python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
+          python3 -u build-system/Make/Make.py \
+            --bazelUserRoot="/private/var/tmp/_bazel_glassgram" \
+            --cacheDir="$HOME/telegram-bazel-cache" \
+            build \
+            --configurationPath=glassgram-configuration.json \
+            --codesigningInformationPath=build-system/fake-codesigning \
+            --configuration=release_arm64 \
+            --buildNumber=100001
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          cp bazel-bin/Telegram/Telegram.ipa "$GITHUB_WORKSPACE/out/GlassGram.ipa"
+          ls -la "$GITHUB_WORKSPACE/out"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GlassGram-iOS
+          path: out/GlassGram.ipa
+          if-no-files-found: error

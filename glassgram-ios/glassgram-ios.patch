@@ -1,0 +1,1138 @@
+diff --git a/Telegram/BUILD b/Telegram/BUILD
+index fd73a6aeaf..608d931af2 100644
+--- a/Telegram/BUILD
++++ b/Telegram/BUILD
+@@ -636,7 +636,7 @@ plist_fragment(
+     template =
+     """
+     <key>CFBundleDisplayName</key>
+-    <string>Telegram</string>
++    <string>GlassGram</string>
+     """
+ )
+ 
+@@ -975,7 +975,7 @@ plist_fragment(
+     <key>CFBundleIdentifier</key>
+     <string>{telegram_bundle_id}.Share</string>
+     <key>CFBundleName</key>
+-    <string>Telegram</string>
++    <string>GlassGram</string>
+     <key>CFBundlePackageType</key>
+     <string>XPC!</string>
+     <key>NSExtension</key>
+@@ -1068,7 +1068,7 @@ plist_fragment(
+     <key>CFBundleIdentifier</key>
+     <string>{telegram_bundle_id}.NotificationContent</string>
+     <key>CFBundleName</key>
+-    <string>Telegram</string>
++    <string>GlassGram</string>
+     <key>CFBundlePackageType</key>
+     <string>XPC!</string>
+     <key>NSExtension</key>
+@@ -1176,7 +1176,7 @@ plist_fragment(
+     <key>CFBundleIdentifier</key>
+     <string>{telegram_bundle_id}.Widget</string>
+     <key>CFBundleName</key>
+-    <string>Telegram</string>
++    <string>GlassGram</string>
+     <key>CFBundlePackageType</key>
+     <string>XPC!</string>
+     <key>NSExtension</key>
+@@ -1294,7 +1294,7 @@ plist_fragment(
+     <key>CFBundleIdentifier</key>
+     <string>{telegram_bundle_id}.SiriIntents</string>
+     <key>CFBundleName</key>
+-    <string>Telegram</string>
++    <string>GlassGram</string>
+     <key>CFBundlePackageType</key>
+     <string>XPC!</string>
+     <key>NSExtension</key>
+@@ -1458,7 +1458,7 @@ plist_fragment(
+     <key>CFBundleIdentifier</key>
+     <string>{telegram_bundle_id}.BroadcastUpload</string>
+     <key>CFBundleName</key>
+-    <string>Telegram</string>
++    <string>GlassGram</string>
+     <key>CFBundlePackageType</key>
+     <string>XPC!</string>
+     <key>NSExtension</key>
+@@ -1552,7 +1552,7 @@ plist_fragment(
+     <key>CFBundleIdentifier</key>
+     <string>{telegram_bundle_id}.NotificationService</string>
+     <key>CFBundleName</key>
+-    <string>Telegram</string>
++    <string>GlassGram</string>
+     <key>CFBundlePackageType</key>
+     <string>XPC!</string>
+     <key>NSExtension</key>
+@@ -1621,11 +1621,11 @@ plist_fragment(
+     <key>CFBundleDevelopmentRegion</key>
+     <string>en</string>
+     <key>CFBundleDisplayName</key>
+-    <string>Telegram</string>
++    <string>GlassGram</string>
+     <key>CFBundleIdentifier</key>
+     <string>{telegram_bundle_id}</string>
+     <key>CFBundleName</key>
+-    <string>Telegram</string>
++    <string>GlassGram</string>
+     <key>CFBundlePackageType</key>
+     <string>APPL</string>
+     <key>CFBundleSignature</key>
+@@ -1848,9 +1848,7 @@ ios_application(
+         ":UrlTypesInfoPlist",
+     ],
+     app_icons = [ ":{}_icon".format(name) for name in composer_icon_folders ],
+-    alternate_icons = [
+-        ":{}".format(name) for name in alternate_icon_folders
+-    ],
++    alternate_icons = [], # GlassGram: no official alternate icons
+     resources = [
+         ":LaunchScreen",
+         #":DefaultAppIcon",
+diff --git a/Telegram/Telegram-iOS/Telegram.icon/Assets/Oval.svg b/Telegram/Telegram-iOS/Telegram.icon/Assets/Oval.svg
+index c3e47858d3..83e83fd630 100644
+--- a/Telegram/Telegram-iOS/Telegram.icon/Assets/Oval.svg
++++ b/Telegram/Telegram-iOS/Telegram.icon/Assets/Oval.svg
+@@ -1,7 +1,7 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+-<svg width="1024px" height="1024px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
++<svg width="1024px" height="1024px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+     <title>Oval</title>
+     <g id="Oval" stroke="none" fill="none" fill-rule="nonzero">
+-        <circle fill="#000000" cx="512" cy="512" r="410.5"></circle>
++        <rect fill="#000000" x="132" y="132" width="760" height="760" rx="190"></rect>
+     </g>
+-</svg>
+\ No newline at end of file
++</svg>
+diff --git a/Telegram/Telegram-iOS/Telegram.icon/Assets/Plane.svg b/Telegram/Telegram-iOS/Telegram.icon/Assets/Plane.svg
+index e475bcfde7..ed5a5dbfcd 100644
+--- a/Telegram/Telegram-iOS/Telegram.icon/Assets/Plane.svg
++++ b/Telegram/Telegram-iOS/Telegram.icon/Assets/Plane.svg
+@@ -1,7 +1,9 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+-<svg width="1024px" height="1024px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
++<svg width="1024px" height="1024px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+     <title>Plane</title>
+     <g id="Plane" stroke="none" fill="none" fill-rule="nonzero">
+-        <path d="M287.315632,507.666819 C406.984718,455.528898 486.782853,421.15639 526.710034,404.549294 C640.710251,357.13266 664.39852,348.895883 679.838202,348.621 C683.234017,348.56408 690.826804,349.405665 695.745092,353.396516 C699.897998,356.766313 701.040629,361.31843 701.587414,364.513367 C702.1342,367.708304 702.815079,374.986453 702.273832,380.673387 C696.09612,445.583141 669.36526,603.101997 655.766116,675.802034 C650.011808,706.564145 638.681397,716.878524 627.712247,717.887922 C603.873746,720.081578 585.77187,702.133777 562.683116,686.998808 C526.553773,663.315568 506.142993,648.572678 471.073211,625.462211 C430.544009,598.754068 456.817404,584.074808 479.914878,560.08479 C485.959597,553.806488 590.992581,458.270869 593.025497,449.604291 C593.279747,448.520391 593.515704,444.480123 591.115452,442.346714 C588.715199,440.213304 585.172634,440.942847 582.61622,441.52306 C578.99258,442.345492 521.275488,480.49435 409.464943,555.969631 C393.082138,567.219329 378.243103,572.700559 364.947836,572.413323 C350.290871,572.096667 322.096751,564.126052 301.137321,557.312967 C275.429726,548.956441 254.997841,544.538286 256.777,530.34632 C257.703696,522.954266 267.883239,515.394432 287.315632,507.666819 Z" id="Path-3" fill="#FFFFFF"></path>
++        <path fill="#FFFFFF" d="M674.6,349.4 A230,230 0 1 0 742.0,512.0 L662.0,512.0 A150,150 0 1 1 618.1,405.9 Z"></path>
++        <rect fill="#FFFFFF" x="540" y="512" width="202" height="72" rx="10"></rect>
++        <circle fill="#FFFFFF" cx="646.4" cy="377.6" r="40"></circle>
+     </g>
+-</svg>
+\ No newline at end of file
++</svg>
+diff --git a/Telegram/Telegram-iOS/Telegram.icon/icon.json b/Telegram/Telegram-iOS/Telegram.icon/icon.json
+index b1143f6343..668dc9d05b 100644
+--- a/Telegram/Telegram-iOS/Telegram.icon/icon.json
++++ b/Telegram/Telegram-iOS/Telegram.icon/icon.json
+@@ -51,15 +51,15 @@
+             {
+               "value" : {
+                 "linear-gradient" : [
+-                  "display-p3:0.21569,0.68627,0.89020,1.00000",
+-                  "srgb:0.11373,0.57647,0.82353,1.00000"
++                  "srgb:0.24706,0.70588,1.00000,1.00000",
++                  "srgb:0.04314,0.18039,0.40000,1.00000"
+                 ]
+               }
+             },
+             {
+               "appearance" : "dark",
+               "value" : {
+-                "automatic-gradient" : "srgb:0.00000,0.47843,1.00000,1.00000"
++                "automatic-gradient" : "srgb:0.17647,0.41961,1.00000,1.00000"
+               }
+             }
+           ],
+diff --git a/Telegram/Telegram-iOS/ar.lproj/InfoPlist.strings b/Telegram/Telegram-iOS/ar.lproj/InfoPlist.strings
+index 174276a904..55876b87bc 100644
+--- a/Telegram/Telegram-iOS/ar.lproj/InfoPlist.strings
++++ b/Telegram/Telegram-iOS/ar.lproj/InfoPlist.strings
+@@ -1,5 +1,5 @@
+ /* Localized versions of Info.plist keys */
+-"CFBundleDisplayName" = "تيليجرام";
++"CFBundleDisplayName" = "GlassGram";
+ "NSContactsUsageDescription" = "سيقوم تيليجرام برفع جهات الاتصال الخاصة بك باستمرار إلى خوادم التخزين السحابية ذات التشفير العالي لتتمكن من التواصل مع أصدقائك من خلال جميع أجهزتك.";
+ "NSLocationWhenInUseUsageDescription" = "عندما ترغب في مشاركة مكانك مع أصدقائك، تيليجرام يحتاج لصلاحيات لعرض الخريطة لهم.";
+ "NSLocationAlwaysAndWhenInUseUsageDescription" = "عندما تختار أن تشارك مكانك بشكل حي مع أصدقائك في المحادثة، يحتاج تيليجرام إلى الوصول لموقعك في الخلفية حتى بعد إغلاق تيليجرام خلال فترة المشاركة.";
+diff --git a/Telegram/Telegram-iOS/ko.lproj/InfoPlist.strings b/Telegram/Telegram-iOS/ko.lproj/InfoPlist.strings
+index b692e0af6c..b8cc9657b7 100644
+--- a/Telegram/Telegram-iOS/ko.lproj/InfoPlist.strings
++++ b/Telegram/Telegram-iOS/ko.lproj/InfoPlist.strings
+@@ -1,5 +1,5 @@
+ /* Localized versions of Info.plist keys */
+-"CFBundleDisplayName" = "텔레그램";
++"CFBundleDisplayName" = "GlassGram";
+ "NSContactsUsageDescription" = "Telegram will continuously upload your contacts to its heavily encrypted cloud servers to let you connect with your friends across all your devices.";
+ "NSLocationWhenInUseUsageDescription" = "친구에게 회원님의 위치를 전송할 경우 위치를 지도에 표시하기 위해 텔레그램이 위치 정보에 접근할 수 있어야 합니다.";
+ "NSLocationAlwaysUsageDescription" = "친구에게 회원님의 위치를 전송할 경우 위치를 지도에 표시하기 위해 텔레그램이 위치 정보에 접근할 수 있어야 합니다. 애플워치에 위치 전송을 위해서도 필요합니다.";
+diff --git a/submodules/AvatarNode/BUILD b/submodules/AvatarNode/BUILD
+index 3aad72c509..dd1de3aec4 100644
+--- a/submodules/AvatarNode/BUILD
++++ b/submodules/AvatarNode/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/GlassGram:GlassGram",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
+         "//submodules/TelegramCore:TelegramCore",
+diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarNode/Sources/AvatarNode.swift
+index ab3278f4bd..36e6c4c3fe 100644
+--- a/submodules/AvatarNode/Sources/AvatarNode.swift
++++ b/submodules/AvatarNode/Sources/AvatarNode.swift
+@@ -14,6 +14,7 @@ import Accelerate
+ import ComponentFlow
+ import AvatarStoryIndicatorComponent
+ import DirectMediaImageCache
++import GlassGram
+ 
+ private let deletedIcon = UIImage(bundleImageName: "Avatar/DeletedIcon")?.precomposed()
+ private let phoneIcon = generateTintedImage(image: UIImage(bundleImageName: "Avatar/PhoneIcon"), color: .white)
+@@ -35,6 +36,19 @@ public func generateDeletedAccountAvatarImage(size: CGSize) -> UIImage? {
+     return generateAvatarImage(size: size, icon: deletedIcon, iconScale: size.width / 60.0, color: .blue, customColors: AvatarNode.grayscaleColors)
+ }
+ 
++/// GlassGram: round avatars become rounded squares.
++public func glassGramClipStyle(_ style: AvatarNodeClipStyle) -> AvatarNodeClipStyle {
++    if case .round = style, GlassGramSettings.squareAvatars {
++        return .roundedRect
++    }
++    return style
++}
++
++/// GlassGram: corner radius of a square avatar of the given width.
++public func glassGramAvatarCornerRadius(_ width: CGFloat) -> CGFloat {
++    return floor(width * CGFloat(GlassGramSettings.avatarCornerFactor))
++}
++
+ public enum AvatarNodeClipStyle {
+     case none
+     case round
+@@ -591,6 +605,7 @@ public final class AvatarNode: ASDisplayNode {
+             storeUnrounded: Bool = false,
+             cutoutRect: CGRect? = nil
+         ) {
++            let clipStyle = glassGramClipStyle(clipStyle)
+             var synchronousLoad = synchronousLoad
+             var representation: TelegramMediaImageRepresentation?
+             var icon = AvatarNodeIcon.none
+@@ -719,6 +734,7 @@ public final class AvatarNode: ASDisplayNode {
+             displayDimensions: CGSize = CGSize(width: 60.0, height: 60.0),
+             storeUnrounded: Bool = false
+         ) {
++            let clipStyle = glassGramClipStyle(clipStyle)
+             let smallProfileImage = peer?.smallProfileImage
+             let params = Params(
+                 peerId: peer?.id,
+@@ -741,7 +757,7 @@ public final class AvatarNode: ASDisplayNode {
+                 self.imageNode.cornerRadius = displayDimensions.height * 0.5
+             case .roundedRect:
+                 self.imageNode.clipsToBounds = true
+-                self.imageNode.cornerRadius = displayDimensions.height * 0.25
++                self.imageNode.cornerRadius = glassGramAvatarCornerRadius(displayDimensions.height)
+             case .bubble:
+                 break
+             }
+@@ -798,6 +814,7 @@ public final class AvatarNode: ASDisplayNode {
+             storeUnrounded: Bool = false,
+             cutoutRect: CGRect? = nil
+         ) {
++            let clipStyle = glassGramClipStyle(clipStyle)
+             var synchronousLoad = synchronousLoad
+             var representation: TelegramMediaImageRepresentation?
+             var icon = AvatarNodeIcon.none
+@@ -975,7 +992,7 @@ public final class AvatarNode: ASDisplayNode {
+                     context.clip()
+                 } else if case .roundedRect = parameters.clipStyle {
+                     context.beginPath()
+-                    context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: bounds.size.width, height: bounds.size.height), cornerRadius: floor(bounds.size.width * 0.25)).cgPath)
++                    context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: bounds.size.width, height: bounds.size.height), cornerRadius: glassGramAvatarCornerRadius(bounds.size.width)).cgPath)
+                     context.clip()
+                 } else if case .bubble = parameters.clipStyle {
+                     context.beginPath()
+@@ -1300,6 +1317,7 @@ public final class AvatarNode: ASDisplayNode {
+         displayDimensions: CGSize = CGSize(width: 60.0, height: 60.0),
+         storeUnrounded: Bool = false
+     ) {
++        let clipStyle = glassGramClipStyle(clipStyle)
+         self.contentNode.setPeer(
+             accountPeerId: accountPeerId,
+             postbox: postbox,
+@@ -1329,6 +1347,7 @@ public final class AvatarNode: ASDisplayNode {
+         displayDimensions: CGSize = CGSize(width: 60.0, height: 60.0),
+         storeUnrounded: Bool = false
+     ) {
++        let clipStyle = glassGramClipStyle(clipStyle)
+         self.contentNode.setPeerV2(
+             context: genericContext,
+             theme: theme,
+@@ -1357,6 +1376,7 @@ public final class AvatarNode: ASDisplayNode {
+         storeUnrounded: Bool = false,
+         cutoutRect: CGRect? = nil
+     ) {
++        let clipStyle = glassGramClipStyle(clipStyle)
+         self.contentNode.setPeer(
+             context: context,
+             account: account,
+diff --git a/submodules/AvatarNode/Sources/PeerAvatar.swift b/submodules/AvatarNode/Sources/PeerAvatar.swift
+index caf06427e9..0c1bba6f69 100644
+--- a/submodules/AvatarNode/Sources/PeerAvatar.swift
++++ b/submodules/AvatarNode/Sources/PeerAvatar.swift
+@@ -7,6 +7,7 @@ import TelegramCore
+ import TinyThumbnail
+ import FastBlur
+ import Postbox
++import GlassGram
+ 
+ private let roundCorners = { () -> UIImage in
+     let diameter: CGFloat = 60.0
+@@ -167,6 +168,7 @@ public func peerAvatarCompleteImage(postbox: Postbox, peer: EnginePeer, forcePro
+ }
+ 
+ public func peerAvatarImage(account: Account, peerReference: PeerReference?, authorOfMessage: MessageReference?, representation: TelegramMediaImageRepresentation?, displayDimensions: CGSize = CGSize(width: 60.0, height: 60.0), clipStyle: AvatarNodeClipStyle = .round, blurred: Bool = false, inset: CGFloat = 0.0, emptyColor: UIColor? = nil, synchronousLoad: Bool = false, provideUnrounded: Bool = false, cutoutRect: CGRect? = nil) -> Signal<(UIImage, UIImage)?, NoError>? {
++    let clipStyle = glassGramClipStyle(clipStyle)
+     return peerAvatarImage(
+         postbox: account.postbox,
+         peerReference: peerReference,
+@@ -184,6 +186,7 @@ public func peerAvatarImage(account: Account, peerReference: PeerReference?, aut
+ }
+     
+ public func peerAvatarImage(postbox: Postbox, peerReference: PeerReference?, authorOfMessage: MessageReference?, representation: TelegramMediaImageRepresentation?, displayDimensions: CGSize = CGSize(width: 60.0, height: 60.0), clipStyle: AvatarNodeClipStyle = .round, blurred: Bool = false, inset: CGFloat = 0.0, emptyColor: UIColor? = nil, synchronousLoad: Bool = false, provideUnrounded: Bool = false, cutoutRect: CGRect? = nil) -> Signal<(UIImage, UIImage)?, NoError>? {
++    let clipStyle = glassGramClipStyle(clipStyle)
+     if let imageData = peerAvatarImageData(postbox: postbox, peerReference: peerReference, authorOfMessage: authorOfMessage, representation: representation, synchronousLoad: synchronousLoad) {
+         return imageData
+         |> mapToSignal { data -> Signal<(UIImage, UIImage)?, NoError> in
+@@ -206,7 +209,7 @@ public func peerAvatarImage(postbox: Postbox, peerReference: PeerReference?, aut
+                                     context.clip()
+                                 }
+                             case .roundedRect:
+-                                context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: displayDimensions.width, height: displayDimensions.height).insetBy(dx: inset, dy: inset), cornerRadius: floor(displayDimensions.width * 0.25)).cgPath)
++                                context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: displayDimensions.width, height: displayDimensions.height).insetBy(dx: inset, dy: inset), cornerRadius: glassGramAvatarCornerRadius(displayDimensions.width)).cgPath)
+                                 context.clip()
+                             case .bubble:
+                                 let rect = CGRect(origin: CGPoint(), size: displayDimensions).insetBy(dx: inset, dy: inset)
+@@ -283,7 +286,7 @@ public func peerAvatarImage(postbox: Postbox, peerReference: PeerReference?, aut
+                                     context.fillEllipse(in: CGRect(origin: CGPoint(), size: displayDimensions).insetBy(dx: inset, dy: inset))
+                                 case .roundedRect:
+                                     context.beginPath()
+-                                    context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: displayDimensions.width, height: displayDimensions.height).insetBy(dx: inset, dy: inset), cornerRadius: floor(displayDimensions.width * 0.25)).cgPath)
++                                    context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: displayDimensions.width, height: displayDimensions.height).insetBy(dx: inset, dy: inset), cornerRadius: glassGramAvatarCornerRadius(displayDimensions.width)).cgPath)
+                                     context.fillPath()
+                                 case .bubble:
+                                     let rect = CGRect(origin: CGPoint(), size: displayDimensions).insetBy(dx: inset, dy: inset)
+@@ -309,7 +312,7 @@ public func peerAvatarImage(postbox: Postbox, peerReference: PeerReference?, aut
+                             context.fillEllipse(in: CGRect(origin: CGPoint(), size: displayDimensions).insetBy(dx: inset, dy: inset))
+                         case .roundedRect:
+                             context.beginPath()
+-                            context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: displayDimensions.width, height: displayDimensions.height).insetBy(dx: inset, dy: inset), cornerRadius: floor(displayDimensions.width * 0.25)).cgPath)
++                            context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: displayDimensions.width, height: displayDimensions.height).insetBy(dx: inset, dy: inset), cornerRadius: glassGramAvatarCornerRadius(displayDimensions.width)).cgPath)
+                             context.fillPath()
+                         case .bubble:
+                             let rect = CGRect(origin: CGPoint(), size: displayDimensions).insetBy(dx: inset, dy: inset)
+@@ -357,7 +360,7 @@ public func peerAvatarImage(postbox: Postbox, peerReference: PeerReference?, aut
+                                 context.fillEllipse(in: CGRect(origin: CGPoint(), size: displayDimensions).insetBy(dx: inset, dy: inset))
+                             case .roundedRect:
+                                 context.beginPath()
+-                                context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: displayDimensions.width, height: displayDimensions.height).insetBy(dx: inset, dy: inset), cornerRadius: floor(displayDimensions.width * 0.25)).cgPath)
++                                context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: displayDimensions.width, height: displayDimensions.height).insetBy(dx: inset, dy: inset), cornerRadius: glassGramAvatarCornerRadius(displayDimensions.width)).cgPath)
+                                 context.fillPath()
+                             case .bubble:
+                                 let rect = CGRect(origin: CGPoint(), size: displayDimensions).insetBy(dx: inset, dy: inset)
+diff --git a/submodules/ChatListUI/BUILD b/submodules/ChatListUI/BUILD
+index f5df91283e..a23ccbae84 100644
+--- a/submodules/ChatListUI/BUILD
++++ b/submodules/ChatListUI/BUILD
+@@ -12,6 +12,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/GlassGram:GlassGram",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/LottieSettings:LottieSettings",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 1a55ea8c91..72f616bf1a 100644
+--- a/submodules/ChatListUI/Sources/ChatListController.swift
++++ b/submodules/ChatListUI/Sources/ChatListController.swift
+@@ -62,6 +62,7 @@ import GlobalControlPanelsContext
+ import AlertComponent
+ import AlertHeaderComponent
+ import AvatarComponent
++import GlassGram
+ 
+ private final class ContextControllerContentSourceImpl: ContextControllerContentSource {
+     let controller: ViewController
+@@ -2194,6 +2195,8 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+                     guard let self else {
+                         return
+                     }
++                    // GlassGram: "hide stories" removes the stories row above the chats
++                    let rawStorySubscriptions = GlassGramSettings.hideStories ? EngineStorySubscriptions(accountItem: nil, items: [], hasMoreToken: nil) : rawStorySubscriptions
+                     
+                     self.rawStorySubscriptions = rawStorySubscriptions
+                     var items: [EngineStorySubscriptions.Item] = []
+diff --git a/submodules/GlassGram/BUILD b/submodules/GlassGram/BUILD
+new file mode 100644
+index 0000000000..8a050e4119
+--- /dev/null
++++ b/submodules/GlassGram/BUILD
+@@ -0,0 +1,15 @@
++load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
++
++swift_library(
++    name = "GlassGram",
++    module_name = "GlassGram",
++    srcs = glob([
++        "Sources/**/*.swift",
++    ]),
++    copts = [
++        "-warnings-as-errors",
++    ],
++    visibility = [
++        "//visibility:public",
++    ],
++)
+diff --git a/submodules/GlassGram/Sources/GlassGramSettings.swift b/submodules/GlassGram/Sources/GlassGramSettings.swift
+new file mode 100644
+index 0000000000..b3f8bcd86e
+--- /dev/null
++++ b/submodules/GlassGram/Sources/GlassGramSettings.swift
+@@ -0,0 +1,219 @@
++import Foundation
++
++/// GlassGram mod settings, stored in the app's standard user defaults.
++public enum GlassGramSettings {
++    private static let prefix = "glassgram."
++
++    private static func bool(_ key: String, _ defaultValue: Bool) -> Bool {
++        let defaults = UserDefaults.standard
++        if defaults.object(forKey: prefix + key) == nil {
++            return defaultValue
++        }
++        return defaults.bool(forKey: prefix + key)
++    }
++
++    private static func setBool(_ key: String, _ value: Bool) {
++        UserDefaults.standard.set(value, forKey: prefix + key)
++    }
++
++    private static func int(_ key: String, _ defaultValue: Int) -> Int {
++        let defaults = UserDefaults.standard
++        if defaults.object(forKey: prefix + key) == nil {
++            return defaultValue
++        }
++        return defaults.integer(forKey: prefix + key)
++    }
++
++    private static func setInt(_ key: String, _ value: Int) {
++        UserDefaults.standard.set(value, forKey: prefix + key)
++    }
++
++    // MARK: avatars
++
++    public static let avatarShapeCount = 5
++    public static let avatarShapeCircle = 4
++
++    /// 0 square, 1 almost square, 2 rounded (default), 3 soft, 4 circle.
++    public static var avatarShape: Int {
++        get {
++            return max(0, min(avatarShapeCount - 1, int("avatarShape", 2)))
++        }
++        set {
++            setInt("avatarShape", max(0, min(avatarShapeCount - 1, newValue)))
++        }
++    }
++
++    public static var squareAvatars: Bool {
++        return avatarShape != avatarShapeCircle
++    }
++
++    /// Corner radius of a square avatar as a fraction of its width (0.25 is Telegram's forum avatar).
++    public static var avatarCornerFactor: Double {
++        switch avatarShape {
++        case 0:
++            return 0.0
++        case 1:
++            return 0.08
++        case 2:
++            return 0.16
++        case 3:
++            return 0.3
++        default:
++            return 0.25
++        }
++    }
++
++    // MARK: style
++
++    /// Index into GlassGramStyles.presets.
++    public static var stylePreset: Int {
++        get {
++            return int("stylePreset", 0)
++        }
++        set {
++            setInt("stylePreset", newValue)
++        }
++    }
++
++    // MARK: interface
++
++    public static var hideStories: Bool {
++        get { return bool("hideStories", false) }
++        set { setBool("hideStories", newValue) }
++    }
++
++    public static var timeSeconds: Bool {
++        get { return bool("timeSeconds", false) }
++        set { setBool("timeSeconds", newValue) }
++    }
++
++    // MARK: ghost mode
++
++    public static var ghostRead: Bool {
++        get { return bool("ghostRead", false) }
++        set { setBool("ghostRead", newValue) }
++    }
++
++    public static var ghostStories: Bool {
++        get { return bool("ghostStories", false) }
++        set { setBool("ghostStories", newValue) }
++    }
++
++    public static var ghostOnline: Bool {
++        get { return bool("ghostOnline", false) }
++        set { setBool("ghostOnline", newValue) }
++    }
++
++    public static var ghostTyping: Bool {
++        get { return bool("ghostTyping", false) }
++        set { setBool("ghostTyping", newValue) }
++    }
++
++    // MARK: deleted messages
++
++    public static var saveDeleted: Bool {
++        get { return bool("saveDeleted", true) }
++        set { setBool("saveDeleted", newValue) }
++    }
++
++    public static var markDeleted: Bool {
++        get { return bool("markDeleted", true) }
++        set { setBool("markDeleted", newValue) }
++    }
++}
++
++/// Messages deleted on the server while "save deleted messages" is on. The messages stay in the local
++/// database (TelegramCore skips their deletion), this store keeps their ids for the "deleted" mark.
++/// Keys: channel id (0 for private chats and basic groups, whose message ids are per account) + message id.
++public final class GlassGramDeletedStore {
++    private static let lock = NSLock()
++    private static var loaded = false
++    private static var ids = Set<String>()
++    private static let defaultsKey = "glassgram.deletedMessages"
++
++    private static func loadIfNeeded() {
++        if !loaded {
++            ids = Set(UserDefaults.standard.stringArray(forKey: defaultsKey) ?? [])
++            loaded = true
++        }
++    }
++
++    public static func markDeleted(channelId: Int64, messageIds: [Int32]) {
++        if messageIds.isEmpty {
++            return
++        }
++        lock.lock()
++        loadIfNeeded()
++        for id in messageIds {
++            ids.insert("\(channelId)_\(id)")
++        }
++        let snapshot = Array(ids)
++        lock.unlock()
++        UserDefaults.standard.set(snapshot, forKey: defaultsKey)
++    }
++
++    public static func isDeleted(channelId: Int64, messageId: Int32) -> Bool {
++        lock.lock()
++        defer {
++            lock.unlock()
++        }
++        loadIfNeeded()
++        if ids.isEmpty {
++            return false
++        }
++        return ids.contains("\(channelId)_\(messageId)")
++    }
++
++    public static var count: Int {
++        lock.lock()
++        defer {
++            lock.unlock()
++        }
++        loadIfNeeded()
++        return ids.count
++    }
++
++    public static func clear() {
++        lock.lock()
++        ids.removeAll()
++        loaded = true
++        lock.unlock()
++        UserDefaults.standard.removeObject(forKey: defaultsKey)
++    }
++}
++
++/// Glass color styles: accent, outgoing bubble gradient and a 4-color gradient wallpaper of the dark theme.
++public struct GlassGramStyle {
++    public let title: String
++    /// true: the tinted dark theme (backgrounds follow the accent hue), false: the black night theme.
++    public let tinted: Bool
++    public let accent: UInt32
++    public let bubbles: [UInt32]
++    public let wallpaper: [UInt32]
++
++    public init(title: String, tinted: Bool, accent: UInt32, bubbles: [UInt32], wallpaper: [UInt32]) {
++        self.title = title
++        self.tinted = tinted
++        self.accent = accent
++        self.bubbles = bubbles
++        self.wallpaper = wallpaper
++    }
++}
++
++public enum GlassGramStyles {
++    public static let presets: [GlassGramStyle] = [
++        GlassGramStyle(title: "Синее стекло", tinted: true, accent: 0x4FA8FF, bubbles: [0x2D6BFF, 0x3FB4FF], wallpaper: [0x030B18, 0x0B2E66, 0x051433, 0x1B56B0]),
++        GlassGramStyle(title: "Голубой лёд", tinted: true, accent: 0x5AD8FF, bubbles: [0x1FA2D6, 0x6FE3FF], wallpaper: [0x04141C, 0x0B3A4F, 0x062330, 0x13607A]),
++        GlassGramStyle(title: "Фиолетовое стекло", tinted: true, accent: 0xA78BFF, bubbles: [0x6A4CFF, 0xB27BFF], wallpaper: [0x0C0820, 0x2A1A5E, 0x140E36, 0x4B2A9C]),
++        GlassGramStyle(title: "Изумруд", tinted: true, accent: 0x4FE3A8, bubbles: [0x149A6B, 0x38C98F], wallpaper: [0x03140E, 0x0B3D2C, 0x06251B, 0x146B4C]),
++        GlassGramStyle(title: "Закат", tinted: true, accent: 0xFF8FA3, bubbles: [0xE0457B, 0xFF9A62], wallpaper: [0x1A0712, 0x4A1530, 0x2A0B1C, 0x7A2A3A]),
++        GlassGramStyle(title: "Золото", tinted: true, accent: 0xFFD36B, bubbles: [0xB8862B, 0xE6B54A], wallpaper: [0x140F04, 0x3D2E0B, 0x241B06, 0x6B5014]),
++        GlassGramStyle(title: "Розовое стекло", tinted: true, accent: 0xFF7AC6, bubbles: [0xD9408F, 0xFF7FB8], wallpaper: [0x1A0614, 0x4A1238, 0x2A0A20, 0x7A1F5C]),
++        GlassGramStyle(title: "Рубин", tinted: true, accent: 0xFF6B6B, bubbles: [0xC9302C, 0xFF6A5C], wallpaper: [0x1A0505, 0x4A0F12, 0x2A0809, 0x7A1A1F]),
++        GlassGramStyle(title: "Апельсин", tinted: true, accent: 0xFFA94D, bubbles: [0xE0701F, 0xFFB15C], wallpaper: [0x1A0E03, 0x4A2A0B, 0x2A1806, 0x7A4514]),
++        GlassGramStyle(title: "Мята", tinted: true, accent: 0x6EF5CF, bubbles: [0x1FB58E, 0x5DE6C0], wallpaper: [0x031612, 0x0B4236, 0x06281F, 0x13705A]),
++        GlassGramStyle(title: "Графит", tinted: true, accent: 0xB8C7D6, bubbles: [0x5C6B7A, 0x8796A5], wallpaper: [0x0A0D10, 0x22282F, 0x14181C, 0x3A434D]),
++        GlassGramStyle(title: "Неон", tinted: true, accent: 0xC6FF4D, bubbles: [0x6FB300, 0xA6E02E], wallpaper: [0x0A1203, 0x22380B, 0x142206, 0x3B6114]),
++        GlassGramStyle(title: "AMOLED (чёрный)", tinted: false, accent: 0x4FA8FF, bubbles: [0x1F4FCC, 0x2D6BFF], wallpaper: [0x000000, 0x000000, 0x000000, 0x0A1730])
++    ]
++}
+diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+index 32438133ef..b007eb03ff 100644
+--- a/submodules/SettingsUI/BUILD
++++ b/submodules/SettingsUI/BUILD
+@@ -12,6 +12,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/GlassGram:GlassGram",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/LottieSettings:LottieSettings",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+diff --git a/submodules/SettingsUI/Sources/GlassGramSettingsController.swift b/submodules/SettingsUI/Sources/GlassGramSettingsController.swift
+new file mode 100644
+index 0000000000..42ca1178d6
+--- /dev/null
++++ b/submodules/SettingsUI/Sources/GlassGramSettingsController.swift
+@@ -0,0 +1,235 @@
++import Foundation
++import UIKit
++import Display
++import SwiftSignalKit
++import TelegramCore
++import TelegramPresentationData
++import TelegramUIPreferences
++import ItemListUI
++import PresentationDataUtils
++import AccountContext
++import GlassGram
++
++private enum GlassGramToggle: Equatable {
++    case hideStories
++    case timeSeconds
++    case ghostRead
++    case ghostStories
++    case ghostOnline
++    case ghostTyping
++    case saveDeleted
++    case markDeleted
++}
++
++private final class GlassGramSettingsArguments {
++    let selectStyle: (Int) -> Void
++    let selectAvatarShape: (Int) -> Void
++    let toggle: (GlassGramToggle, Bool) -> Void
++    let clearDeleted: () -> Void
++
++    init(selectStyle: @escaping (Int) -> Void, selectAvatarShape: @escaping (Int) -> Void, toggle: @escaping (GlassGramToggle, Bool) -> Void, clearDeleted: @escaping () -> Void) {
++        self.selectStyle = selectStyle
++        self.selectAvatarShape = selectAvatarShape
++        self.toggle = toggle
++        self.clearDeleted = clearDeleted
++    }
++}
++
++private enum GlassGramSettingsSection: Int32 {
++    case style
++    case avatars
++    case interface
++    case ghost
++    case deleted
++}
++
++private enum GlassGramSettingsEntry: ItemListNodeEntry {
++    case header(Int32, GlassGramSettingsSection, String)
++    case footer(Int32, GlassGramSettingsSection, String)
++    case style(Int32, Int, String, Bool)
++    case avatar(Int32, Int, String, Bool)
++    case toggle(Int32, GlassGramSettingsSection, GlassGramToggle, String, Bool, Bool)
++    case clearDeleted(Int32, String)
++
++    var section: ItemListSectionId {
++        switch self {
++        case let .header(_, section, _), let .footer(_, section, _), let .toggle(_, section, _, _, _, _):
++            return section.rawValue
++        case .style:
++            return GlassGramSettingsSection.style.rawValue
++        case .avatar:
++            return GlassGramSettingsSection.avatars.rawValue
++        case .clearDeleted:
++            return GlassGramSettingsSection.deleted.rawValue
++        }
++    }
++
++    var stableId: Int32 {
++        switch self {
++        case let .header(id, _, _), let .footer(id, _, _), let .style(id, _, _, _), let .avatar(id, _, _, _), let .toggle(id, _, _, _, _, _), let .clearDeleted(id, _):
++            return id
++        }
++    }
++
++    static func <(lhs: GlassGramSettingsEntry, rhs: GlassGramSettingsEntry) -> Bool {
++        return lhs.stableId < rhs.stableId
++    }
++
++    func item(presentationData: ItemListPresentationData, arguments: Any) -> ListViewItem {
++        let arguments = arguments as! GlassGramSettingsArguments
++        switch self {
++        case let .header(_, _, text):
++            return ItemListSectionHeaderItem(presentationData: presentationData, text: text, sectionId: self.section)
++        case let .footer(_, _, text):
++            return ItemListTextItem(presentationData: presentationData, text: .plain(text), sectionId: self.section)
++        case let .style(_, index, title, selected):
++            return ItemListCheckboxItem(presentationData: presentationData, systemStyle: .glass, title: title, style: .left, checked: selected, zeroSeparatorInsets: false, sectionId: self.section, action: {
++                arguments.selectStyle(index)
++            })
++        case let .avatar(_, index, title, selected):
++            return ItemListCheckboxItem(presentationData: presentationData, systemStyle: .glass, title: title, style: .left, checked: selected, zeroSeparatorInsets: false, sectionId: self.section, action: {
++                arguments.selectAvatarShape(index)
++            })
++        case let .toggle(_, _, kind, title, value, enabled):
++            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: self.section, style: .blocks, updated: { value in
++                arguments.toggle(kind, value)
++            })
++        case let .clearDeleted(_, title):
++            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .destructive, alignment: .natural, sectionId: self.section, style: .blocks, action: {
++                arguments.clearDeleted()
++            })
++        }
++    }
++}
++
++private let glassGramAvatarShapeTitles: [String] = [
++    "Квадратные",
++    "Почти квадратные",
++    "Скруглённый квадрат",
++    "Мягкие",
++    "Круглые"
++]
++
++private func glassGramSettingsEntries() -> [GlassGramSettingsEntry] {
++    var entries: [GlassGramSettingsEntry] = []
++
++    entries.append(.header(0, .style, "СТИЛЬ СТЕКЛА"))
++    let currentStyle = GlassGramSettings.stylePreset
++    for (index, style) in GlassGramStyles.presets.enumerated() {
++        entries.append(.style(Int32(1 + index), index, style.title, index == currentStyle))
++    }
++    entries.append(.footer(99, .style, "Цвет акцентов, градиент исходящих сообщений и градиентные обои тёмной темы."))
++
++    entries.append(.header(100, .avatars, "ФОРМА АВАТАРОК"))
++    let currentShape = GlassGramSettings.avatarShape
++    for (index, title) in glassGramAvatarShapeTitles.enumerated() {
++        entries.append(.avatar(Int32(101 + index), index, title, index == currentShape))
++    }
++    entries.append(.footer(199, .avatars, "Полностью применится после перезапуска приложения."))
++
++    entries.append(.header(200, .interface, "ИНТЕРФЕЙС"))
++    entries.append(.toggle(201, .interface, .hideStories, "Скрыть истории над чатами", GlassGramSettings.hideStories, true))
++    entries.append(.toggle(202, .interface, .timeSeconds, "Время сообщений с секундами", GlassGramSettings.timeSeconds, true))
++
++    entries.append(.header(300, .ghost, "РЕЖИМ ПРИЗРАКА"))
++    entries.append(.toggle(301, .ghost, .ghostRead, "Не отправлять «прочитано»", GlassGramSettings.ghostRead, true))
++    entries.append(.toggle(302, .ghost, .ghostStories, "Смотреть истории незаметно", GlassGramSettings.ghostStories, true))
++    entries.append(.toggle(303, .ghost, .ghostOnline, "Всегда «не в сети»", GlassGramSettings.ghostOnline, true))
++    entries.append(.toggle(304, .ghost, .ghostTyping, "Не показывать «печатает…»", GlassGramSettings.ghostTyping, true))
++    entries.append(.footer(399, .ghost, "Собеседники не увидят, что вы прочитали сообщения или посмотрели истории."))
++
++    entries.append(.header(400, .deleted, "УДАЛЁННЫЕ СООБЩЕНИЯ"))
++    entries.append(.toggle(401, .deleted, .saveDeleted, "Сохранять удалённые сообщения", GlassGramSettings.saveDeleted, true))
++    entries.append(.toggle(402, .deleted, .markDeleted, "Помечать удалённые", GlassGramSettings.markDeleted, GlassGramSettings.saveDeleted))
++    let deletedCount = GlassGramDeletedStore.count
++    if deletedCount > 0 {
++        entries.append(.clearDeleted(403, "Забыть пометки удалённых (\(deletedCount))"))
++    }
++    entries.append(.footer(499, .deleted, "Сообщения, которые удалил собеседник, остаются на этом устройстве с пометкой «удалено». Работает для сообщений, удалённых после включения."))
++
++    return entries
++}
++
++private func glassGramApplyStyle(context: AccountContext, index: Int) {
++    let presets = GlassGramStyles.presets
++    if index < 0 || index >= presets.count {
++        return
++    }
++    let style = presets[index]
++    GlassGramSettings.stylePreset = index
++    let reference: PresentationThemeReference = .builtin(style.tinted ? .nightAccent : .night)
++    let wallpaper = defaultBuiltinWallpaper(data: .default, colors: style.wallpaper, intensity: -35, rotation: nil)
++    let accent = PresentationThemeAccentColor(index: Int32(900 + index), baseColor: .custom, accentColor: 0xFF000000 | style.accent, bubbleColors: style.bubbles.map { 0xFF000000 | $0 }, wallpaper: wallpaper)
++    let _ = updatePresentationThemeSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
++        var accentColors = settings.themeSpecificAccentColors
++        accentColors[reference.index] = accent
++        let automatic = AutomaticThemeSwitchSetting(force: settings.automaticThemeSwitchSetting.force, trigger: settings.automaticThemeSwitchSetting.trigger, theme: reference)
++        return settings
++            .withUpdatedTheme(reference)
++            .withUpdatedThemeSpecificAccentColors(accentColors)
++            .withUpdatedThemeSpecificChatWallpapers([:])
++            .withUpdatedAutomaticThemeSwitchSetting(automatic)
++    }).start()
++}
++
++public func glassGramSettingsController(context: AccountContext) -> ViewController {
++    let updatePromise = ValuePromise<Int>(0, ignoreRepeated: false)
++    var counter = 0
++    let reload: () -> Void = {
++        counter += 1
++        updatePromise.set(counter)
++    }
++
++    let arguments = GlassGramSettingsArguments(
++        selectStyle: { index in
++            glassGramApplyStyle(context: context, index: index)
++            reload()
++        },
++        selectAvatarShape: { index in
++            GlassGramSettings.avatarShape = index
++            reload()
++        },
++        toggle: { kind, value in
++            switch kind {
++            case .hideStories:
++                GlassGramSettings.hideStories = value
++            case .timeSeconds:
++                GlassGramSettings.timeSeconds = value
++            case .ghostRead:
++                GlassGramSettings.ghostRead = value
++            case .ghostStories:
++                GlassGramSettings.ghostStories = value
++            case .ghostOnline:
++                GlassGramSettings.ghostOnline = value
++            case .ghostTyping:
++                GlassGramSettings.ghostTyping = value
++            case .saveDeleted:
++                GlassGramSettings.saveDeleted = value
++            case .markDeleted:
++                GlassGramSettings.markDeleted = value
++            }
++            reload()
++        },
++        clearDeleted: {
++            GlassGramDeletedStore.clear()
++            reload()
++        }
++    )
++
++    let signal = combineLatest(queue: .mainQueue(),
++        context.sharedContext.presentationData,
++        updatePromise.get()
++    )
++    |> map { presentationData, _ -> (ItemListControllerState, (ItemListNodeState, Any)) in
++        var presentationData = presentationData
++        let updatedTheme = presentationData.theme.withModalBlocksBackground()
++        presentationData = presentationData.withUpdated(theme: updatedTheme)
++
++        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("GlassGram"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
++        let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: glassGramSettingsEntries(), style: .blocks, animateChanges: true)
++        return (controllerState, (listState, arguments))
++    }
++
++    let controller = ItemListController(context: context, state: signal)
++    return controller
++}
+diff --git a/submodules/TelegramCore/BUILD b/submodules/TelegramCore/BUILD
+index 1234d53bb2..28f5bfc7a8 100644
+--- a/submodules/TelegramCore/BUILD
++++ b/submodules/TelegramCore/BUILD
+@@ -12,6 +12,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/GlassGram:GlassGram",
+         "//submodules/TelegramApi:TelegramApi",
+         "//submodules/MtProtoKit:MtProtoKit",
+         "//submodules/MediaPreuploadRegistry:MediaPreuploadRegistry",
+diff --git a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
+index ba4569edf6..0986d884e0 100644
+--- a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
++++ b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
+@@ -4,6 +4,7 @@ import SwiftSignalKit
+ import TelegramApi
+ import MtProtoKit
+ import EncryptionProvider
++import GlassGram
+ 
+ private func reactionGeneratedEvent(_ previousReactions: ReactionsMessageAttribute?, _ updatedReactions: ReactionsMessageAttribute?, message: Message, transaction: Transaction) -> (reactionAuthor: Peer, reaction: MessageReaction.Reaction, message: Message, timestamp: Int32)? {
+     if let updatedReactions = updatedReactions, !message.flags.contains(.Incoming), message.id.peerId.namespace == Namespaces.Peer.CloudUser {
+@@ -972,7 +973,12 @@ private func finalStateWithUpdatesAndServerTime(accountPeerId: PeerId, postbox:
+                     if previousState.pts >= pts {
+                         Logger.shared.log("State", "channel \(peerId) (\((updatedState.peers[peerId] as? TelegramChannel)?.title ?? "nil")) skip old delete update")
+                     } else if previousState.pts + ptsCount == pts {
+-                        updatedState.deleteMessages(messages.map({ MessageId(peerId: peerId, namespace: Namespaces.Message.Cloud, id: $0) }))
++                        if GlassGramSettings.saveDeleted {
++                            // GlassGram: keep the messages, only remember that they were deleted
++                            GlassGramDeletedStore.markDeleted(channelId: channelId, messageIds: messages)
++                        } else {
++                            updatedState.deleteMessages(messages.map({ MessageId(peerId: peerId, namespace: Namespaces.Message.Cloud, id: $0) }))
++                        }
+                         updatedState.updateChannelState(peerId, pts: pts)
+                     } else {
+                         if !missingUpdatesFromChannels.contains(peerId) {
+@@ -1062,7 +1068,12 @@ private func finalStateWithUpdatesAndServerTime(accountPeerId: PeerId, postbox:
+                 let peerId = PeerId(namespace: Namespaces.Peer.CloudChannel, id: PeerId.Id._internalFromInt64Value(channelId))
+                 updatedState.updateMinAvailableMessage(MessageId(peerId: peerId, namespace: Namespaces.Message.Cloud, id: minId))
+             case let .updateDeleteMessages(updateDeleteMessagesData):
+-                updatedState.deleteMessagesWithGlobalIds(updateDeleteMessagesData.messages)
++                if GlassGramSettings.saveDeleted {
++                    // GlassGram: keep the messages, only remember that they were deleted
++                    GlassGramDeletedStore.markDeleted(channelId: 0, messageIds: updateDeleteMessagesData.messages)
++                } else {
++                    updatedState.deleteMessagesWithGlobalIds(updateDeleteMessagesData.messages)
++                }
+             case let .updatePinnedMessages(updatePinnedMessagesData):
+                 let (flags, peer, messages) = (updatePinnedMessagesData.flags, updatePinnedMessagesData.peer, updatePinnedMessagesData.messages)
+                 let peerId = peer.peerId
+@@ -3555,7 +3566,11 @@ private func pollChannel(accountPeerId: PeerId, postbox: Postbox, network: Netwo
+                     switch update {
+                     case let .updateDeleteChannelMessages(updateDeleteChannelMessagesData):
+                         let peerId = peer.id
+-                        updatedState.deleteMessages(updateDeleteChannelMessagesData.messages.map({ MessageId(peerId: peerId, namespace: Namespaces.Message.Cloud, id: $0) }))
++                        if GlassGramSettings.saveDeleted {
++                            GlassGramDeletedStore.markDeleted(channelId: peerId.id._internalGetInt64Value(), messageIds: updateDeleteChannelMessagesData.messages)
++                        } else {
++                            updatedState.deleteMessages(updateDeleteChannelMessagesData.messages.map({ MessageId(peerId: peerId, namespace: Namespaces.Message.Cloud, id: $0) }))
++                        }
+                     case let .updateEditChannelMessage(updateEditChannelMessageData):
+                         let apiMessage = updateEditChannelMessageData.message
+                         var peerIsForum = peer.isForum
+diff --git a/submodules/TelegramCore/Sources/State/ManagedAccountPresence.swift b/submodules/TelegramCore/Sources/State/ManagedAccountPresence.swift
+index 8c8a4fa31d..d36a76d01e 100644
+--- a/submodules/TelegramCore/Sources/State/ManagedAccountPresence.swift
++++ b/submodules/TelegramCore/Sources/State/ManagedAccountPresence.swift
+@@ -3,6 +3,7 @@ import TelegramApi
+ import Postbox
+ import SwiftSignalKit
+ import MtProtoKit
++import GlassGram
+ 
+ private typealias SignalKitTimer = SwiftSignalKit.Timer
+ 
+@@ -53,7 +54,7 @@ private final class AccountPresenceManagerImpl {
+             }, queue: self.queue)
+             self.onlineTimer = timer
+             timer.start()
+-            request = self.network.request(Api.functions.account.updateStatus(offline: .boolFalse))
++            request = self.network.request(Api.functions.account.updateStatus(offline: GlassGramSettings.ghostOnline ? .boolTrue : .boolFalse))
+         } else {
+             self.onlineTimer?.invalidate()
+             self.onlineTimer = nil
+diff --git a/submodules/TelegramCore/Sources/State/ManagedLocalInputActivities.swift b/submodules/TelegramCore/Sources/State/ManagedLocalInputActivities.swift
+index 7acc37a1ea..6075952afc 100644
+--- a/submodules/TelegramCore/Sources/State/ManagedLocalInputActivities.swift
++++ b/submodules/TelegramCore/Sources/State/ManagedLocalInputActivities.swift
+@@ -3,6 +3,7 @@ import Postbox
+ import SwiftSignalKit
+ import TelegramApi
+ import MtProtoKit
++import GlassGram
+ 
+ 
+ public struct PeerActivitySpace: Hashable {
+@@ -181,6 +182,9 @@ private func requestActivity(postbox: Postbox, network: Network, accountPeerId:
+                 if topMessageId != nil {
+                     flags |= 1 << 0
+                 }
++                if GlassGramSettings.ghostTyping {
++                    return .complete() // GlassGram ghost mode: no "typing..."
++                }
+                 return network.request(Api.functions.messages.setTyping(flags: flags, peer: inputPeer, topMsgId: topMessageId, action: actionFromActivity(activity)))
+                 |> `catch` { _ -> Signal<Api.Bool, NoError> in
+                     return .single(.boolFalse)
+diff --git a/submodules/TelegramCore/Sources/State/ManagedSynchronizeViewStoriesOperations.swift b/submodules/TelegramCore/Sources/State/ManagedSynchronizeViewStoriesOperations.swift
+index bebd6915af..7b1d95072e 100644
+--- a/submodules/TelegramCore/Sources/State/ManagedSynchronizeViewStoriesOperations.swift
++++ b/submodules/TelegramCore/Sources/State/ManagedSynchronizeViewStoriesOperations.swift
+@@ -3,6 +3,7 @@ import Postbox
+ import SwiftSignalKit
+ import TelegramApi
+ import MtProtoKit
++import GlassGram
+ 
+ private final class ManagedSynchronizeViewStoriesOperationsHelper {
+     var operationDisposables: [PeerId: (Int32, Disposable)] = [:]
+@@ -122,6 +123,9 @@ private func pushStoriesAreSeen(postbox: Postbox, network: Network, stateManager
+     guard let inputPeer = apiInputPeer(peer) else {
+         return .complete()
+     }
++    if GlassGramSettings.ghostStories {
++        return .complete() // GlassGram ghost mode: stories are viewed invisibly
++    }
+     return network.request(Api.functions.stories.readStories(peer: inputPeer, maxId: operation.storyId))
+     |> `catch` { _ -> Signal<[Int32], NoError> in
+         return .single([])
+diff --git a/submodules/TelegramCore/Sources/State/SynchronizePeerReadState.swift b/submodules/TelegramCore/Sources/State/SynchronizePeerReadState.swift
+index 1b8617d22a..79bb64287d 100644
+--- a/submodules/TelegramCore/Sources/State/SynchronizePeerReadState.swift
++++ b/submodules/TelegramCore/Sources/State/SynchronizePeerReadState.swift
+@@ -2,6 +2,7 @@ import Foundation
+ import Postbox
+ import TelegramApi
+ import SwiftSignalKit
++import GlassGram
+ 
+ 
+ private enum PeerReadStateMarker: Equatable {
+@@ -292,6 +293,9 @@ private func pushPeerReadState(network: Network, postbox: Postbox, stateManager:
+                     |> mapToSignal { _ -> Signal<Void, NoError> in
+                         return .complete()
+                     }
++                    if GlassGramSettings.ghostRead {
++                        pushSignal = .complete() // GlassGram ghost mode: no read receipts
++                    }
+                     if markedUnread {
+                         pushSignal = pushSignal
+                         |> then(network.request(Api.functions.messages.markDialogUnread(flags: 1 << 0, parentPeer: nil, peer: .inputDialogPeer(.init(peer: inputPeer))))
+@@ -331,6 +335,9 @@ private func pushPeerReadState(network: Network, postbox: Postbox, stateManager:
+                         return .complete()
+                     }
+ 
++                    if GlassGramSettings.ghostRead {
++                        pushSignal = .complete() // GlassGram ghost mode: no read receipts
++                    }
+                     if markedUnread {
+                         pushSignal = pushSignal
+                         |> then(network.request(Api.functions.messages.markDialogUnread(flags: 1 << 0, parentPeer: nil, peer: .inputDialogPeer(.init(peer: inputPeer))))
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
+index e58f17196e..c91e35291f 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
+@@ -12,6 +12,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/GlassGram:GlassGram",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/TelegramCore",
+         "//submodules/Display",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+index ad79b915c4..0aff532dc2 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+@@ -6,6 +6,7 @@ import TelegramStringFormatting
+ import TextFormat
+ import LocalizedPeerData
+ import AccountContext
++import GlassGram
+ 
+ public enum MessageTimestampStatusFormat {
+     case full
+@@ -107,10 +108,17 @@ public func stringForMessageTimestampStatus(
+         timestamp = orignalDate
+     }
+     
+-    var dateText = stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat)
++    var dateText = stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat, withSeconds: GlassGramSettings.timeSeconds)
+     if timestamp == scheduleWhenOnlineTimestamp {
+         dateText = "         "
+     }
++    if GlassGramSettings.saveDeleted && GlassGramSettings.markDeleted && message.scheduleTime == nil {
++        // GlassGram: the message was deleted on the server but kept on this device
++        let glassChannelId: Int64 = message.id.peerId.namespace == Namespaces.Peer.CloudChannel ? message.id.peerId.id._internalGetInt64Value() : 0
++        if message.id.namespace == Namespaces.Message.Cloud && GlassGramDeletedStore.isDeleted(channelId: glassChannelId, messageId: message.id.id) {
++            dateText = "удалено " + dateText
++        }
++    }
+     
+     if let repeatPeriod = message.scheduleRepeatPeriod {
+         let repeatString: String
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+index 71918a2f5a..617e849c4d 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+@@ -169,6 +169,7 @@ enum PeerInfoSettingsSection {
+     case passwordSetup
+     case dataAndStorage
+     case appearance
++    case glassgram
+     case language
+     case stickers
+     case premium
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+index ec998735ca..95413d295f 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+@@ -276,6 +276,8 @@ extension PeerInfoScreenNode {
+             self.headerNode.invokeDisplayPremiumIntro()
+         case .profileColor:
+             self.interaction.editingOpenNameColorSetup()
++        case .glassgram:
++            push(glassGramSettingsController(context: self.context))
+         case .powerSaving:
+             push(energySavingSettingsScreen(context: self.context))
+         case .businessSetup:
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
+index a4873696bd..8efadca0eb 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
+@@ -265,6 +265,10 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+     items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 3, text: presentationData.strings.Settings_Appearance, icon: PresentationResourcesSettings.appearance, action: {
+         interaction.openSettings(.appearance)
+     }))
++    // GlassGram: mod settings
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 7, text: "GlassGram", icon: PresentationResourcesSettings.appearance, action: {
++        interaction.openSettings(.glassgram)
++    }))
+     
+     items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 6, label: .text(data.isPowerSavingEnabled == true ? presentationData.strings.Settings_PowerSavingOn : presentationData.strings.Settings_PowerSavingOff), text: presentationData.strings.Settings_PowerSaving, icon: PresentationResourcesSettings.powerSaving, action: {
+         interaction.openSettings(.powerSaving)
+diff --git a/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift b/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
+index 5f2f06d4d7..a5c8d1d4e3 100644
+--- a/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
++++ b/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
+@@ -652,7 +652,10 @@ public struct PresentationThemeSettings: Codable {
+     }
+     
+     public static var defaultSettings: PresentationThemeSettings {
+-        return PresentationThemeSettings(theme: .builtin(.dayClassic), themePreferredBaseTheme: [:], themeSpecificAccentColors: [:], themeSpecificChatWallpapers: [:], useSystemFont: true, fontSize: .regular, listsFontSize: .regular, chatBubbleSettings: .default, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting(force: false, trigger: .system, theme: .builtin(.night)), largeEmoji: true, reduceMotion: false)
++        // GlassGram: the blue glass style (tinted dark theme with a blue accent) is the default day and night
++        let glassTheme = PresentationThemeReference.builtin(.nightAccent)
++        let glassAccent = PresentationThemeAccentColor(index: 900, baseColor: .custom, accentColor: 0xFF4FA8FF, bubbleColors: [0xFF2D6BFF, 0xFF3FB4FF], wallpaper: nil)
++        return PresentationThemeSettings(theme: glassTheme, themePreferredBaseTheme: [:], themeSpecificAccentColors: [glassTheme.index: glassAccent], themeSpecificChatWallpapers: [:], useSystemFont: true, fontSize: .regular, listsFontSize: .regular, chatBubbleSettings: .default, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting(force: false, trigger: .system, theme: glassTheme), largeEmoji: true, reduceMotion: false)
+     }
+     
+     public init(theme: PresentationThemeReference, themePreferredBaseTheme: [Int64: TelegramBaseTheme], themeSpecificAccentColors: [Int64: PresentationThemeAccentColor], themeSpecificChatWallpapers: [Int64: TelegramWallpaper], useSystemFont: Bool, fontSize: PresentationFontSize, listsFontSize: PresentationFontSize, chatBubbleSettings: PresentationChatBubbleSettings, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting, largeEmoji: Bool, reduceMotion: Bool) {
