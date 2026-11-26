@@ -435,6 +435,647 @@ index 0000000000..8a050e4119
 +        "//visibility:public",
 +    ],
 +)
+diff --git a/submodules/GlassGram/Sources/GlassGramBuiltinPlugins.swift b/submodules/GlassGram/Sources/GlassGramBuiltinPlugins.swift
+new file mode 100644
+index 0000000000..c399c0c3ef
+--- /dev/null
++++ b/submodules/GlassGram/Sources/GlassGramBuiltinPlugins.swift
+@@ -0,0 +1,140 @@
++import Foundation
++
++/// Plugins installed on the first launch (the user can disable or delete them).
++enum GlassGramBuiltinPlugins {
++    static let all: [(String, String, Bool)] = [
++        ("commands", #"""
++plugin({
++  id: "commands",
++  name: "Команды",
++  description: ".ping .time .date .calc .upper .lower .reverse .translit .coin .rand",
++  version: "1.0",
++  commands: {
++    ".ping": function () { return "🏓 pong"; },
++    ".time": function () {
++      var d = new Date();
++      function p(n) { return (n < 10 ? "0" : "") + n; }
++      return "🕒 " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
++    },
++    ".date": function () {
++      var d = new Date();
++      var months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
++      return "📅 " + d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
++    },
++    ".calc": function (args) {
++      var expr = args.replace(/,/g, ".").replace(/×/g, "*").replace(/÷/g, "/").replace(/\^/g, "**");
++      if (!/^[0-9+\-*/().%\s*]+$/.test(expr)) { return "🧮 можно только числа и + - * / ^ ( )"; }
++      try {
++        var result = Function("return (" + expr + ")")();
++        return "🧮 " + args + " = " + (Math.round(result * 1e10) / 1e10);
++      } catch (e) { return "🧮 ошибка в выражении"; }
++    },
++    ".upper": function (args) { return args.toUpperCase(); },
++    ".lower": function (args) { return args.toLowerCase(); },
++    ".reverse": function (args) { return Array.from(args).reverse().join(""); },
++    ".translit": function (args) {
++      var map = {"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya"};
++      return Array.from(args).map(function (c) {
++        var lower = c.toLowerCase();
++        if (map[lower] === undefined) { return c; }
++        var t = map[lower];
++        return c === lower ? t : t.charAt(0).toUpperCase() + t.slice(1);
++      }).join("");
++    },
++    ".coin": function () { return Math.random() < 0.5 ? "🪙 Орёл" : "🪙 Решка"; },
++    ".rand": function (args) {
++      var parts = args.split(/\s+/).map(Number).filter(function (n) { return !isNaN(n); });
++      var min = parts.length > 1 ? parts[0] : 1;
++      var max = parts.length > 1 ? parts[1] : (parts.length === 1 ? parts[0] : 100);
++      return "🎲 " + (min + Math.floor(Math.random() * (max - min + 1)));
++    }
++  }
++});
++"""#, true),
++        ("templates", #"""
++plugin({
++  id: "templates",
++  name: "Шаблоны",
++  description: "Напиши :сокращение — отправится готовый текст",
++  version: "1.0",
++  settings: [
++    { type: "input", key: "list", title: "Шаблоны (сокр=текст; через ;)", default: "пр=Привет! Как дела?;пк=Пока, на связи!;сп=Спасибо большое!;ок=Хорошо, договорились 👍" }
++  ],
++  onSendMessage: function (msg) {
++    var t = msg.text.trim();
++    if (t.charAt(0) !== ":") { return msg.text; }
++    var key = t.slice(1).toLowerCase();
++    var items = String(GlassGram.setting("list") || "").split(";");
++    for (var i = 0; i < items.length; i++) {
++      var pos = items[i].indexOf("=");
++      if (pos > 0 && items[i].slice(0, pos).trim().toLowerCase() === key) {
++        return items[i].slice(pos + 1).trim();
++      }
++    }
++    return msg.text;
++  }
++});
++"""#, true),
++        ("weather", #"""
++plugin({
++  id: "weather",
++  name: "Погода",
++  description: ".weather Город — отправляет погоду (wttr.in)",
++  version: "1.0",
++  commands: {
++    ".weather": function (args, msg) {
++      var city = args.trim() || "Moscow";
++      GlassGram.httpGet("https://wttr.in/" + encodeURIComponent(city) + "?format=3&lang=ru", function (text, error) {
++        if (text && !error) {
++          GlassGram.sendMessage(msg.peerId, "🌤 " + text.trim());
++        } else {
++          GlassGram.sendMessage(msg.peerId, "🌤 не удалось получить погоду для " + city);
++        }
++      });
++      return null;
++    }
++  }
++});
++"""#, true),
++        ("autoreply", #"""
++plugin({
++  id: "autoreply",
++  name: "Автоответчик",
++  description: "Отвечает в личных чатах, пока включён (раз в час на каждый чат)",
++  version: "1.0",
++  settings: [
++    { type: "switch", key: "on", title: "Отвечать автоматически", default: false },
++    { type: "input", key: "text", title: "Текст ответа", default: "Привет! Я сейчас не на связи, отвечу позже 🙂" }
++  ],
++  onIncomingMessage: function (msg) {
++    if (GlassGram.setting("on") !== true || !msg.isPrivate) { return; }
++    var key = "last_" + msg.peerId;
++    var last = Number(GlassGram.storageGet(key) || 0);
++    var now = Math.floor(Date.now() / 1000);
++    if (now - last < 3600) { return; }
++    GlassGram.storageSet(key, String(now));
++    GlassGram.sendMessage(msg.peerId, String(GlassGram.setting("text")));
++  }
++});
++"""#, true),
++        ("signature", #"""
++plugin({
++  id: "signature",
++  name: "Подпись",
++  description: "Добавляет подпись в конец сообщений",
++  version: "1.0",
++  settings: [
++    { type: "input", key: "text", title: "Текст подписи", default: "— отправлено из GlassGram" },
++    { type: "switch", key: "privateOnly", title: "Только в личных чатах", default: false }
++  ],
++  onSendMessage: function (msg) {
++    var text = String(GlassGram.setting("text") || "");
++    if (!text) { return msg.text; }
++    if (GlassGram.setting("privateOnly") === true && !msg.isPrivate) { return msg.text; }
++    if (msg.text.charAt(0) === ".") { return msg.text; }
++    return msg.text + "\n\n" + text;
++  }
++});
++"""#, false)
++    ]
++}
+diff --git a/submodules/GlassGram/Sources/GlassGramPlugins.swift b/submodules/GlassGram/Sources/GlassGramPlugins.swift
+new file mode 100644
+index 0000000000..a5f69767e3
+--- /dev/null
++++ b/submodules/GlassGram/Sources/GlassGramPlugins.swift
+@@ -0,0 +1,489 @@
++import Foundation
++import JavaScriptCore
++
++/// GlassGram JavaScript plugins (JavaScriptCore, built into iOS).
++///
++/// A plugin is one .js file that calls `plugin({...})`:
++///
++///     plugin({
++///       id: "ping", name: "Ping", description: "...", version: "1.0",
++///       settings: [ { type: "switch", key: "on", title: "Включено", default: true } ],
++///       commands: { ".ping": function(args, msg) { return "pong" } },
++///       onSendMessage: function(msg) { return msg.text },      // string: new text, null/false: cancel
++///       onIncomingMessage: function(msg) { }                    // msg.text, msg.peerId, msg.isPrivate
++///     })
++///
++/// API object `GlassGram`: log(text), sendMessage(peerId, text), setting(key),
++/// storageGet(key), storageSet(key, value), httpGet(url, callback(text, error)).
++public final class GlassGramPlugins {
++    public static let shared = GlassGramPlugins()
++
++    public struct PluginInfo {
++        public let id: String
++        public let name: String
++        public let description: String
++        public let version: String
++        public let enabled: Bool
++        public let error: String?
++        public let hasSettings: Bool
++    }
++
++    public struct SettingItem {
++        /// "header", "switch", "input" or "text"
++        public let kind: String
++        public let key: String
++        public let title: String
++        public let value: String
++        public let isOn: Bool
++    }
++
++    /// Sends a text message from the active account (set by the app).
++    public var sendTextHandler: ((Int64, String) -> Void)?
++
++    private final class LoadedPlugin {
++        let id: String
++        let name: String
++        let description: String
++        let version: String
++        let context: JSContext
++        let definition: JSValue
++        let settings: [SettingItem]
++        let defaults: [String: String]
++        var error: String?
++
++        init(id: String, name: String, description: String, version: String, context: JSContext, definition: JSValue, settings: [SettingItem], defaults: [String: String]) {
++            self.id = id
++            self.name = name
++            self.description = description
++            self.version = version
++            self.context = context
++            self.definition = definition
++            self.settings = settings
++            self.defaults = defaults
++        }
++    }
++
++    private final class PluginBox {
++        var id: String = ""
++        var defaults: [String: String] = [:]
++    }
++
++    private let queue = DispatchQueue(label: "org.glassgram.plugins")
++    private let queueKey = DispatchSpecificKey<Bool>()
++    private var plugins: [LoadedPlugin] = []
++    private var failed: [String: String] = [:]
++    private var started = false
++
++    private let flagsLock = NSLock()
++    private var outgoingHooks = false
++    private var incomingHooks = false
++
++    private init() {
++        self.queue.setSpecific(key: self.queueKey, value: true)
++    }
++
++    private var isOnQueue: Bool {
++        return DispatchQueue.getSpecific(key: self.queueKey) == true
++    }
++
++    public var hasOutgoingHooks: Bool {
++        self.flagsLock.lock()
++        defer {
++            self.flagsLock.unlock()
++        }
++        return self.outgoingHooks
++    }
++
++    public var hasIncomingHooks: Bool {
++        self.flagsLock.lock()
++        defer {
++            self.flagsLock.unlock()
++        }
++        return self.incomingHooks
++    }
++
++    // MARK: storage
++
++    private var directory: URL {
++        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
++        return base.appendingPathComponent("glassgram-plugins", isDirectory: true)
++    }
++
++    private static func enabledKey(_ id: String) -> String {
++        return "glassgram.plugin.enabled." + id
++    }
++
++    private static func settingKey(_ id: String, _ key: String) -> String {
++        return "glassgram.plugin.setting." + id + "." + key
++    }
++
++    private static func storageKey(_ id: String, _ key: String) -> String {
++        return "glassgram.plugin.storage." + id + "." + key
++    }
++
++    private func isEnabled(_ id: String) -> Bool {
++        let defaults = UserDefaults.standard
++        if defaults.object(forKey: GlassGramPlugins.enabledKey(id)) == nil {
++            return true
++        }
++        return defaults.bool(forKey: GlassGramPlugins.enabledKey(id))
++    }
++
++    // MARK: lifecycle
++
++    /// Loads the installed plugins in the background (called at app start).
++    public func start() {
++        self.queue.async {
++            self.ensureStarted()
++        }
++    }
++
++    private func ensureStarted() {
++        if self.started {
++            return
++        }
++        self.started = true
++        let fileManager = FileManager.default
++        try? fileManager.createDirectory(at: self.directory, withIntermediateDirectories: true, attributes: nil)
++        if !UserDefaults.standard.bool(forKey: "glassgram.plugins.builtinsInstalled") {
++            UserDefaults.standard.set(true, forKey: "glassgram.plugins.builtinsInstalled")
++            for (id, source, enabled) in GlassGramBuiltinPlugins.all {
++                let url = self.directory.appendingPathComponent(id + ".js")
++                try? source.write(to: url, atomically: true, encoding: .utf8)
++                UserDefaults.standard.set(enabled, forKey: GlassGramPlugins.enabledKey(id))
++            }
++        }
++        self.reloadAll()
++    }
++
++    private func reloadAll() {
++        self.plugins.removeAll()
++        self.failed.removeAll()
++        let files = (try? FileManager.default.contentsOfDirectory(at: self.directory, includingPropertiesForKeys: nil, options: [])) ?? []
++        for url in files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) where url.pathExtension == "js" {
++            let id = url.deletingPathExtension().lastPathComponent
++            guard let source = try? String(contentsOf: url, encoding: .utf8) else {
++                continue
++            }
++            switch self.load(source: source) {
++            case let .success(plugin):
++                self.plugins.append(plugin)
++            case let .failure(error):
++                self.failed[id] = error.message
++            }
++        }
++        self.updateFlags()
++    }
++
++    private func updateFlags() {
++        var outgoing = false
++        var incoming = false
++        for plugin in self.plugins where self.isEnabled(plugin.id) {
++            if GlassGramPlugins.isSet(plugin.definition.forProperty("onSendMessage")) || GlassGramPlugins.isSet(plugin.definition.forProperty("commands")) {
++                outgoing = true
++            }
++            if GlassGramPlugins.isSet(plugin.definition.forProperty("onIncomingMessage")) {
++                incoming = true
++            }
++        }
++        self.flagsLock.lock()
++        self.outgoingHooks = outgoing
++        self.incomingHooks = incoming
++        self.flagsLock.unlock()
++    }
++
++    private static func isSet(_ value: JSValue?) -> Bool {
++        guard let value else {
++            return false
++        }
++        return !value.isUndefined && !value.isNull
++    }
++
++    private struct LoadError: Error {
++        let message: String
++    }
++
++    private func load(source: String) -> Result<LoadedPlugin, LoadError> {
++        guard let context = JSContext() else {
++            return .failure(LoadError(message: "JavaScriptCore is unavailable"))
++        }
++        let box = PluginBox()
++        var lastException: String?
++        context.exceptionHandler = { _, exception in
++            lastException = exception?.toString()
++        }
++        var definition: JSValue?
++        let register: @convention(block) (JSValue) -> Void = { value in
++            definition = value
++        }
++        context.setObject(register, forKeyedSubscript: "plugin" as NSString)
++        self.installApi(context: context, box: box)
++
++        context.evaluateScript(source)
++        if let lastException {
++            return .failure(LoadError(message: lastException))
++        }
++        guard let definition, definition.isObject else {
++            return .failure(LoadError(message: "plugin({...}) was not called"))
++        }
++        guard let idValue = definition.forProperty("id"), idValue.isString, let id = idValue.toString(), !id.isEmpty else {
++            return .failure(LoadError(message: "plugin id is missing"))
++        }
++        let name = GlassGramPlugins.string(definition.forProperty("name")) ?? id
++        let description = GlassGramPlugins.string(definition.forProperty("description")) ?? ""
++        let version = GlassGramPlugins.string(definition.forProperty("version")) ?? "1.0"
++
++        var settings: [SettingItem] = []
++        var defaults: [String: String] = [:]
++        if let list = definition.forProperty("settings"), list.isArray, let count = list.forProperty("length")?.toInt32() {
++            for index in 0 ..< Int(count) {
++                guard let item = list.atIndex(index), item.isObject else {
++                    continue
++                }
++                let kind = GlassGramPlugins.string(item.forProperty("type")) ?? "text"
++                let key = GlassGramPlugins.string(item.forProperty("key")) ?? ""
++                let title = GlassGramPlugins.string(item.forProperty("title")) ?? ""
++                var defaultValue = ""
++                if let value = item.forProperty("default"), !value.isUndefined, !value.isNull {
++                    if value.isBoolean {
++                        defaultValue = value.toBool() ? "true" : "false"
++                    } else {
++                        defaultValue = value.toString() ?? ""
++                    }
++                }
++                if !key.isEmpty {
++                    defaults[key] = defaultValue
++                }
++                settings.append(SettingItem(kind: kind, key: key, title: title, value: defaultValue, isOn: defaultValue == "true"))
++            }
++        }
++        box.id = id
++        box.defaults = defaults
++        return .success(LoadedPlugin(id: id, name: name, description: description, version: version, context: context, definition: definition, settings: settings, defaults: defaults))
++    }
++
++    private static func string(_ value: JSValue?) -> String? {
++        guard let value, !value.isUndefined, !value.isNull else {
++            return nil
++        }
++        return value.toString()
++    }
++
++    private func settingValue(id: String, key: String, defaults: [String: String]) -> String {
++        if let value = UserDefaults.standard.string(forKey: GlassGramPlugins.settingKey(id, key)) {
++            return value
++        }
++        return defaults[key] ?? ""
++    }
++
++    private func installApi(context: JSContext, box: PluginBox) {
++        guard let api = JSValue(newObjectIn: context) else {
++            return
++        }
++        let log: @convention(block) (String) -> Void = { text in
++            NSLog("[GlassGram plugin %@] %@", box.id, text)
++        }
++        let sendMessage: @convention(block) (String, String) -> Void = { [weak self] peerId, text in
++            guard let self, let peer = Int64(peerId), !text.isEmpty else {
++                return
++            }
++            self.sendTextHandler?(peer, text)
++        }
++        let setting: @convention(block) (String) -> NSObject = { [weak self] key in
++            guard let self else {
++                return NSString(string: "")
++            }
++            let value = self.settingValue(id: box.id, key: key, defaults: box.defaults)
++            if value == "true" {
++                return NSNumber(value: true)
++            } else if value == "false" {
++                return NSNumber(value: false)
++            }
++            return NSString(string: value)
++        }
++        let storageGet: @convention(block) (String) -> NSObject = { key in
++            if let value = UserDefaults.standard.string(forKey: GlassGramPlugins.storageKey(box.id, key)) {
++                return NSString(string: value)
++            }
++            return NSNull()
++        }
++        let storageSet: @convention(block) (String, JSValue) -> Void = { key, value in
++            if value.isUndefined || value.isNull {
++                UserDefaults.standard.removeObject(forKey: GlassGramPlugins.storageKey(box.id, key))
++            } else {
++                UserDefaults.standard.set(value.toString() ?? "", forKey: GlassGramPlugins.storageKey(box.id, key))
++            }
++        }
++        let httpGet: @convention(block) (String, JSValue) -> Void = { [weak self] urlString, callback in
++            guard let self, let url = URL(string: urlString), url.scheme == "https" || url.scheme == "http" else {
++                callback.call(withArguments: [NSNull(), "invalid url"])
++                return
++            }
++            var request = URLRequest(url: url)
++            request.timeoutInterval = 15.0
++            request.setValue("GlassGram", forHTTPHeaderField: "User-Agent")
++            URLSession.shared.dataTask(with: request, completionHandler: { data, _, error in
++                let text = data.flatMap { String(data: $0, encoding: .utf8) }
++                let errorText = error?.localizedDescription
++                let textArgument: Any = text.map { $0 as Any } ?? NSNull()
++                let errorArgument: Any = errorText.map { $0 as Any } ?? NSNull()
++                self.queue.async {
++                    callback.call(withArguments: [textArgument, errorArgument])
++                }
++            }).resume()
++        }
++        api.setObject(log, forKeyedSubscript: "log" as NSString)
++        api.setObject(sendMessage, forKeyedSubscript: "sendMessage" as NSString)
++        api.setObject(setting, forKeyedSubscript: "setting" as NSString)
++        api.setObject(storageGet, forKeyedSubscript: "storageGet" as NSString)
++        api.setObject(storageSet, forKeyedSubscript: "storageSet" as NSString)
++        api.setObject(httpGet, forKeyedSubscript: "httpGet" as NSString)
++        context.setObject(api, forKeyedSubscript: "GlassGram" as NSString)
++    }
++
++    // MARK: hooks
++
++    /// Runs the outgoing text through the enabled plugins. Returns nil when a plugin cancelled sending.
++    public func transformOutgoing(text: String, peerId: Int64, isPrivate: Bool) -> String? {
++        if self.isOnQueue {
++            // a message sent by a plugin itself
++            return text
++        }
++        return self.queue.sync { () -> String? in
++            self.ensureStarted()
++            var current = text
++            for plugin in self.plugins where self.isEnabled(plugin.id) {
++                let context = plugin.context
++                guard let message = JSValue(newObjectIn: context) else {
++                    continue
++                }
++                message.setValue(current, forProperty: "text")
++                message.setValue(String(peerId), forProperty: "peerId")
++                message.setValue(isPrivate, forProperty: "isPrivate")
++
++                if let commands = plugin.definition.forProperty("commands"), commands.isObject {
++                    let trimmed = current.trimmingCharacters(in: .whitespacesAndNewlines)
++                    let parts = trimmed.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
++                    if let first = parts.first, let command = commands.forProperty(String(first)), GlassGramPlugins.isSet(command) {
++                        let arguments = parts.count > 1 ? String(parts[1]) : ""
++                        if let result = command.call(withArguments: [arguments, message]) {
++                            if result.isNull || (result.isBoolean && !result.toBool()) {
++                                return nil
++                            } else if result.isString, let value = result.toString() {
++                                current = value
++                                message.setValue(current, forProperty: "text")
++                            }
++                        }
++                    }
++                }
++                if let handler = plugin.definition.forProperty("onSendMessage"), GlassGramPlugins.isSet(handler) {
++                    if let result = handler.call(withArguments: [message]) {
++                        if result.isNull || (result.isBoolean && !result.toBool()) {
++                            return nil
++                        } else if result.isString, let value = result.toString() {
++                            current = value
++                        } else if result.isObject, let value = GlassGramPlugins.string(result.forProperty("text")) {
++                            current = value
++                        }
++                    }
++                }
++                if let exception = context.exception, !exception.isUndefined, !exception.isNull {
++                    plugin.error = exception.toString()
++                    context.exception = nil
++                }
++            }
++            return current.isEmpty ? nil : current
++        }
++    }
++
++    /// Tells the plugins about a new incoming message (asynchronously).
++    public func notifyIncoming(text: String, peerId: Int64, authorId: Int64, isPrivate: Bool, timestamp: Int32) {
++        if !self.hasIncomingHooks || text.isEmpty {
++            return
++        }
++        if Date().timeIntervalSince1970 - Double(timestamp) > 120.0 {
++            // history caught up after being offline
++            return
++        }
++        self.queue.async {
++            for plugin in self.plugins where self.isEnabled(plugin.id) {
++                guard let handler = plugin.definition.forProperty("onIncomingMessage"), GlassGramPlugins.isSet(handler), let message = JSValue(newObjectIn: plugin.context) else {
++                    continue
++                }
++                message.setValue(text, forProperty: "text")
++                message.setValue(String(peerId), forProperty: "peerId")
++                message.setValue(String(authorId), forProperty: "authorId")
++                message.setValue(isPrivate, forProperty: "isPrivate")
++                message.setValue(Int(timestamp), forProperty: "date")
++                handler.call(withArguments: [message])
++                if let exception = plugin.context.exception, !exception.isUndefined, !exception.isNull {
++                    plugin.error = exception.toString()
++                    plugin.context.exception = nil
++                }
++            }
++        }
++    }
++
++    // MARK: management (settings screen)
++
++    public func list() -> [PluginInfo] {
++        return self.queue.sync {
++            self.ensureStarted()
++            var result: [PluginInfo] = self.plugins.map { plugin in
++                PluginInfo(id: plugin.id, name: plugin.name, description: plugin.description, version: plugin.version, enabled: self.isEnabled(plugin.id), error: plugin.error, hasSettings: !plugin.settings.isEmpty)
++            }
++            for (id, error) in self.failed.sorted(by: { $0.key < $1.key }) {
++                result.append(PluginInfo(id: id, name: id, description: "", version: "", enabled: false, error: error, hasSettings: false))
++            }
++            return result
++        }
++    }
++
++    public func setEnabled(id: String, enabled: Bool) {
++        self.queue.sync {
++            UserDefaults.standard.set(enabled, forKey: GlassGramPlugins.enabledKey(id))
++            self.updateFlags()
++        }
++    }
++
++    /// Installs (or replaces) a plugin from its source and returns its id.
++    public func install(source: String) throws -> String {
++        return try self.queue.sync { () throws -> String in
++            self.ensureStarted()
++            switch self.load(source: source) {
++            case let .success(plugin):
++                let url = self.directory.appendingPathComponent(plugin.id + ".js")
++                try source.write(to: url, atomically: true, encoding: .utf8)
++                UserDefaults.standard.set(true, forKey: GlassGramPlugins.enabledKey(plugin.id))
++                self.reloadAll()
++                return plugin.id
++            case let .failure(error):
++                throw NSError(domain: "GlassGramPlugins", code: 1, userInfo: [NSLocalizedDescriptionKey: error.message])
++            }
++        }
++    }
++
++    public func delete(id: String) {
++        self.queue.sync {
++            try? FileManager.default.removeItem(at: self.directory.appendingPathComponent(id + ".js"))
++            UserDefaults.standard.removeObject(forKey: GlassGramPlugins.enabledKey(id))
++            self.reloadAll()
++        }
++    }
++
++    public func settings(id: String) -> [SettingItem] {
++        return self.queue.sync {
++            guard let plugin = self.plugins.first(where: { $0.id == id }) else {
++                return []
++            }
++            return plugin.settings.map { item in
++                let value = item.key.isEmpty ? item.value : self.settingValue(id: id, key: item.key, defaults: plugin.defaults)
++                return SettingItem(kind: item.kind, key: item.key, title: item.title, value: value, isOn: value == "true")
++            }
++        }
++    }
++
++    public func setSetting(id: String, key: String, value: String) {
++        UserDefaults.standard.set(value, forKey: GlassGramPlugins.settingKey(id, key))
++    }
++}
 diff --git a/submodules/GlassGram/Sources/GlassGramSettings.swift b/submodules/GlassGram/Sources/GlassGramSettings.swift
 new file mode 100644
 index 0000000000..b3f8bcd86e
@@ -674,10 +1315,10 @@ index 32438133ef..b007eb03ff 100644
          "//submodules/AsyncDisplayKit:AsyncDisplayKit",
 diff --git a/submodules/SettingsUI/Sources/GlassGramSettingsController.swift b/submodules/SettingsUI/Sources/GlassGramSettingsController.swift
 new file mode 100644
-index 0000000000..42ca1178d6
+index 0000000000..f93eb6df16
 --- /dev/null
 +++ b/submodules/SettingsUI/Sources/GlassGramSettingsController.swift
-@@ -0,0 +1,235 @@
+@@ -0,0 +1,496 @@
 +import Foundation
 +import UIKit
 +import Display
@@ -689,6 +1330,7 @@ index 0000000000..42ca1178d6
 +import PresentationDataUtils
 +import AccountContext
 +import GlassGram
++import UniformTypeIdentifiers
 +
 +private enum GlassGramToggle: Equatable {
 +    case hideStories
@@ -701,17 +1343,27 @@ index 0000000000..42ca1178d6
 +    case markDeleted
 +}
 +
++private enum GlassGramAction: Equatable {
++    case clearDeleted
++    case installFromClipboard
++    case installFromFile
++}
++
 +private final class GlassGramSettingsArguments {
 +    let selectStyle: (Int) -> Void
 +    let selectAvatarShape: (Int) -> Void
 +    let toggle: (GlassGramToggle, Bool) -> Void
-+    let clearDeleted: () -> Void
++    let action: (GlassGramAction) -> Void
++    let togglePlugin: (String, Bool) -> Void
++    let openPlugin: (String) -> Void
 +
-+    init(selectStyle: @escaping (Int) -> Void, selectAvatarShape: @escaping (Int) -> Void, toggle: @escaping (GlassGramToggle, Bool) -> Void, clearDeleted: @escaping () -> Void) {
++    init(selectStyle: @escaping (Int) -> Void, selectAvatarShape: @escaping (Int) -> Void, toggle: @escaping (GlassGramToggle, Bool) -> Void, action: @escaping (GlassGramAction) -> Void, togglePlugin: @escaping (String, Bool) -> Void, openPlugin: @escaping (String) -> Void) {
 +        self.selectStyle = selectStyle
 +        self.selectAvatarShape = selectAvatarShape
 +        self.toggle = toggle
-+        self.clearDeleted = clearDeleted
++        self.action = action
++        self.togglePlugin = togglePlugin
++        self.openPlugin = openPlugin
 +    }
 +}
 +
@@ -721,6 +1373,7 @@ index 0000000000..42ca1178d6
 +    case interface
 +    case ghost
 +    case deleted
++    case plugins
 +}
 +
 +private enum GlassGramSettingsEntry: ItemListNodeEntry {
@@ -729,24 +1382,25 @@ index 0000000000..42ca1178d6
 +    case style(Int32, Int, String, Bool)
 +    case avatar(Int32, Int, String, Bool)
 +    case toggle(Int32, GlassGramSettingsSection, GlassGramToggle, String, Bool, Bool)
-+    case clearDeleted(Int32, String)
++    case action(Int32, GlassGramSettingsSection, GlassGramAction, String, Bool)
++    case plugin(Int32, String, String, String?, Bool)
 +
 +    var section: ItemListSectionId {
 +        switch self {
-+        case let .header(_, section, _), let .footer(_, section, _), let .toggle(_, section, _, _, _, _):
++        case let .header(_, section, _), let .footer(_, section, _), let .toggle(_, section, _, _, _, _), let .action(_, section, _, _, _):
 +            return section.rawValue
 +        case .style:
 +            return GlassGramSettingsSection.style.rawValue
 +        case .avatar:
 +            return GlassGramSettingsSection.avatars.rawValue
-+        case .clearDeleted:
-+            return GlassGramSettingsSection.deleted.rawValue
++        case .plugin:
++            return GlassGramSettingsSection.plugins.rawValue
 +        }
 +    }
 +
 +    var stableId: Int32 {
 +        switch self {
-+        case let .header(id, _, _), let .footer(id, _, _), let .style(id, _, _, _), let .avatar(id, _, _, _), let .toggle(id, _, _, _, _, _), let .clearDeleted(id, _):
++        case let .header(id, _, _), let .footer(id, _, _), let .style(id, _, _, _), let .avatar(id, _, _, _), let .toggle(id, _, _, _, _, _), let .action(id, _, _, _, _), let .plugin(id, _, _, _, _):
 +            return id
 +        }
 +    }
@@ -774,9 +1428,15 @@ index 0000000000..42ca1178d6
 +            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: self.section, style: .blocks, updated: { value in
 +                arguments.toggle(kind, value)
 +            })
-+        case let .clearDeleted(_, title):
-+            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .destructive, alignment: .natural, sectionId: self.section, style: .blocks, action: {
-+                arguments.clearDeleted()
++        case let .action(_, _, kind, title, destructive):
++            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: destructive ? .destructive : .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
++                arguments.action(kind)
++            })
++        case let .plugin(_, pluginId, title, text, enabled):
++            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, text: text, value: enabled, maximumNumberOfLines: 2, sectionId: self.section, style: .blocks, updated: { value in
++                arguments.togglePlugin(pluginId, value)
++            }, action: {
++                arguments.openPlugin(pluginId)
 +            })
 +        }
 +    }
@@ -823,9 +1483,23 @@ index 0000000000..42ca1178d6
 +    entries.append(.toggle(402, .deleted, .markDeleted, "Помечать удалённые", GlassGramSettings.markDeleted, GlassGramSettings.saveDeleted))
 +    let deletedCount = GlassGramDeletedStore.count
 +    if deletedCount > 0 {
-+        entries.append(.clearDeleted(403, "Забыть пометки удалённых (\(deletedCount))"))
++        entries.append(.action(403, .deleted, .clearDeleted, "Забыть пометки удалённых (\(deletedCount))", true))
 +    }
 +    entries.append(.footer(499, .deleted, "Сообщения, которые удалил собеседник, остаются на этом устройстве с пометкой «удалено». Работает для сообщений, удалённых после включения."))
++
++    entries.append(.header(500, .plugins, "ПЛАГИНЫ (JAVASCRIPT)"))
++    var pluginIndex: Int32 = 0
++    for plugin in GlassGramPlugins.shared.list() {
++        var text: String? = plugin.description.isEmpty ? nil : plugin.description
++        if let error = plugin.error {
++            text = "Ошибка: " + error
++        }
++        entries.append(.plugin(501 + pluginIndex, plugin.id, plugin.name, text, plugin.enabled))
++        pluginIndex += 1
++    }
++    entries.append(.action(900, .plugins, .installFromClipboard, "Установить из буфера обмена", false))
++    entries.append(.action(901, .plugins, .installFromFile, "Установить из файла (.js)", false))
++    entries.append(.footer(999, .plugins, "Нажми на плагин, чтобы открыть его настройки или удалить. Плагин получает доступ к отправляемым и входящим сообщениям — ставь только те, которым доверяешь."))
 +
 +    return entries
 +}
@@ -853,6 +1527,7 @@ index 0000000000..42ca1178d6
 +}
 +
 +public func glassGramSettingsController(context: AccountContext) -> ViewController {
++    weak var controllerRef: ViewController?
 +    let updatePromise = ValuePromise<Int>(0, ignoreRepeated: false)
 +    var counter = 0
 +    let reload: () -> Void = {
@@ -890,9 +1565,36 @@ index 0000000000..42ca1178d6
 +            }
 +            reload()
 +        },
-+        clearDeleted: {
-+            GlassGramDeletedStore.clear()
++        action: { kind in
++            switch kind {
++            case .clearDeleted:
++                GlassGramDeletedStore.clear()
++                reload()
++            case .installFromClipboard:
++                glassGramInstallPlugin(source: UIPasteboard.general.string, controller: controllerRef, completion: reload)
++            case .installFromFile:
++                guard let controller = controllerRef else {
++                    return
++                }
++                let picker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.javaScript, UTType.plainText, UTType.data], asCopy: true)
++                let delegate = GlassGramDocumentPickerDelegate(completion: { [weak controller] url in
++                    let source = url.flatMap { try? String(contentsOf: $0, encoding: .utf8) }
++                    glassGramInstallPlugin(source: source, controller: controller, completion: reload)
++                })
++                picker.delegate = delegate
++                controller.present(picker, animated: true, completion: nil)
++            }
++        },
++        togglePlugin: { pluginId, value in
++            GlassGramPlugins.shared.setEnabled(id: pluginId, enabled: value)
 +            reload()
++        },
++        openPlugin: { pluginId in
++            guard let controller = controllerRef else {
++                return
++            }
++            let name = GlassGramPlugins.shared.list().first(where: { $0.id == pluginId })?.name ?? pluginId
++            controller.push(glassGramPluginController(context: context, pluginId: pluginId, name: name, changed: reload))
 +        }
 +    )
 +
@@ -911,6 +1613,206 @@ index 0000000000..42ca1178d6
 +    }
 +
 +    let controller = ItemListController(context: context, state: signal)
++    controllerRef = controller
++    return controller
++}
++
++
++/// Keeps itself alive until the picker reports back (the picker holds its delegate weakly).
++private final class GlassGramDocumentPickerDelegate: NSObject, UIDocumentPickerDelegate {
++    private let completion: (URL?) -> Void
++    private var keepAlive: GlassGramDocumentPickerDelegate?
++
++    init(completion: @escaping (URL?) -> Void) {
++        self.completion = completion
++        super.init()
++        self.keepAlive = self
++    }
++
++    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
++        self.completion(urls.first)
++        self.keepAlive = nil
++    }
++
++    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
++        self.keepAlive = nil
++    }
++}
++
++private func glassGramShowAlert(controller: ViewController?, title: String, text: String) {
++    guard let controller else {
++        return
++    }
++    let alert = UIAlertController(title: title, message: text, preferredStyle: .alert)
++    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
++    controller.present(alert, animated: true, completion: nil)
++}
++
++private func glassGramInstallPlugin(source: String?, controller: ViewController?, completion: @escaping () -> Void) {
++    guard let source, !source.isEmpty else {
++        glassGramShowAlert(controller: controller, title: "Плагин", text: "Нет текста плагина. Скопируй код плагина (.js) и попробуй снова.")
++        return
++    }
++    do {
++        let id = try GlassGramPlugins.shared.install(source: source)
++        glassGramShowAlert(controller: controller, title: "Плагин установлен", text: "Плагин «\(id)» установлен и включён.")
++    } catch {
++        glassGramShowAlert(controller: controller, title: "Не удалось установить", text: error.localizedDescription)
++    }
++    completion()
++}
++
++// MARK: plugin screen
++
++private enum GlassGramPluginEntry: ItemListNodeEntry {
++    case header(Int32, String)
++    case toggle(Int32, String, String, Bool)
++    case input(Int32, String, String, String)
++    case text(Int32, String)
++    case delete(Int32)
++
++    var section: ItemListSectionId {
++        switch self {
++        case .delete:
++            return 1
++        default:
++            return 0
++        }
++    }
++
++    var stableId: Int32 {
++        switch self {
++        case let .header(id, _), let .toggle(id, _, _, _), let .input(id, _, _, _), let .text(id, _), let .delete(id):
++            return id
++        }
++    }
++
++    static func <(lhs: GlassGramPluginEntry, rhs: GlassGramPluginEntry) -> Bool {
++        return lhs.stableId < rhs.stableId
++    }
++
++    func item(presentationData: ItemListPresentationData, arguments: Any) -> ListViewItem {
++        let arguments = arguments as! GlassGramPluginArguments
++        switch self {
++        case let .header(_, text):
++            return ItemListSectionHeaderItem(presentationData: presentationData, text: text, sectionId: self.section)
++        case let .toggle(_, key, title, value):
++            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, sectionId: self.section, style: .blocks, updated: { value in
++                arguments.setValue(key, value ? "true" : "false")
++            })
++        case let .input(_, key, title, value):
++            return ItemListDisclosureItem(presentationData: presentationData, systemStyle: .glass, title: title, label: value, labelStyle: .text, sectionId: self.section, style: .blocks, disclosureStyle: .arrow, action: {
++                arguments.edit(key, title, value)
++            })
++        case let .text(_, text):
++            return ItemListTextItem(presentationData: presentationData, text: .plain(text), sectionId: self.section)
++        case .delete:
++            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: "Удалить плагин", kind: .destructive, alignment: .natural, sectionId: self.section, style: .blocks, action: {
++                arguments.delete()
++            })
++        }
++    }
++}
++
++private final class GlassGramPluginArguments {
++    let setValue: (String, String) -> Void
++    let edit: (String, String, String) -> Void
++    let delete: () -> Void
++
++    init(setValue: @escaping (String, String) -> Void, edit: @escaping (String, String, String) -> Void, delete: @escaping () -> Void) {
++        self.setValue = setValue
++        self.edit = edit
++        self.delete = delete
++    }
++}
++
++private func glassGramPluginEntries(pluginId: String) -> [GlassGramPluginEntry] {
++    var entries: [GlassGramPluginEntry] = []
++    let info = GlassGramPlugins.shared.list().first(where: { $0.id == pluginId })
++    var index: Int32 = 0
++    for item in GlassGramPlugins.shared.settings(id: pluginId) {
++        index += 1
++        switch item.kind {
++        case "header":
++            entries.append(.header(index, item.title.uppercased()))
++        case "switch":
++            entries.append(.toggle(index, item.key, item.title, item.isOn))
++        case "input":
++            entries.append(.input(index, item.key, item.title, item.value))
++        default:
++            entries.append(.text(index, item.title))
++        }
++    }
++    var about: [String] = []
++    if let info {
++        if !info.description.isEmpty {
++            about.append(info.description)
++        }
++        about.append("id: \(info.id) · версия \(info.version)")
++        if let error = info.error {
++            about.append("Ошибка: " + error)
++        }
++    }
++    entries.append(.text(1000, about.joined(separator: "\n")))
++    entries.append(.delete(1001))
++    return entries
++}
++
++private func glassGramPluginController(context: AccountContext, pluginId: String, name: String, changed: @escaping () -> Void) -> ViewController {
++    weak var controllerRef: ViewController?
++    let updatePromise = ValuePromise<Int>(0, ignoreRepeated: false)
++    var counter = 0
++    let reload: () -> Void = {
++        counter += 1
++        updatePromise.set(counter)
++        changed()
++    }
++
++    let arguments = GlassGramPluginArguments(
++        setValue: { key, value in
++            GlassGramPlugins.shared.setSetting(id: pluginId, key: key, value: value)
++            reload()
++        },
++        edit: { key, title, value in
++            guard let controller = controllerRef else {
++                return
++            }
++            let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
++            alert.addTextField { textField in
++                textField.text = value
++                textField.clearButtonMode = .whileEditing
++            }
++            alert.addAction(UIAlertAction(title: "Отмена", style: .cancel, handler: nil))
++            alert.addAction(UIAlertAction(title: "Сохранить", style: .default, handler: { [weak alert] _ in
++                let text = alert?.textFields?.first?.text ?? ""
++                GlassGramPlugins.shared.setSetting(id: pluginId, key: key, value: text)
++                reload()
++            }))
++            controller.present(alert, animated: true, completion: nil)
++        },
++        delete: {
++            GlassGramPlugins.shared.delete(id: pluginId)
++            changed()
++            controllerRef?.dismiss()
++        }
++    )
++
++    let signal = combineLatest(queue: .mainQueue(),
++        context.sharedContext.presentationData,
++        updatePromise.get()
++    )
++    |> map { presentationData, _ -> (ItemListControllerState, (ItemListNodeState, Any)) in
++        var presentationData = presentationData
++        let updatedTheme = presentationData.theme.withModalBlocksBackground()
++        presentationData = presentationData.withUpdated(theme: updatedTheme)
++
++        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(name), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
++        let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: glassGramPluginEntries(pluginId: pluginId), style: .blocks, animateChanges: true)
++        return (controllerState, (listState, arguments))
++    }
++
++    let controller = ItemListController(context: context, state: signal)
++    controllerRef = controller
 +    return controller
 +}
 diff --git a/submodules/TelegramCore/BUILD b/submodules/TelegramCore/BUILD
@@ -925,8 +1827,60 @@ index 1234d53bb2..28f5bfc7a8 100644
          "//submodules/TelegramApi:TelegramApi",
          "//submodules/MtProtoKit:MtProtoKit",
          "//submodules/MediaPreuploadRegistry:MediaPreuploadRegistry",
+diff --git a/submodules/TelegramCore/Sources/PendingMessages/EnqueueMessage.swift b/submodules/TelegramCore/Sources/PendingMessages/EnqueueMessage.swift
+index a8b125e82e..474558bedb 100644
+--- a/submodules/TelegramCore/Sources/PendingMessages/EnqueueMessage.swift
++++ b/submodules/TelegramCore/Sources/PendingMessages/EnqueueMessage.swift
+@@ -695,6 +695,7 @@ private func opportunisticallyTransformOutgoingMedia(network: Network, postbox:
+ }
+ 
+ public func enqueueMessages(account: Account, peerId: PeerId, messages: [EnqueueMessage]) -> Signal<[MessageId?], NoError> {
++    let messages = glassGramApplyPlugins(peerId: peerId, messages: messages) // GlassGram JS plugins
+     let signal: Signal<[(Bool, EnqueueMessage)], NoError>
+     if let transformOutgoingMessageMedia = account.transformOutgoingMessageMedia {
+         signal = opportunisticallyTransformOutgoingMedia(network: account.network, postbox: account.postbox, transformOutgoingMessageMedia: transformOutgoingMessageMedia, messages: messages, userInteractive: true)
+diff --git a/submodules/TelegramCore/Sources/PendingMessages/GlassGramPluginHooks.swift b/submodules/TelegramCore/Sources/PendingMessages/GlassGramPluginHooks.swift
+new file mode 100644
+index 0000000000..ae6d06c7bf
+--- /dev/null
++++ b/submodules/TelegramCore/Sources/PendingMessages/GlassGramPluginHooks.swift
+@@ -0,0 +1,34 @@
++import Foundation
++import Postbox
++import GlassGram
++
++/// GlassGram: outgoing text messages go through the enabled JS plugins (commands, templates, signature...).
++func glassGramApplyPlugins(peerId: PeerId, messages: [EnqueueMessage]) -> [EnqueueMessage] {
++    if !GlassGramPlugins.shared.hasOutgoingHooks {
++        return messages
++    }
++    var result: [EnqueueMessage] = []
++    for message in messages {
++        switch message {
++        case let .message(text, attributes, inlineStickers, mediaReference, threadId, replyToMessageId, replyToStoryId, localGroupingKey, correlationId, bubbleUpEmojiOrStickersets):
++            if text.isEmpty {
++                result.append(message)
++                continue
++            }
++            guard let updatedText = GlassGramPlugins.shared.transformOutgoing(text: text, peerId: peerId.toInt64(), isPrivate: peerId.namespace == Namespaces.Peer.CloudUser) else {
++                // cancelled by a plugin
++                continue
++            }
++            if updatedText == text {
++                result.append(message)
++            } else {
++                // the formatting entities belong to the old text
++                let updatedAttributes = attributes.filter { !($0 is TextEntitiesMessageAttribute) }
++                result.append(.message(text: updatedText, attributes: updatedAttributes, inlineStickers: inlineStickers, mediaReference: mediaReference, threadId: threadId, replyToMessageId: replyToMessageId, replyToStoryId: replyToStoryId, localGroupingKey: localGroupingKey, correlationId: correlationId, bubbleUpEmojiOrStickersets: bubbleUpEmojiOrStickersets))
++            }
++        case .forward:
++            result.append(message)
++        }
++    }
++    return result
++}
 diff --git a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
-index ba4569edf6..0986d884e0 100644
+index ba4569edf6..5045bdbafa 100644
 --- a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
 +++ b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
 @@ -4,6 +4,7 @@ import SwiftSignalKit
@@ -978,6 +1932,17 @@ index ba4569edf6..0986d884e0 100644
                      case let .updateEditChannelMessage(updateEditChannelMessageData):
                          let apiMessage = updateEditChannelMessageData.message
                          var peerIsForum = peer.isForum
+@@ -4192,6 +4207,10 @@ func replayFinalState(
+                     if case let .Id(id) = message.id {
+                         if message.flags.contains(.Incoming) {
+                             addedOperationIncomingMessageIds.append(id)
++                            if GlassGramPlugins.shared.hasIncomingHooks && id.namespace == Namespaces.Message.Cloud {
++                                // GlassGram JS plugins: onIncomingMessage
++                                GlassGramPlugins.shared.notifyIncoming(text: message.text, peerId: id.peerId.toInt64(), authorId: message.authorId?.toInt64() ?? 0, isPrivate: id.peerId.namespace == Namespaces.Peer.CloudUser, timestamp: message.timestamp)
++                            }
+                             if let authorId = message.authorId {
+                                 var isAutomatic = false
+                                 for attribute in message.attributes {
 diff --git a/submodules/TelegramCore/Sources/State/ManagedAccountPresence.swift b/submodules/TelegramCore/Sources/State/ManagedAccountPresence.swift
 index 8c8a4fa31d..d36a76d01e 100644
 --- a/submodules/TelegramCore/Sources/State/ManagedAccountPresence.swift
@@ -1075,6 +2040,18 @@ index 1b8617d22a..79bb64287d 100644
                      if markedUnread {
                          pushSignal = pushSignal
                          |> then(network.request(Api.functions.messages.markDialogUnread(flags: 1 << 0, parentPeer: nil, peer: .inputDialogPeer(.init(peer: inputPeer))))
+diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
+index 364009bc39..286f888cbc 100644
+--- a/submodules/TelegramUI/BUILD
++++ b/submodules/TelegramUI/BUILD
+@@ -64,6 +64,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/GlassGram:GlassGram",
+         "//third-party/recaptcha:RecaptchaEnterprise",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/SSignalKit/SSignalKit:SSignalKit",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
 index e58f17196e..c91e35291f 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
@@ -1158,6 +2135,34 @@ index a4873696bd..8efadca0eb 100644
      
      items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 6, label: .text(data.isPowerSavingEnabled == true ? presentationData.strings.Settings_PowerSavingOn : presentationData.strings.Settings_PowerSavingOff), text: presentationData.strings.Settings_PowerSaving, icon: PresentationResourcesSettings.powerSaving, action: {
          interaction.openSettings(.powerSaving)
+diff --git a/submodules/TelegramUI/Sources/AccountContext.swift b/submodules/TelegramUI/Sources/AccountContext.swift
+index c4accd876c..99acffaee9 100644
+--- a/submodules/TelegramUI/Sources/AccountContext.swift
++++ b/submodules/TelegramUI/Sources/AccountContext.swift
+@@ -32,6 +32,7 @@ import WalletContext
+ import WalletConnectScreen
+ import AlertUI
+ import MetalEngine
++import GlassGram
+ 
+ private final class DeviceSpecificContactImportContext {
+     let disposable = MetaDisposable()
+@@ -688,6 +689,15 @@ public final class AccountContextImpl: AccountContext {
+                 return try await requestPasscodeAuthentication(context: self, scope: .resource(namespace: request.namespace), lifetime: request.lifetime, biometricReason: self.sharedContext.currentPresentationData.with { $0 }.strings.Wallet_AuthenticationReason, authenticateBiometrics: authenticateBiometrics)
+             }
+         }
++        
++        // GlassGram: JS plugins send messages from the active account
++        if !temp {
++            let glassAccount = account
++            GlassGramPlugins.shared.sendTextHandler = { peerId, text in
++                let _ = enqueueMessages(account: glassAccount, peerId: PeerId(peerId), messages: [.message(text: text, attributes: [], inlineStickers: [:], mediaReference: nil, threadId: nil, replyToMessageId: nil, replyToStoryId: nil, localGroupingKey: nil, correlationId: nil, bubbleUpEmojiOrStickersets: [])]).start()
++            }
++            GlassGramPlugins.shared.start()
++        }
+     }
+ 
+     deinit {
 diff --git a/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift b/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
 index 5f2f06d4d7..a5c8d1d4e3 100644
 --- a/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift

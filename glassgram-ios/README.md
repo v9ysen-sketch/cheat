@@ -20,8 +20,44 @@
   Альтернативные иконки Telegram убраны.
 - **Экран настроек:** **Настройки → GlassGram**.
 
-Плагинов на iOS нет: Apple запрещает загружать и подменять код во время работы приложения.
-Liquid Glass на iOS 26 рисует сама система.
+## Плагины (JavaScript)
+
+Плагин — один файл `.js`, его выполняет JavaScriptCore, встроенный в iOS. Плагины
+устанавливаются в **Настройки → GlassGram → Плагины**: из буфера обмена или из файла.
+Встроенные плагины лежат в `glassgram-ios/plugins/`:
+
+| Плагин | Что делает |
+|---|---|
+| **Команды** | `.ping`, `.time`, `.date`, `.calc 2+2*3`, `.upper`, `.lower`, `.reverse`, `.translit`, `.coin`, `.rand 1 6` |
+| **Шаблоны** | `:пр` отправляет «Привет! Как дела?», список сокращений настраивается |
+| **Погода** | `.weather Москва`, данные с wttr.in |
+| **Автоответчик** | Отвечает в личных чатах не чаще раза в час на чат. Включается в настройках плагина |
+| **Подпись** | Добавляет подпись к сообщениям. Выключен по умолчанию |
+
+Пример плагина:
+
+```js
+plugin({
+  id: "hello", name: "Hello", version: "1.0",
+  settings: [ { type: "switch", key: "on", title: "Включено", default: true } ],
+  commands: { ".hi": function (args, msg) { return "Привет, " + args + "!"; } },
+  onSendMessage: function (msg) { return msg.text; },  // строка: новый текст, null: отменить отправку
+  onIncomingMessage: function (msg) { }                 // msg.text, msg.peerId, msg.isPrivate
+});
+```
+
+API `GlassGram`:
+
+| Функция | Что делает |
+|---|---|
+| `log(text)` | пишет в лог |
+| `sendMessage(peerId, text)` | отправляет сообщение |
+| `setting(key)` | читает настройку плагина |
+| `storageGet(key)`, `storageSet(key, value)` | хранят данные плагина |
+| `httpGet(url, function (text, error) {})` | делает GET-запрос |
+
+На iOS нельзя перехватывать произвольные функции приложения, как `hook_method` на Android:
+система не даёт менять машинный код во время работы. Liquid Glass на iOS 26 рисует сама система.
 
 ## Сборка
 
